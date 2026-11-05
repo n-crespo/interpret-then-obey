@@ -1,0 +1,5 @@
+inspect-ai
+openai
+pillow
+pyyaml
+pytest
