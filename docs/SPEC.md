@@ -141,7 +141,7 @@ With three prompts, three contexts and one injection, that is nine test cases pe
 **File.** `stimuli/manifest.jsonl`, JSON Lines, one row per line. Point `manifest:` in `harness/configs/*.yaml` at it. Reasons:
 
 - JSON Lines is the harness's default format and diffs one test case per line. The harness also accepts a `.json` array, but the generator writes only one file.
-- It is a sibling of `stimuli/experiment/`, which holds the four input files, so generated output stays out of the hand-written inputs. It does not collide with the legacy `stimuli/_bak/manifest/manifest.jsonl`.
+- It is a sibling of `stimuli/src/`, which holds the four input files, so generated output stays out of the hand-written inputs. It does not collide with the legacy `stimuli/_bak/manifest/manifest.jsonl`.
 - The loader looks for relative image paths in the manifest's folder and its parent (the repo root), so repo-relative paths like `stimuli/images/...` resolve without `--image-root`.
 
 **Rendered images** go in `stimuli/images/<id>.png`. The folder is gitignored; the manifest is committed with each image's hash. Rendering must be deterministic, or the hashes stop matching.
