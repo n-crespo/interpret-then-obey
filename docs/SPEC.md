@@ -2,7 +2,7 @@
 
 This document specifies how stimulus data is laid out and how test cases are built from it.
 
-**Status:** agreed design, not yet implemented. The code on `main` still reads `stimuli/src/languages.json` and `stimuli/src/stimuli.json`.
+**Status:** agreed design, not yet implemented. The harness still reads the legacy set in `stimuli/_bak/`.
 
 ## 1. Test cases
 

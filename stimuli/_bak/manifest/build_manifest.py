@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Build stimuli/manifest/manifest.jsonl and manifest.json from stimuli/src.
+Build stimuli/_bak/manifest/manifest.jsonl and manifest.json from stimuli/_bak/src.
 
-Rows, text and translations come from stimuli/spec.py (the same source the renderer
-uses). Image hashes are read from the files in stimuli/images/, so run
+Rows, text and translations come from stimuli/_bak/spec.py (the same source the renderer
+uses). Image hashes are read from the files in stimuli/_bak/images/, so run
 render/generate_fictional_stimuli.py first.
 Compatible with harness.manifest.load_manifest() and harness.task.build_task().
 """
@@ -54,7 +54,7 @@ def manifest_row(row: dict) -> dict:
         p = IMAGES_DIR / image_filename(row)
         if not p.exists():
             raise FileNotFoundError(f"Missing stimulus image: {p} (run render/generate_fictional_stimuli.py)")
-        out["image"] = f"stimuli/images/{p.name}"
+        out["image"] = f"stimuli/_bak/images/{p.name}"
         out["image_sha256"] = sha256_file(p)
     return out
 
@@ -63,7 +63,7 @@ def build() -> None:
     rows = [manifest_row(r) for r in load_rows()]
     ids = [r["id"] for r in rows]
     if len(ids) != len(set(ids)):
-        raise ValueError("duplicate ids in stimuli/src/stimuli.json")
+        raise ValueError("duplicate ids in stimuli/_bak/src/stimuli.json")
 
     expected = {r["image"].rsplit("/", 1)[1] for r in rows if "image" in r}
     stray = sorted(p.name for p in IMAGES_DIR.glob("*.png") if p.name not in expected)

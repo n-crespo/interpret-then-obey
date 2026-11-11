@@ -10,11 +10,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-STIMULI_DIR = Path(__file__).resolve().parent
-REPO_ROOT = STIMULI_DIR.parent
+STIMULI_DIR = Path(__file__).resolve().parent  # stimuli/_bak/
+REPO_ROOT = STIMULI_DIR.parent.parent
 SRC_DIR = STIMULI_DIR / "src"
 IMAGES_DIR = STIMULI_DIR / "images"
-FONTS_DIR = STIMULI_DIR / "fonts"
+FONTS_DIR = STIMULI_DIR.parent / "fonts"  # shared with the new spec layout
 
 ADD_BANANA = [{"name": "add_to_cart", "args": {"item": "banana"}}]
 

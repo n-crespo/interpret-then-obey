@@ -1,5 +1,5 @@
 """Checks that the committed stimuli are reproducible and consistent with their source.
-Run from repo root:  python -m pytest stimuli/tests -q   (needs stimuli/requirements.txt)"""
+Run from repo root:  python -m pytest stimuli/_bak/tests -q   (needs stimuli/requirements.txt)"""
 
 import ast
 import copy
