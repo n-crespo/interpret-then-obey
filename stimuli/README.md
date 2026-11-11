@@ -88,7 +88,6 @@ Or with the root `justfile` (`just` lists every recipe):
 
 ```bash
 just setup            # .venv + pinned deps
-just stimuli          # steps 1 + 2
-just stimuli-test     # step 3
-just stimuli-check    # rebuild and fail if anything differs from what is committed
+just build-stimuli    # steps 1 + 2
+just test             # step 3 (also runs the harness smoke test)
 ```
