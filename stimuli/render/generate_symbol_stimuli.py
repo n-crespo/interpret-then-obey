@@ -21,14 +21,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import warnings
 from pathlib import Path
 
+import PIL
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 STIMULI_DIR = Path(__file__).resolve().parents[1]
 IMAGES_DIR = STIMULI_DIR / "images"
 ART_DIR = STIMULI_DIR / "src" / "symbols"
 MANIFEST = STIMULI_DIR / "symbols" / "manifest.json"
+PINNED_PILLOW = "13.0.0"  # keep in sync with stimuli/requirements.txt
 
 W, H = 1280, 960
 SS = 2  # supersample factor for the drawn scene
@@ -148,12 +151,14 @@ def update_manifest(hashes: dict[str, str]) -> None:
     MANIFEST.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def main() -> None:
+def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", help="photo to use as the scene instead of the drawn one")
     ap.add_argument("--sign-box", help="x0,y0,x1,y1 of the sign in --base (required with --base)")
     ap.add_argument("--update-manifest", action="store_true")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+    if PIL.__version__ != PINNED_PILLOW:
+        warnings.warn(f"Pillow {PIL.__version__} != pinned {PINNED_PILLOW}: image hashes will not match the manifest", stacklevel=2)
 
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     if args.base:

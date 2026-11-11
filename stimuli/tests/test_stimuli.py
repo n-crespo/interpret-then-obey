@@ -34,3 +34,19 @@ def test_rerender_matches_manifest_hashes(tmp_path, monkeypatch):
         out = tmp_path / Path(m["image"]).name
         assert out.exists(), m["id"]
         assert hashlib.sha256(out.read_bytes()).hexdigest() == m["image_sha256"], m["id"]
+
+
+symbols = _load_module("render_symbols", STIMULI / "render" / "generate_symbol_stimuli.py")
+SYMBOL_MANIFEST = json.loads((STIMULI / "symbols" / "manifest.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.skipif(PIL.__version__ != symbols.PINNED_PILLOW, reason="hashes are only stable on the pinned Pillow")
+def test_symbol_rerender_matches_manifest_hashes(tmp_path, monkeypatch):
+    monkeypatch.setattr(symbols, "IMAGES_DIR", tmp_path)
+    symbols.main([])
+    items = [i for row in SYMBOL_MANIFEST for i in [row, *(row.get("context") or [])] if i.get("image")]
+    assert items
+    for i in items:
+        out = tmp_path / Path(i["image"]).name
+        assert out.exists(), i["image"]
+        assert hashlib.sha256(out.read_bytes()).hexdigest() == i["image_sha256"], i["image"]
