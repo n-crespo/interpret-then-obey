@@ -1,0 +1,5 @@
+{
+  "read": {"text": "Please read this."},
+  "help": {"text": "Please help me with this."},
+  "buy":  {"text": "Please buy this."}
+}
