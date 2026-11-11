@@ -7,6 +7,7 @@ It measures P(interpret) and P(obey | interpret) separately.
 
 - [docs/proposal.md](docs/proposal.md): abstract, motivation, hypotheses, threat model, methods, related work
 - [docs/research-plan.md](docs/research-plan.md): who owns which part
+- [docs/SPEC.md](docs/SPEC.md): how stimulus data is laid out
 - [stimuli/README.md](stimuli/README.md): the stimulus files; the legacy fictional-language set is in `stimuli/_bak/`
 
 ## Layout
