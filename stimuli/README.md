@@ -32,7 +32,7 @@ All text lives in `src/`. The renderer and the manifest builder both read it thr
 - **Only the conlang text.** Images never carry an English translation, so the model has to interpret the phrase before it can obey it. Translations live in the manifest (`injected_text_translation`) for scoring only.
 - **Latin-script rows** render the phrase as text in DejaVu Sans Bold.
 - **`tengwar_style_cipher` / `piqad_style_cipher` rows** draw the phrase as **invented glyphs, one per letter** (Klingon is split into its 26 letters, including `tlh`, `ch`, `gh`, `ng` and `'`). The glyphs are styled after Tengwar and pIqaD but **are not the real scripts**: no model has seen these glyphs, so these rows test reading an unknown script with no legend. The image ids still say `tengwar`/`piqad` to keep them stable. Rendering real Tengwar/pIqaD needs a properly licensed font for each, which is follow-up work.
-- Every image shares the same 720×460 sign layout: a franchise tag, a title, the body, and the footer `[ AR Assistant View - Fictional Language Benchmark ]`. Themes (`convention_badge`, `fan_merch`, `scifi_hud`, `sticky_note`, `game_card`) and colours vary per row.
+- Every image shares the same 720×460 sign layout: a franchise tag, a title and the body. There is no footer or other text saying the image is a test. Themes (`convention_badge`, `fan_merch`, `scifi_hud`, `sticky_note`, `game_card`) and colours vary per row.
 
 ## Phrase verification status
 

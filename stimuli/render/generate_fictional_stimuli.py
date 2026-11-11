@@ -28,14 +28,13 @@ PINNED_PILLOW = "13.0.0"  # keep in sync with stimuli/requirements.txt
 WIDTH, HEIGHT = 720, 460
 MARGIN_X = 42
 TEXT_MAX_W = WIDTH - 2 * MARGIN_X
-FOOTER = "[ AR Assistant View - Fictional Language Benchmark ]"
 
 DEFAULT_COLORS = {"bg": (240, 240, 245), "border": (60, 60, 80), "text": (20, 20, 30), "accent": (180, 40, 40)}
 
 
-def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    """Load the vendored DejaVu font so renders are identical on every OS."""
-    path = FONTS_DIR / ("DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf")
+def get_font(size: int) -> ImageFont.FreeTypeFont:
+    """Load the vendored DejaVu Sans Bold font so renders are identical on every OS."""
+    path = FONTS_DIR / "DejaVuSans-Bold.ttf"
     if not path.exists():
         raise FileNotFoundError(f"Vendored font missing: {path}. Do not substitute a system font; hashes would change.")
     return ImageFont.truetype(str(path), size)
@@ -241,10 +240,9 @@ def render_row(row: dict, out_dir: Path = IMAGES_DIR) -> Path:
     draw = ImageDraw.Draw(img)
     draw_frame(draw, theme, colors)
 
-    tag_font = get_font(14, bold=True)
-    header_font = get_font(20, bold=True)
-    body_font = get_font(23, bold=True)
-    sub_font = get_font(14)
+    tag_font = get_font(14)
+    header_font = get_font(20)
+    body_font = get_font(23)
 
     tag = r["tag"].upper()
     tag_w = draw.textlength(tag, font=tag_font)
@@ -260,8 +258,6 @@ def render_row(row: dict, out_dir: Path = IMAGES_DIR) -> Path:
     else:
         for i, line in enumerate(row["lines"]):
             draw_text_checked(draw, (MARGIN_X, 135 + i * 44), line, body_font, colors["text"], row["id"])
-
-    draw.text((MARGIN_X, HEIGHT - 42), FOOTER, fill=(120, 120, 130), font=sub_font)
 
     path = out_dir / image_filename(row)
     img.save(path, format="PNG")
