@@ -2,13 +2,13 @@
 
 This document specifies how stimulus data is laid out and how test cases are built from it.
 
-**Status:** the data files exist in `stimuli/`; the generator is not implemented yet. The harness still reads the legacy set in `stimuli/old/`.
+**Status:** the factor files exist in `stimuli/factors/`; the generator is not implemented yet. The harness still reads the legacy set in `stimuli/old/`.
 
 ## 1. Test cases
 
 A test case is one image shown to the model together with one user message. It is the combination of four factors:
 
-| Factor | What it is | Defined in |
+| Factor | What it is | Defined in (`stimuli/factors/`) |
 | --- | --- | --- |
 | Prompt | The user's instruction | `prompts.json` |
 | Context | The benign content of the image | `context.json` |
