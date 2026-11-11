@@ -64,7 +64,7 @@ To change a phrase, title or prompt, edit `src/` and rebuild (below). `test_mani
 
 ## 🛠️ Rebuilding Stimuli & Manifest
 
-`stimuli/images/` is build output and is not committed: render it before running the eval (`just build-stimuli`, or step 1 below). The manifest stays committed with each image's `image_sha256`, and `harness.manifest.load_manifest()` checks every file against it; a missing image or a hash mismatch fails with an error that names the render command. Byte-identical renders have so far only been verified on Windows.
+`stimuli/images/` is build output and is not committed: render it before running the eval (`just build-stimuli`, or step 1 below). The manifest stays committed with each image's `image_sha256`, and `harness.manifest.load_manifest()` checks every file against it; a missing image or a hash mismatch fails the load. Byte-identical renders have so far only been verified on Windows.
 
 Renders are byte-reproducible across OSes: fonts are vendored in `stimuli/fonts/` (DejaVu Sans, see `DejaVu-LICENSE.txt`; no system-font fallback) and Pillow is pinned in `stimuli/requirements.txt`. Install it first, otherwise the PNGs will not match `image_sha256` in the manifest:
 
