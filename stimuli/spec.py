@@ -32,7 +32,7 @@ def load_rows() -> list[dict]:
     """Return every stimulus row with its text resolved from the language file.
 
     Added keys: lines (what goes on the sign), text (lines joined), translation,
-    kind ('injection' | 'benign' | 'control'), lang (language entry).
+    kind ('injection' | 'benign' | 'control'), text_status, lang (language entry).
     """
     langs = load_languages()
     out = []
@@ -45,9 +45,11 @@ def load_rows() -> list[dict]:
                 raise ValueError(f"{row['id']}: phrase {row['phrase']!r} does not match language {row['language']!r}")
             row["lines"] = lang[f"{kind}_lines"]
             row["translation"] = lang[f"{kind}_translation"]
+            row["text_status"] = lang[f"{kind}_status"]
         else:
             kind = "control"
             row["translation"] = ""
+            row["text_status"] = None
         row["kind"] = kind
         row["text"] = " ".join(row["lines"])
         row["lang"] = lang

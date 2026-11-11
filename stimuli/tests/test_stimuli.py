@@ -11,7 +11,7 @@ from pathlib import Path
 
 import PIL
 import pytest
-from PIL import ImageDraw
+from PIL import Image, ImageDraw
 
 STIMULI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(STIMULI))
@@ -38,8 +38,20 @@ def test_manifest_matches_source():
         assert m["injected_text_raw"] == (r["text"] if r["kind"] != "control" else "")
         assert m["injected_text_translation"] == r["translation"]
         assert m["user_prompt"] == r["user_prompt"]
+        assert m["text_status"] == r["text_status"]
+        assert m["verified_by"] == r["lang"].get("verified_by")
         if m["medium"] == "text":
             assert r["text"] in m["user_prompt"]
+
+
+def test_images_carry_no_english_translation():
+    for r in load_rows():
+        if r["medium"] == "image":
+            assert not any("[" in line for line in r["lines"]), r["id"]
+            assert set(r["render"]) <= {"theme", "header", "bg", "border", "text", "accent"}, r["id"]
+            if r["section"] == "fictional_language":
+                # no header, tag or title that could gloss the phrase or name the language/script
+                assert "header" not in r["render"], r["id"]
 
 
 @pytest.mark.skipif(PIL.__version__ != render.PINNED_PILLOW, reason="hashes are only stable on the pinned Pillow")
@@ -72,16 +84,38 @@ def _render_capturing_text(row, out_dir, monkeypatch):
     return drawn, path.read_bytes()
 
 
+def _is_cipher(row):
+    return row["script"].endswith("_cipher")
+
+
 def _expected_text(row):
+    """Text rows draw header + lines; cipher rows draw no text strings at all."""
     header = row["render"].get("header")
-    body = [] if "glyphs" in row["render"] else row["lines"]
+    body = [] if _is_cipher(row) else row["lines"]
     return ([header] if header else []) + list(body)
 
 
 @pytest.mark.parametrize("row", IMAGE_ROWS, ids=[r["id"] for r in IMAGE_ROWS])
 def test_renderer_draws_exactly_spec_text(row, tmp_path, monkeypatch):
-    drawn, _ = _render_capturing_text(row, tmp_path, monkeypatch)
+    ciphered = []
+    original_cipher = render.draw_cipher
+    monkeypatch.setattr(render, "draw_cipher", lambda d, r: (ciphered.append(r["text"]), original_cipher(d, r)))
+    drawn, png = _render_capturing_text(row, tmp_path, monkeypatch)
     assert drawn == _expected_text(row)
+    if not _is_cipher(row):
+        assert ciphered == []
+        return
+    # The cipher must encode the spec phrase: it is fed exactly the spec text, and
+    # a different phrase (same letters, reordered) yields a different image.
+    assert ciphered == [" ".join(row["lines"])]
+    edited = copy.deepcopy(row)
+    edited["lines"] = list(reversed(row["lines"]))
+    edited["text"] = " ".join(edited["lines"])
+    (tmp_path / "edited").mkdir()
+    drawn_e, png_e = _render_capturing_text(edited, tmp_path / "edited", monkeypatch)
+    assert drawn_e == _expected_text(edited)
+    assert ciphered[-1] == edited["text"]
+    assert png_e != png
 
 
 def _sign_strings():
@@ -110,7 +144,7 @@ def test_renderer_has_no_hardcoded_sign_text():
 
 
 def test_editing_spec_changes_render(tmp_path, monkeypatch):
-    row = next(r for r in IMAGE_ROWS if "glyphs" not in r["render"] and r["kind"] != "control")
+    row = next(r for r in IMAGE_ROWS if not _is_cipher(r) and r["kind"] != "control")
     edited = copy.deepcopy(row)
     edited["lines"] = ["EDITED SPEC LINE", "SECOND EDIT"]
     (tmp_path / "a").mkdir()
@@ -120,3 +154,24 @@ def test_editing_spec_changes_render(tmp_path, monkeypatch):
     assert drawn_b == _expected_text(edited)
     assert drawn_a != drawn_b
     assert png_a != png_b
+
+
+@pytest.mark.parametrize("script", ["tengwar", "piqad"])
+def test_cipher_glyphs_are_distinct(script):
+    alphabet = render.LATIN_ALPHABET if script == "tengwar" else render.KLINGON_ALPHABET
+    seen = set()
+    for i, _ in enumerate(alphabet):
+        img = Image.new("RGB", (40, 80), "white")
+        d = ImageDraw.Draw(img)
+        if script == "tengwar":
+            render.tengwar_glyph(d, 5, 60, i, False, (0, 0, 0), (200, 0, 0))
+        else:
+            render.piqad_glyph(d, 5, 60, i, (0, 0, 0), (90, 90, 90))
+        seen.add(img.tobytes())
+    assert len(seen) == len(alphabet)
+
+
+def test_cipher_pairs_differ():
+    by_id = {m["id"]: m for m in MANIFEST}
+    for stem in ("fx-elvish-tengwar-image", "fx-klingon-piqad-image"):
+        assert by_id[f"{stem}-injection"]["image_sha256"] != by_id[f"{stem}-benign"]["image_sha256"]
