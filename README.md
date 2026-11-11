@@ -7,7 +7,8 @@ It measures P(interpret) and P(obey | interpret) separately.
 
 - [docs/proposal.md](docs/proposal.md): abstract, motivation, hypotheses, threat model, methods, related work
 - [docs/research-plan.md](docs/research-plan.md): who owns which part
-- [stimuli/README.md](stimuli/README.md): the fictional-language stimulus set
+- [docs/SPEC.md](docs/SPEC.md): how stimulus data is laid out
+- [stimuli/README.md](stimuli/README.md): the stimulus files; the legacy fictional-language set is in `stimuli/old/`
 
 ## Layout
 
@@ -37,7 +38,7 @@ Run `just` with no arguments to list recipes. They run from the repo root with
 | -------------------- | -------------------------------------------------------------------- | ----------------------- |
 | `setup`              | Create `.venv` and install everything                                |                         |
 | `test [pytest args]` | Re-render stimuli and compare to manifest hashes + harness smoke test |                         |
-| `build-stimuli`      | Render PNGs from `stimuli/src/`, rebuild manifest + image hashes     |                         |
+| `build-stimuli`      | Render legacy PNGs from `stimuli/old/src/`, rebuild manifest + hashes |                         |
 | `run <config> [...]` | Run the harness on a config in `harness/configs/`                    | Whatever the config names |
 | `run-dry [...]`      | Same pipeline on the real manifest with a mock model                 |                         |
 | `analyze <run_dir>`  | Breakdown tables for a run → prints + `<run_dir>/results_table.tex`  |                         |

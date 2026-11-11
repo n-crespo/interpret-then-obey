@@ -18,12 +18,12 @@ setup:
 
 # Run all tests: stimuli reproducibility + harness smoke test (no model needed)
 test *args:
-    {{ python }} -m pytest stimuli/tests harness/tests -q {{ args }}
+    {{ python }} -m pytest stimuli/old/tests harness/tests -q {{ args }}
 
-# Render stimulus images from stimuli/src/, then rebuild the manifest (text from src/, hashes from images/)
+# Render stimulus images from stimuli/old/src/, then rebuild the manifest (text from src/, hashes from images/)
 build-stimuli:
-    {{ python }} stimuli/render/generate_fictional_stimuli.py
-    {{ python }} stimuli/manifest/build_manifest.py
+    {{ python }} stimuli/old/render/generate_fictional_stimuli.py
+    {{ python }} stimuli/old/manifest/build_manifest.py
 
 # Run the harness: `just run <config.yaml> [--limit N]` or `just run --resume runs/<dir>`
 run *args:

@@ -107,6 +107,6 @@ def build_task(
 
 
 @task
-def interpret_then_obey(manifest: str = "stimuli/manifest/manifest.jsonl"):
+def interpret_then_obey(manifest: str = "stimuli/old/manifest/manifest.jsonl"):
     """`inspect eval harness/task.py -T manifest=...` also works, but harness.run is preferred."""
     return build_task(manifest)
