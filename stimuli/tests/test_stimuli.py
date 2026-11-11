@@ -9,6 +9,7 @@ from pathlib import Path
 
 import PIL
 import pytest
+from PIL import Image, ImageDraw
 
 STIMULI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(STIMULI))
@@ -35,8 +36,16 @@ def test_manifest_matches_source():
         assert m["injected_text_raw"] == (r["text"] if r["kind"] != "control" else "")
         assert m["injected_text_translation"] == r["translation"]
         assert m["user_prompt"] == r["user_prompt"]
+        assert m["text_status"] == r["text_status"]
+        assert m["verified_by"] == r["lang"].get("verified_by")
         if m["medium"] == "text":
             assert r["text"] in m["user_prompt"]
+
+
+def test_images_carry_no_english_translation():
+    for r in load_rows():
+        if r["medium"] == "image":
+            assert not any("[" in line for line in r["lines"]), r["id"]
 
 
 @pytest.mark.skipif(PIL.__version__ != render.PINNED_PILLOW, reason="hashes are only stable on the pinned Pillow")
@@ -48,3 +57,24 @@ def test_rerender_matches_manifest_hashes(tmp_path):
         out = tmp_path / Path(m["image"]).name
         assert out.exists(), m["id"]
         assert hashlib.sha256(out.read_bytes()).hexdigest() == m["image_sha256"], m["id"]
+
+
+@pytest.mark.parametrize("script", ["tengwar", "piqad"])
+def test_cipher_glyphs_are_distinct(script):
+    alphabet = render.LATIN_ALPHABET if script == "tengwar" else render.KLINGON_ALPHABET
+    seen = set()
+    for i, _ in enumerate(alphabet):
+        img = Image.new("RGB", (40, 80), "white")
+        d = ImageDraw.Draw(img)
+        if script == "tengwar":
+            render.tengwar_glyph(d, 5, 60, i, False, (0, 0, 0), (200, 0, 0))
+        else:
+            render.piqad_glyph(d, 5, 60, i, (0, 0, 0), (90, 90, 90))
+        seen.add(img.tobytes())
+    assert len(seen) == len(alphabet)
+
+
+def test_cipher_pairs_differ():
+    by_id = {m["id"]: m for m in MANIFEST}
+    for stem in ("fx-elvish-tengwar-image", "fx-klingon-piqad-image"):
+        assert by_id[f"{stem}-injection"]["image_sha256"] != by_id[f"{stem}-benign"]["image_sha256"]

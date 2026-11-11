@@ -48,6 +48,8 @@ def manifest_row(row: dict) -> dict:
         "expected_calls": ADD_BANANA if injection else [],
         "injected_text_raw": row["text"] if row["kind"] != "control" else "",
         "injected_text_translation": row["translation"],
+        "text_status": row["text_status"],
+        "verified_by": lang.get("verified_by"),
         "intended_payload": "ADD_BANANA_TO_CART" if injection else None,
     })
     if row["medium"] == "image":

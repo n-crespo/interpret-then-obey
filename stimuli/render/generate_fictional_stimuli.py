@@ -3,6 +3,7 @@
 Render the stimulus images for the fictional-conlang section into stimuli/images/.
 
 All sign text comes from stimuli/src (via stimuli/spec.py); nothing is typed in here.
+Images show only the conlang text, never an English translation.
 
 Reproducibility: fonts are vendored in stimuli/fonts/ and Pillow is pinned in
 stimuli/requirements.txt. Same Pillow version -> byte-identical PNGs on any OS, so
@@ -12,6 +13,7 @@ the image_sha256 values in the manifest stay valid after a re-render.
 from __future__ import annotations
 
 import sys
+import unicodedata
 import warnings
 from pathlib import Path
 
@@ -68,47 +70,166 @@ def draw_text_checked(draw, xy, text, font, fill, where: str) -> None:
     draw.text(xy, text, fill=fill, font=font)
 
 
-def draw_tengwar_glyphs(draw: ImageDraw.ImageDraw) -> None:
-    """Decorative Tengwar-style strokes. They do not encode the phrase."""
-    color = (40, 70, 90)
-    strokes = [
-        (100, 260, 140, 260), (140, 235, 140, 325),
-        (180, 260, 220, 260), (180, 260, 180, 335), (220, 260, 220, 335),
-        (260, 250, 290, 280), (290, 280, 260, 310), (290, 240, 290, 325),
-        (330, 260, 370, 260), (370, 240, 370, 335),
-        (410, 260, 440, 280), (440, 280, 410, 310), (440, 230, 440, 345),
-        (480, 260, 520, 260), (480, 240, 480, 335), (520, 240, 520, 335),
+# ---------------------------------------------------------------------------
+# Invented-glyph ciphers. These are NOT real Tengwar or pIqaD: each letter maps
+# to a deterministic, distinct invented glyph styled after the script, so the
+# image genuinely encodes the phrase (and injection/benign images differ).
+# ---------------------------------------------------------------------------
+
+LATIN_ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+# Klingon's 26 letters in pIqaD order; multi-char letters are matched first.
+KLINGON_ALPHABET = ["a", "b", "ch", "D", "e", "gh", "H", "I", "j", "l", "m", "n", "ng",
+                    "o", "p", "q", "Q", "r", "S", "t", "tlh", "u", "v", "w", "y", "'"]
+PUNCT = set(".,!?-")
+
+
+def tokenize_latin(text: str) -> list[tuple[str, bool]]:
+    """-> [(token, has_diacritic)]; token is a base letter, ' ', or punctuation."""
+    out = []
+    for ch in text:
+        base = unicodedata.normalize("NFD", ch)
+        letter = base[0].lower()
+        if letter in LATIN_ALPHABET or letter in PUNCT or letter in " '":
+            out.append((letter, len(base) > 1))
+        else:
+            raise ValueError(f"no glyph for {ch!r} in {text!r}")
+    return out
+
+
+def tokenize_klingon(text: str) -> list[tuple[str, bool]]:
+    out, i = [], 0
+    by_len = sorted(KLINGON_ALPHABET, key=len, reverse=True)
+    while i < len(text):
+        for letter in by_len:
+            if text.startswith(letter, i):
+                out.append((letter, False))
+                i += len(letter)
+                break
+        else:
+            ch = text[i]
+            if ch in PUNCT or ch == " ":
+                out.append((ch, False))
+                i += 1
+            else:
+                raise ValueError(f"no pIqaD-style glyph for {ch!r} in {text!r}")
+    return out
+
+
+def tengwar_glyph(draw, x: int, base: int, idx: int, accent: bool, color, mark_color) -> int:
+    stem, bows, mark = idx % 3, (idx // 3) % 3, (idx // 9) % 3
+    sx = x + 3
+    if stem == 1:
+        draw.line([(sx, base - 22), (sx, base + 16)], fill=color, width=3)
+    elif stem == 2:
+        draw.line([(sx, base - 40), (sx, base)], fill=color, width=3)
+    else:
+        draw.line([(sx, base - 22), (sx, base)], fill=color, width=3)
+    if bows == 0:
+        draw.arc([(sx - 2, base - 22), (sx + 14, base)], start=270, end=90, fill=color, width=3)
+    elif bows == 1:
+        draw.arc([(sx - 2, base - 22), (sx + 10, base)], start=270, end=90, fill=color, width=3)
+        draw.arc([(sx + 6, base - 22), (sx + 18, base)], start=270, end=90, fill=color, width=3)
+    else:
+        draw.ellipse([(sx, base - 20), (sx + 14, base - 2)], outline=color, width=3)
+    if mark == 1:
+        draw.ellipse([(sx + 5, base - 32), (sx + 10, base - 27)], fill=mark_color)
+    elif mark == 2:
+        draw.arc([(sx + 1, base - 36), (sx + 15, base - 26)], start=180, end=360, fill=mark_color, width=2)
+    if accent:
+        draw.line([(sx + 8, base - 46), (sx + 14, base - 52)], fill=mark_color, width=2)
+    return 26
+
+
+def piqad_glyph(draw, x: int, base: int, idx: int, color, fill) -> int:
+    shapes = [
+        [(0, 34), (8, 0), (22, 34)],
+        [(0, 30), (10, 0), (22, 8), (14, 34)],
+        [(0, 0), (22, 6), (18, 24), (6, 34), (0, 18)],
     ]
-    for x1, y1, x2, y2 in strokes:
-        draw.line([(x1, y1), (x2, y2)], fill=color, width=4)
-        draw.ellipse([(x2 - 3, y2 - 3), (x2 + 3, y2 + 3)], fill=color)
-
-    tehtar = [(120, 240), (200, 245), (280, 230), (350, 225), (425, 220), (500, 225)]
-    for tx, ty in tehtar:
-        draw.ellipse([(tx - 4, ty - 4), (tx + 4, ty + 4)], fill=(180, 60, 30))
-        draw.arc([(tx - 8, ty - 8), (tx + 8, ty + 4)], start=0, end=180, fill=(180, 60, 30), width=2)
-
-
-def draw_piqad_glyphs(draw: ImageDraw.ImageDraw) -> None:
-    """Decorative pIqaD-style shapes. They do not encode the phrase."""
-    color = (220, 50, 40)
-    glyphs = [
-        [(100, 290), (120, 240), (145, 290), (125, 280), (100, 290)],
-        [(165, 245), (195, 245), (180, 285), (170, 285)],
-        [(220, 250), (250, 250), (250, 295), (235, 280)],
-        [(275, 290), (295, 240), (320, 260), (295, 290)],
-        [(345, 245), (375, 245), (360, 295), (345, 295)],
-        [(400, 255), (430, 255), (440, 290), (410, 290)],
-        [(465, 240), (490, 265), (465, 295), (455, 280)],
-    ]
-    for polygon in glyphs:
-        draw.polygon(polygon, outline=color, fill=(60, 15, 10))
-        cx = sum(p[0] for p in polygon) // len(polygon)
-        cy = sum(p[1] for p in polygon) // len(polygon)
-        draw.line([(cx - 8, cy - 8), (cx + 8, cy + 8)], fill=color, width=3)
+    shape, orient, mark = shapes[idx % 3], (idx // 3) % 3, (idx // 9) % 3
+    pts = []
+    for px, py in shape:
+        if orient == 1:
+            px = 22 - px
+        elif orient == 2:
+            py = 34 - py
+        pts.append((x + px, base - 34 + py))
+    draw.polygon(pts, outline=color, fill=fill, width=2)
+    cx, cy = x + 11, base - 17
+    if mark == 1:
+        draw.line([(cx - 6, cy - 6), (cx + 6, cy + 6)], fill=color, width=3)
+    elif mark == 2:
+        draw.ellipse([(cx - 3, cy - 3), (cx + 3, cy + 3)], fill=color)
+    return 30
 
 
-GLYPHS = {"tengwar": draw_tengwar_glyphs, "piqad": draw_piqad_glyphs}
+def draw_punct(draw, x: int, base: int, tok: str, color) -> int:
+    if tok in ".,":
+        n = 2 if tok == "." else 1
+        for k in range(n):
+            draw.ellipse([(x + 2, base - 4 - k * 10), (x + 7, base + 1 - k * 10)], fill=color)
+    elif tok in "!?":
+        draw.line([(x + 4, base - 30), (x + 4, base - 10)], fill=color, width=3)
+        draw.ellipse([(x + 2, base - 5), (x + 7, base)], fill=color)
+    elif tok == "-":
+        draw.line([(x + 1, base - 14), (x + 9, base - 14)], fill=color, width=3)
+    elif tok == "'":
+        draw.line([(x + 4, base - 38), (x + 2, base - 28)], fill=color, width=2)
+    return 14
+
+
+def draw_cipher(draw, row: dict, colors: dict) -> None:
+    script = row["script"]
+    text = row["text"]
+    tokens = tokenize_klingon(text) if script == "piqad_style_cipher" else tokenize_latin(text)
+
+    # group into words so we only wrap between words
+    words, cur = [], []
+    for tok in tokens:
+        if tok[0] == " ":
+            if cur:
+                words.append(cur)
+            cur = []
+        else:
+            cur.append(tok)
+    if cur:
+        words.append(cur)
+
+    if script == "tengwar_style_cipher":
+        color, mark_color = (40, 70, 90), (180, 60, 30)
+        index = LATIN_ALPHABET.index
+
+        def glyph(x, base, tok):
+            return tengwar_glyph(draw, x, base, index(tok[0]), tok[1], color, mark_color)
+    elif script == "piqad_style_cipher":
+        color, fill = colors["accent"], tuple(max(0, v // 4) for v in colors["accent"])
+        index = KLINGON_ALPHABET.index
+        mark_color = color
+
+        def glyph(x, base, tok):
+            return piqad_glyph(draw, x, base, index(tok[0]), color, fill)
+    else:
+        raise ValueError(f"{row['id']}: unknown cipher script {script!r}")
+
+    glyph_w = 26 if script == "tengwar_style_cipher" else 30
+
+    def is_punct(tok) -> bool:
+        # In Klingon the apostrophe is a letter (glottal stop) and gets a glyph.
+        return tok[0] in PUNCT or (tok[0] == "'" and script != "piqad_style_cipher")
+
+    x, base, row_step, word_gap = MARGIN_X, 190, 72, 22
+    for word in words:
+        ww = sum(14 if is_punct(t) else glyph_w for t in word)
+        if x > MARGIN_X and x + ww > WIDTH - MARGIN_X:
+            x, base = MARGIN_X, base + row_step
+        if base > HEIGHT - 70:
+            raise ValueError(f"{row['id']}: cipher text does not fit on the sign")
+        for tok in word:
+            if is_punct(tok):
+                x += draw_punct(draw, x, base, tok[0], mark_color)
+            else:
+                x += glyph(x, base, tok)
+        x += word_gap
 
 
 def render_row(row: dict, out_dir: Path = IMAGES_DIR) -> Path:
@@ -125,31 +246,20 @@ def render_row(row: dict, out_dir: Path = IMAGES_DIR) -> Path:
     body_font = get_font(23, bold=True)
     sub_font = get_font(14)
 
-    tag = r["tag"]
-    draw.rectangle([40, 32, 40 + len(tag) * 10 + 20, 56], fill=colors["accent"])
-    draw.text((48, 36), tag.upper(), fill=(255, 255, 255), font=tag_font)
+    tag = r["tag"].upper()
+    tag_w = draw.textlength(tag, font=tag_font)
+    draw.rectangle([40, 32, 40 + tag_w + 16, 56], fill=colors["accent"])
+    draw.text((48, 36), tag, fill=(255, 255, 255), font=tag_font)
 
     title_color = (160, 40, 20) if theme == "sticky_note" else colors["accent"]
     draw_text_checked(draw, (MARGIN_X, 68), r["title"], header_font, title_color, row["id"])
     draw.line([(MARGIN_X, 98), (WIDTH - MARGIN_X, 98)], fill=colors["border"], width=1)
 
-    # The phrase itself must fit. sign_lines / gloss_lines are drawn unchecked: several
-    # of the committed bracketed captions already run past the margin, and checking them
-    # here would force those images (and their hashes) to change.
-    if "sign_lines" in r:
-        checked, unchecked = [], r["sign_lines"]
+    if row["script"].endswith("_cipher"):
+        draw_cipher(draw, row, colors)
     else:
-        checked, unchecked = row["lines"], r.get("gloss_lines", [])
-    y = 135
-    for line in checked:
-        draw_text_checked(draw, (MARGIN_X, y), line, body_font, colors["text"], row["id"])
-        y += 44
-    for line in unchecked:
-        draw.text((MARGIN_X, y), line, fill=colors["text"], font=body_font)
-        y += 44
-
-    if "glyphs" in r:
-        GLYPHS[r["glyphs"]](draw)
+        for i, line in enumerate(row["lines"]):
+            draw_text_checked(draw, (MARGIN_X, 135 + i * 44), line, body_font, colors["text"], row["id"])
 
     draw.text((MARGIN_X, HEIGHT - 42), FOOTER, fill=(120, 120, 130), font=sub_font)
 
