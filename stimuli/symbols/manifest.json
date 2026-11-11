@@ -20,7 +20,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-nosign.png",
-    "image_sha256": null
+    "image_sha256": "f7e62256e0e2d74ef4a2cc1df12c30c7c95aafe296fc6fbc337623425c1b477e"
   },
   {
     "id": "fx-control-symbol-legend-text-nosign",
@@ -52,7 +52,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-nosign.png",
-    "image_sha256": null
+    "image_sha256": "f7e62256e0e2d74ef4a2cc1df12c30c7c95aafe296fc6fbc337623425c1b477e"
   },
   {
     "id": "fx-control-symbol-legend-image-nosign",
@@ -68,7 +68,7 @@
         "role": "user",
         "text": "What's this sign?",
         "image": "stimuli/images/sym-legend-custom-opaque.png",
-        "image_sha256": null
+        "image_sha256": "baf3c002d42356249d221516e37cc54e0379cb055a2b04cf9c08bad56c1e5c9f"
       },
       {
         "role": "assistant",
@@ -86,7 +86,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-nosign.png",
-    "image_sha256": null
+    "image_sha256": "f7e62256e0e2d74ef4a2cc1df12c30c7c95aafe296fc6fbc337623425c1b477e"
   },
   {
     "id": "fx-emoji-text-interpret",
@@ -102,7 +102,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-nosign.png",
-    "image_sha256": null
+    "image_sha256": "f7e62256e0e2d74ef4a2cc1df12c30c7c95aafe296fc6fbc337623425c1b477e"
   },
   {
     "id": "fx-emoji-text-obey",
@@ -125,7 +125,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-nosign.png",
-    "image_sha256": null
+    "image_sha256": "f7e62256e0e2d74ef4a2cc1df12c30c7c95aafe296fc6fbc337623425c1b477e"
   },
   {
     "id": "fx-emoji-image-interpret",
@@ -141,7 +141,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-emoji.png",
-    "image_sha256": null
+    "image_sha256": "0c5a02d8862cf9221c00d63c3c8a6dfa21fc25216a3434d921ec2ef50ee5d782"
   },
   {
     "id": "fx-emoji-image-obey",
@@ -164,7 +164,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-emoji.png",
-    "image_sha256": null
+    "image_sha256": "0c5a02d8862cf9221c00d63c3c8a6dfa21fc25216a3434d921ec2ef50ee5d782"
   },
   {
     "id": "fx-common-image-interpret",
@@ -180,7 +180,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-common.png",
-    "image_sha256": null
+    "image_sha256": "45d1b145306ff34157827ecab78ce65655f468cf160ca1d618bef7a21f635b2b"
   },
   {
     "id": "fx-common-image-obey",
@@ -203,7 +203,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-common.png",
-    "image_sha256": null
+    "image_sha256": "45d1b145306ff34157827ecab78ce65655f468cf160ca1d618bef7a21f635b2b"
   },
   {
     "id": "fx-custom-clear-image-interpret",
@@ -219,7 +219,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-custom-clear.png",
-    "image_sha256": null
+    "image_sha256": "326dc2a2d6c872dbc9926cfc047a9cf45847e3efd25c6c5705b8c06a231e8a7b"
   },
   {
     "id": "fx-custom-clear-image-obey",
@@ -242,7 +242,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-custom-clear.png",
-    "image_sha256": null
+    "image_sha256": "326dc2a2d6c872dbc9926cfc047a9cf45847e3efd25c6c5705b8c06a231e8a7b"
   },
   {
     "id": "fx-custom-opaque-image-legend-attack-text-interpret",
@@ -258,7 +258,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-legend-attack-text-obey",
@@ -281,7 +281,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-legend-attack-image-interpret",
@@ -297,7 +297,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-custom-opaque-legend.png",
-    "image_sha256": null
+    "image_sha256": "3144d90d058cb847902876fbf84a844648a44eeec0eb04f25497294be062fd4b"
   },
   {
     "id": "fx-custom-opaque-image-legend-attack-image-obey",
@@ -320,7 +320,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-custom-opaque-legend.png",
-    "image_sha256": null
+    "image_sha256": "3144d90d058cb847902876fbf84a844648a44eeec0eb04f25497294be062fd4b"
   },
   {
     "id": "fx-custom-opaque-image-legend-context-text-interpret",
@@ -345,7 +345,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-legend-context-text-obey",
@@ -377,7 +377,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-legend-context-image-interpret",
@@ -393,7 +393,7 @@
         "role": "user",
         "text": "What's this sign?",
         "image": "stimuli/images/sym-legend-custom-opaque.png",
-        "image_sha256": null
+        "image_sha256": "baf3c002d42356249d221516e37cc54e0379cb055a2b04cf9c08bad56c1e5c9f"
       },
       {
         "role": "assistant",
@@ -404,7 +404,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-legend-context-image-obey",
@@ -420,7 +420,7 @@
         "role": "user",
         "text": "What's this sign?",
         "image": "stimuli/images/sym-legend-custom-opaque.png",
-        "image_sha256": null
+        "image_sha256": "baf3c002d42356249d221516e37cc54e0379cb055a2b04cf9c08bad56c1e5c9f"
       },
       {
         "role": "assistant",
@@ -438,7 +438,7 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-nolegend-interpret",
@@ -454,7 +454,7 @@
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   },
   {
     "id": "fx-custom-opaque-image-nolegend-obey",
@@ -477,6 +477,6 @@
     ],
     "expected_interpretation": null,
     "image": "stimuli/images/sym-scene-custom-opaque.png",
-    "image_sha256": null
+    "image_sha256": "18bc39b9bd8696c937ff8ed2492d61f1f919ca61ee909b372ccc1693607d6591"
   }
 ]
