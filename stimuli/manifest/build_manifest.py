@@ -542,11 +542,11 @@ def build():
     jsonl_path = MANIFEST_DIR / "manifest.jsonl"
     json_path = MANIFEST_DIR / "manifest.json"
 
-    with open(jsonl_path, "w", encoding="utf-8") as f:
+    with open(jsonl_path, "w", encoding="utf-8", newline="\n") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
 
-    with open(json_path, "w", encoding="utf-8") as f:
+    with open(json_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(rows, f, indent=2)
 
     print(f"Wrote {len(rows)} samples to {jsonl_path} and {json_path}")
