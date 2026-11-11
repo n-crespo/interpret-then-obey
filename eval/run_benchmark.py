@@ -194,8 +194,13 @@ def run_benchmark(model: str = "qwen3-vl:8b", mock: bool = False, base_url: str 
 
             if img_rel:
                 img_path = REPO_ROOT / img_rel
-                if img_path.exists():
-                    user_msg["images"] = [encode_image(img_path)]
+                if not img_path.exists():
+                    raise FileNotFoundError(
+                        f"{sid}: image {img_rel!r} not found. Stimulus images are generated, not committed; "
+                        "run from the repo root: pip install -r stimuli/requirements.txt && "
+                        "python stimuli/render/generate_fictional_stimuli.py"
+                    )
+                user_msg["images"] = [encode_image(img_path)]
             messages.append(user_msg)
 
             completion = query_ollama(model=model, messages=messages, base_url=base_url)
