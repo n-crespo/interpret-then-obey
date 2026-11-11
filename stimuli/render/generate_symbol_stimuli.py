@@ -2,14 +2,16 @@
 """
 Composite the symbol-section stimulus images (stimuli/symbols/manifest.json).
 
-Every scene is the same base (red mug + blue notebook on a table) and differs
-only in what is on the sign, so rows are comparable. The sign artwork lives in
-stimuli/src/symbols/ and is pasted unchanged; nothing is redrawn here.
+Every scene is the same base (red mug + blue notebook on a table) with the same
+sign, and differs only in what is on the sign, so rows are comparable. The
+payload is drawn at the same scale whether or not a legend sits below it. The
+sign artwork lives in stimuli/src/symbols/ and is only cropped, scaled and
+placed; nothing is redrawn here.
 
     python stimuli/render/generate_symbol_stimuli.py
         Draws a synthetic base scene.
 
-    python stimuli/render/generate_symbol_stimuli.py --base photo.png --sign-box 400,120,900,460
+    python stimuli/render/generate_symbol_stimuli.py --base photo.png --sign-box 140,20,1140,580
         Uses a real photo as the base (it should show no sign) and pastes each
         sign as a white card into the given x0,y0,x1,y1 box.
 
@@ -37,18 +39,22 @@ W, H = 1280, 960
 SS = 2  # supersample factor for the drawn scene
 TABLE_Y = 600
 
-# output file -> (artwork files stacked top to bottom on the sign, sign box x0,y0,x1,y1)
-WIDE = (330, 190, 950, 570)
-TALL = (400, 30, 880, 580)
+SIGN_BOX = (140, 20, 1140, 580)  # one sign for every scene
+MARGIN = 36
+PAYLOAD_H = 200  # the payload is fitted to this height in every scene
+LEGEND_ART = "custom-opaque-legend.png"
+
+# output file -> (payload artwork or None, legend on the sign?, mug and notebook in the scene?)
 SCENES = {
     "sym-scene-nosign.png": None,
-    "sym-scene-emoji.png": (["emoji.png"], WIDE),
-    "sym-scene-common.png": (["common.png"], WIDE),
-    "sym-scene-custom-clear.png": (["custom-clear.png"], WIDE),
-    "sym-scene-custom-opaque.png": (["custom-opaque.png"], WIDE),
-    "sym-scene-custom-opaque-legend.png": (["custom-opaque.png", "custom-opaque-legend.png"], TALL),
+    "sym-scene-emoji.png": ("emoji.png", False, True),
+    "sym-scene-common.png": ("common.png", False, True),
+    "sym-scene-custom-clear.png": ("custom-clear.png", False, True),
+    "sym-scene-custom-opaque.png": ("custom-opaque.png", False, True),
+    "sym-scene-custom-opaque-legend.png": ("custom-opaque.png", True, True),
+    # the legend on its own, shown in an earlier turn: same sign, no mug or notebook
+    "sym-legend-custom-opaque.png": (None, True, False),
 }
-LEGEND_IMAGE = ("sym-legend-custom-opaque.png", ["custom-opaque-legend.png"], (290, 110, 990, 700))
 
 
 def _s(*v):
@@ -96,45 +102,109 @@ def draw_base(objects: bool = True) -> Image.Image:
     return img
 
 
-def _flatten(path: Path) -> Image.Image:
-    art = Image.open(path).convert("RGBA")
+# ---- artwork helpers -------------------------------------------------------------------
+
+def _ink(img: Image.Image) -> Image.Image:
+    """Mask of everything that is not the white background."""
+    diff = ImageChops.difference(img, Image.new("RGB", img.size, "white")).convert("L")
+    return diff.point(lambda v: 255 if v > 24 else 0)
+
+
+def _trim(img: Image.Image) -> Image.Image:
+    bbox = _ink(img).getbbox()
+    return img.crop(bbox) if bbox else img
+
+
+def _load(name: str) -> Image.Image:
+    art = Image.open(ART_DIR / name).convert("RGBA")
     out = Image.new("RGBA", art.size, (255, 255, 255, 255))
     out.alpha_composite(art)
-    out = out.convert("RGB")
-    # trim the artwork's own white border so the symbols fill the sign
-    bbox = ImageChops.difference(out, Image.new("RGB", out.size, "white")).getbbox()
-    return out.crop(bbox) if bbox else out
+    return _trim(out.convert("RGB"))
 
 
-def sign_card(art_files: list[str], size: tuple[int, int], margin: int = 44) -> Image.Image:
-    """White card with the artwork scaled to fit, stacked top to bottom."""
+def _runs(mask: Image.Image, axis: str, min_gap: int) -> list[tuple[int, int]]:
+    """Inked stretches along an axis; blank gaps shorter than min_gap do not split a stretch."""
+    w, h = mask.size
+    runs: list[list[int]] = []
+    for i in range(h if axis == "y" else w):
+        line = mask.crop((0, i, w, i + 1) if axis == "y" else (i, 0, i + 1, h))
+        if line.getbbox() is None:
+            continue
+        if runs and i - runs[-1][1] <= min_gap:
+            runs[-1][1] = i + 1
+        else:
+            runs.append([i, i + 1])
+    return [(a, b) for a, b in runs]
+
+
+def legend_parts() -> list[tuple[Image.Image, Image.Image]]:
+    """Cut the legend artwork into (symbol, label) pairs, one per row, so the blank space
+    inside it can be dropped and the labels drawn large."""
+    art = _load(LEGEND_ART)
+    parts = []
+    for y0, y1 in _runs(_ink(art), "y", min_gap=40):
+        row = art.crop((0, y0, art.width, y1))
+        cols = _runs(_ink(row), "x", min_gap=60)
+        if len(cols) != 2:
+            raise ValueError(f"{LEGEND_ART}: expected a symbol and a label per row, found {len(cols)} pieces")
+        (s0, s1), (l0, l1) = cols
+        parts.append((_trim(row.crop((s0, 0, s1, row.height))), _trim(row.crop((l0, 0, l1, row.height)))))
+    return parts
+
+
+def _scaled(img: Image.Image, scale: float) -> Image.Image:
+    return img.resize((max(1, round(img.width * scale)), max(1, round(img.height * scale))), Image.LANCZOS)
+
+
+def _fit(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
+    return _scaled(img, min(max_w / img.width, max_h / img.height))
+
+
+def legend_block(max_w: int, max_h: int, row_gap: int = 28, col_gap: int = 40) -> Image.Image:
+    """Symbol column and label column, rows stacked. Both symbols share one scale and both
+    labels share one scale; the labels are made as large as the space allows."""
+    parts = legend_parts()
+    row_h = (max_h - row_gap * (len(parts) - 1)) // len(parts)
+    sym_scale = min(row_h / max(s.height for s, _ in parts), 0.3 * max_w / max(s.width for s, _ in parts))
+    syms = [_scaled(s, sym_scale) for s, _ in parts]
+    sym_w = max(s.width for s in syms)
+    lab_scale = min((max_w - sym_w - col_gap) / max(l.width for _, l in parts), 0.8 * row_h / max(l.height for _, l in parts))
+    labs = [_scaled(l, lab_scale) for _, l in parts]
+    block = Image.new("RGB", (sym_w + col_gap + max(l.width for l in labs), row_h * len(parts) + row_gap * (len(parts) - 1)), "white")
+    for i, (s, l) in enumerate(zip(syms, labs)):
+        y = i * (row_h + row_gap)
+        block.paste(s, ((sym_w - s.width) // 2, y + (row_h - s.height) // 2))
+        block.paste(l, (sym_w + col_gap, y + (row_h - l.height) // 2))
+    return block
+
+
+def sign_card(size: tuple[int, int], payload: str | None, legend: bool) -> Image.Image:
     w, h = size
     card = Image.new("RGB", size, "white")
-    arts = [_flatten(ART_DIR / f) for f in art_files]
-    gap = 24 if len(arts) > 1 else 0
-    avail_w, avail_h = w - 2 * margin, h - 2 * margin - gap * (len(arts) - 1)
-    scale = min(min(avail_w / a.width for a in arts), avail_h / sum(a.height for a in arts))
-    arts = [a.resize((round(a.width * scale), round(a.height * scale)), Image.LANCZOS) for a in arts]
-    y = margin + (avail_h - sum(a.height for a in arts)) // 2
-    for i, a in enumerate(arts):
-        card.paste(a, ((w - a.width) // 2, y))
-        y += a.height + gap
-        if i < len(arts) - 1:
-            ImageDraw.Draw(card).line([(margin, y - gap // 2), (w - margin, y - gap // 2)], fill=(150, 150, 150), width=2)
+    zone_w = w - 2 * MARGIN
+    if payload:
+        art = _fit(_load(payload), zone_w, PAYLOAD_H)
+        top = MARGIN if legend else (h - PAYLOAD_H) // 2
+        card.paste(art, ((w - art.width) // 2, top + (PAYLOAD_H - art.height) // 2))
+    if legend:
+        top = MARGIN + PAYLOAD_H + 40 if payload else MARGIN
+        if payload:
+            ImageDraw.Draw(card).line([(MARGIN, top - 20), (w - MARGIN, top - 20)], fill=(150, 150, 150), width=2)
+        block = legend_block(zone_w, h - MARGIN - top)
+        card.paste(block, ((w - block.width) // 2, top + (h - MARGIN - top - block.height) // 2))
     ImageDraw.Draw(card).rectangle([0, 0, w - 1, h - 1], outline=(40, 40, 45), width=5)
     return card
 
 
-def compose(base: Image.Image, art_files: list[str] | None, box, stand: bool) -> Image.Image:
+def compose(base: Image.Image, payload: str | None, legend: bool, box, stand: bool) -> Image.Image:
     img = base.copy()
-    if art_files:
-        x0, y0, x1, y1 = box
-        if stand:  # two legs down to the table
-            d = ImageDraw.Draw(img)
-            for x in (x0 + 60, x1 - 60):
-                d.rectangle([x - 7, y1, x + 7, TABLE_Y + 14], fill=(70, 70, 76))
-            d.rectangle([x0 + 30, TABLE_Y + 8, x1 - 30, TABLE_Y + 20], fill=(70, 70, 76))
-        img.paste(sign_card(art_files, (x1 - x0, y1 - y0)), (x0, y0))
+    x0, y0, x1, y1 = box
+    if stand:  # two legs down to the table
+        d = ImageDraw.Draw(img)
+        for x in (x0 + 60, x1 - 60):
+            d.rectangle([x - 7, y1, x + 7, TABLE_Y + 2], fill=(70, 70, 76))
+        d.rectangle([x0 + 30, TABLE_Y - 4, x1 - 30, TABLE_Y + 6], fill=(70, 70, 76))  # stays behind the mug
+    img.paste(sign_card((x1 - x0, y1 - y0), payload, legend), (x0, y0))
     return img
 
 
@@ -148,7 +218,8 @@ def update_manifest(hashes: dict[str, str]) -> None:
         for item in [row, *(row.get("context") or [])]:
             if item.get("image"):
                 item["image_sha256"] = hashes[Path(item["image"]).name]
-    MANIFEST.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    with open(MANIFEST, "w", encoding="utf-8", newline="\n") as f:  # LF on every OS, like build_manifest.py
+        f.write(json.dumps(rows, indent=2, ensure_ascii=False) + "\n")
 
 
 def main(argv=None) -> None:
@@ -164,24 +235,23 @@ def main(argv=None) -> None:
     if args.base:
         if not args.sign_box:
             ap.error("--sign-box is required with --base")
-        base = Image.open(args.base).convert("RGB")
-        user_box = tuple(int(v) for v in args.sign_box.split(","))
+        with_objects = Image.open(args.base).convert("RGB")
+        box = tuple(int(v) for v in args.sign_box.split(","))
     else:
-        base = draw_base().resize((W, H), Image.LANCZOS).convert("RGB")
-        user_box = None
+        with_objects = draw_base().resize((W, H), Image.LANCZOS).convert("RGB")
+        box = SIGN_BOX
+    backdrop = draw_base(objects=False).resize((W, H), Image.LANCZOS).convert("RGB")
 
     hashes = {}
     for name, spec in SCENES.items():
-        art, box = spec if spec else (None, None)
-        out = compose(base, art, user_box or box, stand=not args.base)
+        if spec is None:
+            out = with_objects
+        else:
+            payload, legend, objects = spec
+            # the legend-only image always uses the drawn backdrop and the default sign position
+            out = compose(with_objects, payload, legend, box, stand=not args.base) if objects else compose(backdrop, payload, legend, SIGN_BOX, stand=True)
         out.save(IMAGES_DIR / name, format="PNG")
         hashes[name] = sha256_file(IMAGES_DIR / name)
-
-    # the legend on its own (shown in an earlier turn): a sign close-up, no mug or notebook
-    name, art, box = LEGEND_IMAGE
-    backdrop = draw_base(objects=False).resize((W, H), Image.LANCZOS).convert("RGB")
-    compose(backdrop, art, box, stand=False).save(IMAGES_DIR / name, format="PNG")
-    hashes[name] = sha256_file(IMAGES_DIR / name)
 
     for name, digest in hashes.items():
         print(f"{digest}  {name}")

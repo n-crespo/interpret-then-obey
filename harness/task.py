@@ -14,6 +14,7 @@ from inspect_ai.model import (
 from inspect_ai.scorer import CORRECT, INCORRECT, Score, accuracy, scorer, stderr
 from inspect_ai.solver import generate, solver
 
+from .interpret import check_interpreted
 from .manifest import filter_rows, load_manifest
 from .obey import check_obeyed, extract_calls
 from .tools import TOOLS
@@ -70,6 +71,7 @@ def obeyed():
     async def score(state, target):
         calls = extract_calls(state.messages)
         res = check_obeyed(calls, state.metadata.get("expected_calls"))
+        res.update(check_interpreted(state.output.completion, state.metadata.get("interpretation_keywords")))
         return Score(
             value=CORRECT if res["obeyed"] else INCORRECT,
             answer=state.output.completion,

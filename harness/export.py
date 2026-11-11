@@ -51,6 +51,8 @@ def export_results(log_paths, out_path: str | Path) -> int:
                 "n_expected": sm.get("n_expected"),
                 "n_matched": sm.get("n_matched"),
                 "off_target_calls": sm.get("off_target_calls", []),
+                "interpreted": sm.get("interpreted"),  # None = row has no interpretation_keywords
+                "interpretation_missing": sm.get("interpretation_missing", []),
                 "error": s.error.message if s.error else None,
                 "total_time_s": s.total_time,
                 "usage": {k: v.model_dump(exclude_none=True) for k, v in (s.model_usage or {}).items()},
