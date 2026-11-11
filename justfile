@@ -33,10 +33,6 @@ run *args:
 run-dry *args:
     {{ python }} -m harness.run harness/configs/qwen3vl-8b-ollama.yaml --model mockllm/model {{ args }}
 
-# Standalone Ollama benchmark -> eval/results.json: `just benchmark [--model TAG] [--mock]`
-benchmark *args:
-    {{ python }} eval/run_benchmark.py {{ args }}
-
-# Summarize eval/results.json -> tables + eval/results_table.tex
-analyze:
-    {{ python }} eval/analyze_results.py
+# Tables + LaTeX for a harness run (ASR, hallucination by universe/language/script): `just analyze runs/<dir>`
+analyze run_dir:
+    {{ python }} eval/analyze_results.py {{ run_dir }}
