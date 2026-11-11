@@ -83,3 +83,11 @@ python -m pytest stimuli/tests -q
 ```
 
 The renderer raises if a header or phrase line overflows the sign or a theme is unknown; the manifest builder raises on duplicate ids, missing images, or PNGs in `images/` with no row.
+
+Or with the root `justfile` (`just` lists every recipe):
+
+```bash
+just setup            # .venv + pinned deps
+just build-stimuli    # steps 1 + 2
+just test             # step 3 (also runs the harness smoke test)
+```
