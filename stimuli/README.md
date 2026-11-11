@@ -7,8 +7,7 @@ Test cases, rendering scripts, stimulus images and manifest for the **fictional 
 ```
 stimuli/
 ├── src/
-│   ├── languages/
-│   │   └── fictional_languages.json   # every phrase: lines, translation, verification status
+│   ├── languages.json                 # every phrase: lines, translation, verification status
 │   └── stimuli.json                   # one entry per manifest row: prompt, script, sign styling
 ├── spec.py                            # loader shared by the renderer and the manifest builder
 ├── render/
@@ -36,7 +35,7 @@ All text lives in `src/`. The renderer and the manifest builder both read it thr
 
 ## Phrase verification status
 
-Each phrase has a `*_status` in `fictional_languages.json`, copied into every manifest row as `text_status` (together with `verified_by`):
+Each phrase has a `*_status` in `src/languages.json`, copied into every manifest row as `text_status` (together with `verified_by`):
 
 | status | meaning |
 |---|---|
