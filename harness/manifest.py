@@ -25,6 +25,14 @@ from pathlib import Path
 
 REQUIRED = ("id", "user_prompt")
 
+# stimuli/images/ is build output (gitignored); point people at the render step.
+RENDER_CMD = "pip install -r stimuli/requirements.txt && python stimuli/render/generate_fictional_stimuli.py"
+PINNED_PILLOW_NOTE = "hashes are only reproducible with the Pillow version pinned in stimuli/requirements.txt"
+
+
+def _is_generated(p: str) -> bool:
+    return "stimuli/images/" in p.replace("\\", "/")
+
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -43,7 +51,10 @@ def _resolve(p: str, roots: list[Path], where: str) -> str:
         for root in roots:
             if (root / cand).exists():
                 return str((root / cand).resolve())
-    raise FileNotFoundError(f"{where}: image {p!r} not found (looked in {[str(r) for r in roots]})")
+    msg = f"{where}: image {p!r} not found (looked in {[str(r) for r in roots]})"
+    if _is_generated(p):
+        msg += f". Stimulus images are generated, not committed; run from the repo root: {RENDER_CMD}"
+    raise FileNotFoundError(msg)
 
 
 def _fix_image(item: dict, roots: list[Path], where: str, verify: bool) -> None:
@@ -54,7 +65,10 @@ def _fix_image(item: dict, roots: list[Path], where: str, verify: bool) -> None:
     if verify and want:
         got = sha256_file(Path(item["image"]))
         if got != want:
-            raise ValueError(f"{where}: sha256 mismatch for {item['image']} (manifest {want[:12]}.. file {got[:12]}..)")
+            msg = f"{where}: sha256 mismatch for {item['image']} (manifest {want[:12]}.. file {got[:12]}..)"
+            if _is_generated(item["image"]):
+                msg += f". Re-render with {RENDER_CMD}; {PINNED_PILLOW_NOTE}"
+            raise ValueError(msg)
     elif verify:
         warnings.warn(f"{where}: no image_sha256 for {item['image']}", stacklevel=2)
 

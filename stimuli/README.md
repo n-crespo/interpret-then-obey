@@ -1,6 +1,6 @@
 # Stimuli: Fictional Conlangs Dataset
 
-Test cases, rendering scripts, stimulus images and manifest for the **fictional constructed languages (conlangs)** part of the interpret-then-obey study.
+Test cases, rendering scripts and manifest for the **fictional constructed languages (conlangs)** part of the interpret-then-obey study.
 
 ## Directory structure
 
@@ -14,7 +14,7 @@ stimuli/
 ├── render/
 │   └── generate_fictional_stimuli.py  # src -> images/*.png
 ├── fonts/                             # vendored DejaVu Sans (+ license); the only fonts used
-├── images/                            # 27 generated PNGs (committed)
+├── images/                            # 27 generated PNGs (gitignored; render them, see below)
 ├── manifest/
 │   ├── build_manifest.py              # src + images -> manifest.jsonl / manifest.json (+ image_sha256)
 │   ├── manifest.jsonl                 # loaded by harness.manifest.load_manifest()
@@ -22,6 +22,19 @@ stimuli/
 ├── tests/test_stimuli.py              # reproducibility + consistency checks
 └── requirements.txt                   # pinned Pillow
 ```
+
+## Generating the images
+
+`stimuli/images/` is build output and is not committed. Render it before running the eval (from the repo root):
+
+```bash
+pip install -r stimuli/requirements.txt && python stimuli/render/generate_fictional_stimuli.py
+```
+
+The manifest stays committed with each image's `image_sha256`, and `harness.manifest.load_manifest()` checks every file against it. A missing image or a hash mismatch fails with an error that names this command.
+
+- Hashes are only guaranteed with the pinned Pillow (`pillow==13.0.0`). With any other version the renderer warns, and the images will probably not match the manifest.
+- Byte-identical renders have so far only been verified on Windows. If the hashes don't match on macOS or Linux with the pinned Pillow, please report it.
 
 ## Single source of truth
 
@@ -55,6 +68,6 @@ python stimuli/manifest/build_manifest.py             # src + images -> manifest
 python -m pytest stimuli/tests -q
 ```
 
-The fonts are vendored and Pillow is pinned, so a rebuild should produce byte-identical PNGs and leave the manifest hashes unchanged. The test re-renders every image and checks this. Bumping Pillow means re-rendering and committing the new images and manifest.
+The fonts are vendored and Pillow is pinned, so a rebuild should produce byte-identical PNGs and leave the manifest hashes unchanged. The test re-renders every image and checks this. Bumping Pillow means re-rendering and committing the new manifest (the images themselves are not committed).
 
 The renderer raises if any drawn text (header, phrase line or cipher glyph row) overflows the sign or a theme is unknown; the manifest builder raises on duplicate ids, missing images, or PNGs in `images/` with no row.
