@@ -57,10 +57,17 @@ stimuli/
 
 ## 🛠️ Rebuilding Stimuli & Manifest
 
+Renders are byte-reproducible across OSes: fonts are vendored in `stimuli/fonts/` (DejaVu Sans, see `DejaVu-LICENSE.txt`; no system-font fallback) and Pillow is pinned in `stimuli/requirements.txt`. Install it first, otherwise the PNGs will not match `image_sha256` in the manifest:
+
 ```bash
+pip install -r stimuli/requirements.txt
+
 # 1. Re-render all stimulus images into stimuli/images/
 python stimuli/render/generate_fictional_stimuli.py
 
 # 2. Rebuild stimuli/manifest/manifest.jsonl with updated sha256 hashes
 python stimuli/manifest/build_manifest.py
+
+# 3. Check that a fresh render matches the committed hashes
+python -m pytest stimuli/tests -q
 ```
