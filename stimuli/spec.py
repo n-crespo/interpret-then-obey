@@ -2,7 +2,7 @@
 
 The renderer and the manifest builder both resolve rows through here, so the text
 drawn in an image and the text recorded in the manifest come from the same place
-(src/languages/fictional_languages.json + src/stimuli.json).
+(src/languages.json + src/stimuli.json).
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ def _load(path: Path) -> dict:
 
 
 def load_languages() -> dict:
-    return _load(SRC_DIR / "languages" / "fictional_languages.json")["languages"]
+    return _load(SRC_DIR / "languages.json")["languages"]
 
 
 def load_rows() -> list[dict]:

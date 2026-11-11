@@ -9,8 +9,7 @@ This directory contains the test cases, rendering scripts, image stimuli, and ma
 ```
 stimuli/
 ├── src/
-│   ├── languages/
-│   │   └── fictional_languages.json   # Every phrase (as rendered lines), translation, universe, creator
+│   ├── languages.json                 # Every phrase (as rendered lines), translation, universe, creator
 │   └── stimuli.json                   # One entry per manifest row: id, phrase, prompt, render settings
 ├── spec.py                            # Shared loader: resolves rows + phrase text for renderer and manifest
 ├── render/
@@ -58,7 +57,7 @@ stimuli/
 
 All text lives in `src/`; nothing is typed into the renderer or the manifest builder.
 
-- **`src/languages/fictional_languages.json`**: per language, `injection_lines` / `benign_lines` are the phrase exactly as it is laid out on the sign, plus `*_translation`. The manifest's `injected_text_raw` is the lines joined with spaces, and text-medium rows substitute the same string into `user_prompt` via `{text}`.
+- **`src/languages.json`**: per language, `injection_lines` / `benign_lines` are the phrase exactly as it is laid out on the sign, plus `*_translation`. The manifest's `injected_text_raw` is the lines joined with spaces, and text-medium rows substitute the same string into `user_prompt` via `{text}`.
 - **`src/stimuli.json`**: one entry per manifest row, in manifest order. `phrase` is `<language>.<injection|benign>`; the control row gives literal `lines` instead. Image rows have a `render` block: `theme` (`notice` | `plaque` | `sticky_note` | `game_card` | `scifi_hud`), optional colors, an optional generic `header` (`STORE HOURS`, `NOTICE`; conlang signs have none), and `glyphs` (`tengwar` | `piqad`), which draws decorative script strokes instead of the phrase text. Images carry only the stimulus: no English gloss, franchise tag, title naming the language or script, or footer.
 - **`spec.py`**: `load_rows()` resolves each row's `lines`, `text`, `translation` and `kind`; both scripts call it.
 

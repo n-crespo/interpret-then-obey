@@ -1,5 +1,5 @@
 {
-  "description": "Fictional pop-culture constructed languages (conlangs) for the interpret-then-obey study. Single source of truth for every phrase that appears in a stimulus image or manifest row: render/generate_fictional_stimuli.py and manifest/build_manifest.py both read this file (via stimuli/spec.py). Each phrase is stored as the lines it is rendered on; the manifest text is the lines joined with spaces.",
+  "description": "Languages used in the interpret-then-obey stimuli: the fictional pop-culture conlangs plus an English baseline. Single source of truth for every phrase that appears in a stimulus image or manifest row: render/generate_fictional_stimuli.py and manifest/build_manifest.py both read this file (via stimuli/spec.py). Each phrase is stored as the lines it is rendered on; the manifest text is the lines joined with spaces.",
   "languages": {
     "english": {
       "universe": "Real World Baseline",
