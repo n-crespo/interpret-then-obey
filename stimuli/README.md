@@ -9,24 +9,23 @@ This directory contains the test cases, rendering scripts, image stimuli, and ma
 ```
 stimuli/
 ├── src/
-│   └── languages/
-│       └── fictional_languages.json   # Source phrases, translations, universes, and creators
+│   ├── languages/
+│   │   └── fictional_languages.json   # Every phrase (as rendered lines), translation, universe, creator
+│   └── stimuli.json                   # One entry per manifest row: id, phrase, prompt, render settings
+├── spec.py                            # Shared loader: resolves rows + phrase text for renderer and manifest
 ├── render/
-│   └── generate_fictional_stimuli.py  # PIL rendering script generating convention/fan-merch images
+│   └── generate_fictional_stimuli.py  # PIL renderer (reads src/ via spec.py)
+├── fonts/                             # Vendored DejaVu Sans (byte-reproducible renders)
 ├── images/                            # 27 generated stimulus PNG images
 │   ├── fx-control-nopayload.png
 │   ├── fx-en-image-obey.png
-│   ├── fx-elvish-sindarin-image-injection.png
-│   ├── fx-klingon-latin-image-injection.png
-│   ├── fx-klingon-piqad-image-injection.png
-│   ├── fx-navi-image-injection.png
-│   ├── fx-simlish-image-injection.png
-│   ├── fx-minionese-image-injection.png
 │   └── ...
-└── manifest/
-    ├── manifest.jsonl                 # Target JSONL manifest loaded by harness.manifest
-    ├── manifest.json                  # JSON array format for direct Inspect dataset ingestion
-    └── build_manifest.py              # Generates manifest.jsonl and calculates image_sha256
+├── manifest/
+│   ├── manifest.jsonl                 # Target JSONL manifest loaded by harness.manifest
+│   ├── manifest.json                  # JSON array format for direct Inspect dataset ingestion
+│   └── build_manifest.py              # Builds both manifests from src/ via spec.py + image_sha256
+└── tests/
+    └── test_stimuli.py                # Manifest matches src/; re-render matches committed hashes
 ```
 
 ---
@@ -55,6 +54,18 @@ stimuli/
 
 ---
 
+## ✏️ Single Source of Truth
+
+All text lives in `src/`; nothing is typed into the renderer or the manifest builder.
+
+- **`src/languages/fictional_languages.json`**: per language, `injection_lines` / `benign_lines` are the phrase exactly as it is laid out on the sign, plus `*_translation`. The manifest's `injected_text_raw` is the lines joined with spaces, and text-medium rows substitute the same string into `user_prompt` via `{text}`.
+- **`src/stimuli.json`**: one entry per manifest row, in manifest order. `phrase` is `<language>.<injection|benign>`; the control row gives literal `lines` instead. Image rows have a `render` block (`tag`, `title`, `theme`, optional colors). `gloss_lines` are extra caption lines drawn under the phrase; `sign_lines` replaces the phrase on the sign and `glyphs` (`tengwar` | `piqad`) adds decorative script strokes. None of these change the manifest text.
+- **`spec.py`**: `load_rows()` resolves each row's `lines`, `text`, `translation` and `kind`; both scripts call it.
+
+To change a phrase, title or prompt, edit `src/` and rebuild (below). `test_manifest_matches_source` fails if the committed manifest drifts from `src/`.
+
+---
+
 ## 🛠️ Rebuilding Stimuli & Manifest
 
 Renders are byte-reproducible across OSes: fonts are vendored in `stimuli/fonts/` (DejaVu Sans, see `DejaVu-LICENSE.txt`; no system-font fallback) and Pillow is pinned in `stimuli/requirements.txt`. Install it first, otherwise the PNGs will not match `image_sha256` in the manifest:
@@ -62,12 +73,14 @@ Renders are byte-reproducible across OSes: fonts are vendored in `stimuli/fonts/
 ```bash
 pip install -r stimuli/requirements.txt
 
-# 1. Re-render all stimulus images into stimuli/images/
+# 1. Re-render all stimulus images into stimuli/images/ from stimuli/src/
 python stimuli/render/generate_fictional_stimuli.py
 
-# 2. Rebuild stimuli/manifest/manifest.jsonl with updated sha256 hashes
+# 2. Rebuild stimuli/manifest/manifest.jsonl + manifest.json (text from stimuli/src/, sha256 from images/)
 python stimuli/manifest/build_manifest.py
 
-# 3. Check that a fresh render matches the committed hashes
+# 3. Check the manifest matches src/ and a fresh render matches the committed hashes
 python -m pytest stimuli/tests -q
 ```
+
+The renderer raises if a title or phrase line overflows the sign or a theme is unknown; the manifest builder raises on duplicate ids, missing images, or PNGs in `images/` with no row.
