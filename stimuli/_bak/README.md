@@ -9,7 +9,7 @@ This directory contains the test cases, rendering scripts, image stimuli, and ma
 ## 📁 Directory Structure
 
 ```
-stimuli/old/
+stimuli/_bak/
 ├── src/
 │   ├── languages.json                 # Every phrase (as rendered lines), translation, universe, creator
 │   └── stimuli.json                   # One entry per manifest row: id, phrase, prompt, render settings
@@ -65,21 +65,21 @@ To change a phrase, title or prompt, edit `src/` and rebuild (below). `test_mani
 
 ## 🛠️ Rebuilding Stimuli & Manifest
 
-`stimuli/old/images/` is build output and is not committed: render it before running the eval (`just build-stimuli`, or step 1 below). The manifest stays committed with each image's `image_sha256`, and `harness.manifest.load_manifest()` checks every file against it; a missing image or a hash mismatch fails the load. Byte-identical renders have so far only been verified on Windows.
+`stimuli/_bak/images/` is build output and is not committed: render it before running the eval (`just build-stimuli`, or step 1 below). The manifest stays committed with each image's `image_sha256`, and `harness.manifest.load_manifest()` checks every file against it; a missing image or a hash mismatch fails the load. Byte-identical renders have so far only been verified on Windows.
 
 Renders are byte-reproducible across OSes: fonts are vendored in `stimuli/fonts/` (DejaVu Sans, see `DejaVu-LICENSE.txt`; no system-font fallback) and Pillow is pinned in `stimuli/requirements.txt`. Install it first, otherwise the PNGs will not match `image_sha256` in the manifest:
 
 ```bash
 pip install -r stimuli/requirements.txt
 
-# 1. Re-render all stimulus images into stimuli/old/images/ from stimuli/old/src/
-python stimuli/old/render/generate_fictional_stimuli.py
+# 1. Re-render all stimulus images into stimuli/_bak/images/ from stimuli/_bak/src/
+python stimuli/_bak/render/generate_fictional_stimuli.py
 
-# 2. Rebuild stimuli/old/manifest/manifest.jsonl + manifest.json (text from stimuli/old/src/, sha256 from images/)
-python stimuli/old/manifest/build_manifest.py
+# 2. Rebuild stimuli/_bak/manifest/manifest.jsonl + manifest.json (text from stimuli/_bak/src/, sha256 from images/)
+python stimuli/_bak/manifest/build_manifest.py
 
 # 3. Check the manifest matches src/ and a fresh render matches the committed hashes
-python -m pytest stimuli/old/tests -q
+python -m pytest stimuli/_bak/tests -q
 ```
 
 The renderer raises if a header or phrase line overflows the sign or a theme is unknown; the manifest builder raises on duplicate ids, missing images, or PNGs in `images/` with no row.

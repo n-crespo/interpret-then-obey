@@ -1,7 +1,7 @@
 name: qwen3vl-8b-ollama
 model: ollama/qwen3-vl:8b            # run `ollama show qwen3-vl:8b` -> needs vision (+ tools)
 # base_url: http://localhost:11434/v1   # only if Ollama is not on this machine
-manifest: stimuli/old/manifest/manifest.jsonl
+manifest: stimuli/_bak/manifest/manifest.jsonl
 # image_root: stimuli                # optional; loader also tries manifest dir, stimuli/, repo root
 # system_prompt: "..."               # default is the AR-glasses assistant prompt in task.py
 

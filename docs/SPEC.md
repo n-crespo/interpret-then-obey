@@ -2,7 +2,7 @@
 
 This document specifies how stimulus data is laid out and how test cases are built from it.
 
-**Status:** the factor files exist in `stimuli/experiment/`; the generator is not implemented yet. The harness still reads the legacy set in `stimuli/old/`.
+**Status:** the factor files exist in `stimuli/experiment/`; the generator is not implemented yet. The harness still reads the legacy set in `stimuli/_bak/`.
 
 ## 1. Test cases
 

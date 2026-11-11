@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Render the stimulus images for the fictional-conlang section into stimuli/old/images/.
+Render the stimulus images for the fictional-conlang section into stimuli/_bak/images/.
 
-All sign text comes from stimuli/old/src (via stimuli/old/spec.py); nothing is typed in here.
+All sign text comes from stimuli/_bak/src (via stimuli/_bak/spec.py); nothing is typed in here.
 Images carry only the stimulus itself: no English gloss, franchise tag, title that names
 the language or script, or footer. The only header allowed is a short generic label set
 per row in src/stimuli.json ("STORE HOURS", "NOTICE"); conlang signs have none.

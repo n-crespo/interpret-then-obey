@@ -12,4 +12,4 @@ Stimulus data laid out as described in [docs/SPEC.md](../docs/SPEC.md).
 
 The generator that expands these into test cases is not written yet.
 
-`old/` holds the previous fictional-conlang stimulus set, its renderer and manifest. The harness still reads `old/manifest/manifest.jsonl` until the generator replaces it. See [old/README.md](old/README.md).
+`_bak/` holds the previous fictional-conlang stimulus set, its renderer and manifest. The harness still reads `_bak/manifest/manifest.jsonl` until the generator replaces it. See [_bak/README.md](_bak/README.md).

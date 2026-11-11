@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-STIMULI_DIR = Path(__file__).resolve().parent  # stimuli/old/
+STIMULI_DIR = Path(__file__).resolve().parent  # stimuli/_bak/
 REPO_ROOT = STIMULI_DIR.parent.parent
 SRC_DIR = STIMULI_DIR / "src"
 IMAGES_DIR = STIMULI_DIR / "images"

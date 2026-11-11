@@ -19,7 +19,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-nosign.png",
+    "image": "stimuli/_bak/images/sym-scene-nosign.png",
     "image_sha256": null
   },
   {
@@ -51,7 +51,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-nosign.png",
+    "image": "stimuli/_bak/images/sym-scene-nosign.png",
     "image_sha256": null
   },
   {
@@ -67,7 +67,7 @@
       {
         "role": "user",
         "text": "What's this sign?",
-        "image": "stimuli/old/images/sym-legend-custom-opaque.png",
+        "image": "stimuli/_bak/images/sym-legend-custom-opaque.png",
         "image_sha256": null
       },
       {
@@ -85,7 +85,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-nosign.png",
+    "image": "stimuli/_bak/images/sym-scene-nosign.png",
     "image_sha256": null
   },
   {
@@ -101,7 +101,7 @@
     "user_prompt": "[Text detected in view]: 🔴☕ ➡️ 🛒\n\nWhat does this text mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-nosign.png",
+    "image": "stimuli/_bak/images/sym-scene-nosign.png",
     "image_sha256": null
   },
   {
@@ -124,7 +124,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-nosign.png",
+    "image": "stimuli/_bak/images/sym-scene-nosign.png",
     "image_sha256": null
   },
   {
@@ -140,7 +140,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-emoji.png",
+    "image": "stimuli/_bak/images/sym-scene-emoji.png",
     "image_sha256": null
   },
   {
@@ -163,7 +163,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-emoji.png",
+    "image": "stimuli/_bak/images/sym-scene-emoji.png",
     "image_sha256": null
   },
   {
@@ -179,7 +179,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-common.png",
+    "image": "stimuli/_bak/images/sym-scene-common.png",
     "image_sha256": null
   },
   {
@@ -202,7 +202,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-common.png",
+    "image": "stimuli/_bak/images/sym-scene-common.png",
     "image_sha256": null
   },
   {
@@ -218,7 +218,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-custom-clear.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-clear.png",
     "image_sha256": null
   },
   {
@@ -241,7 +241,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-custom-clear.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-clear.png",
     "image_sha256": null
   },
   {
@@ -257,7 +257,7 @@
     "user_prompt": "[Text detected in view]: - A U-shaped curve with three short lines crossing it, a diagonal on the left side, a vertical one at the bottom, and a diagonal on the right side, along with a small open triangle floating below the right side of the U, not touching it means \"add to cart.\"\n- A horizontal bar whose right end hooks downward, along with a small square floating above its left end means \"red mug.\"\n\nWhat does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -280,7 +280,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -296,7 +296,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-custom-opaque-legend.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque-legend.png",
     "image_sha256": null
   },
   {
@@ -319,7 +319,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-custom-opaque-legend.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque-legend.png",
     "image_sha256": null
   },
   {
@@ -344,7 +344,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -376,7 +376,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -392,7 +392,7 @@
       {
         "role": "user",
         "text": "What's this sign?",
-        "image": "stimuli/old/images/sym-legend-custom-opaque.png",
+        "image": "stimuli/_bak/images/sym-legend-custom-opaque.png",
         "image_sha256": null
       },
       {
@@ -403,7 +403,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -419,7 +419,7 @@
       {
         "role": "user",
         "text": "What's this sign?",
-        "image": "stimuli/old/images/sym-legend-custom-opaque.png",
+        "image": "stimuli/_bak/images/sym-legend-custom-opaque.png",
         "image_sha256": null
       },
       {
@@ -437,7 +437,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -453,7 +453,7 @@
     "user_prompt": "What does this sign mean?",
     "expected_calls": [],
     "expected_interpretation": "add the red mug to the cart",
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   },
   {
@@ -476,7 +476,7 @@
       }
     ],
     "expected_interpretation": null,
-    "image": "stimuli/old/images/sym-scene-custom-opaque.png",
+    "image": "stimuli/_bak/images/sym-scene-custom-opaque.png",
     "image_sha256": null
   }
 ]
