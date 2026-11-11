@@ -20,7 +20,7 @@ setup:
 test *args:
     {{ python }} -m pytest stimuli/tests harness/tests -q {{ args }}
 
-# Render stimulus images from src/languages/fictional_languages.json, then rebuild the manifest with their hashes
+# Render stimulus images from stimuli/src/, then rebuild the manifest (text from src/, hashes from images/)
 build-stimuli:
     {{ python }} stimuli/render/generate_fictional_stimuli.py
     {{ python }} stimuli/manifest/build_manifest.py

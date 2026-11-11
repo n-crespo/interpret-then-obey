@@ -37,7 +37,7 @@ Run `just` with no arguments to list recipes. They run from the repo root with
 | -------------------- | -------------------------------------------------------------------- | ----------------------- |
 | `setup`              | Create `.venv` and install everything                                |                         |
 | `test [pytest args]` | Re-render stimuli and compare to manifest hashes + harness smoke test |                         |
-| `build-stimuli`      | Render stimulus PNGs from source phrases, rebuild manifest + hashes  |                         |
+| `build-stimuli`      | Render PNGs from `stimuli/src/`, rebuild manifest + image hashes     |                         |
 | `run <config> [...]` | Run the harness on a config in `harness/configs/`                    | Whatever the config names |
 | `run-dry [...]`      | Same pipeline on the real manifest with a mock model                 |                         |
 | `analyze <run_dir>`  | Breakdown tables for a run → prints + `<run_dir>/results_table.tex`  |                         |
