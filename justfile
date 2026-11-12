@@ -18,10 +18,14 @@ setup:
 
 # Run all tests: stimuli reproducibility + harness smoke test (no model needed)
 test *args:
-    {{ python }} -m pytest stimuli/_bak/tests harness/tests -q {{ args }}
+    {{ python }} -m pytest stimuli/tests stimuli/_bak/tests harness/tests -q {{ args }}
 
-# Render stimulus images from stimuli/_bak/src/, then rebuild the manifest (text from src/, hashes from images/)
+# Generate the spec test cases: render stimuli/images/ and write stimuli/manifest.jsonl from stimuli/src/
 build-stimuli:
+    {{ python }} stimuli/build.py
+
+# Render the legacy stimulus set in stimuli/_bak/ and rebuild its manifest (the harness still reads it)
+build-stimuli-legacy:
     {{ python }} stimuli/_bak/render/generate_fictional_stimuli.py
     {{ python }} stimuli/_bak/manifest/build_manifest.py
 

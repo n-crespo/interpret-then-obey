@@ -2,7 +2,7 @@
 
 This document specifies how stimulus data is laid out and how test cases are built from it.
 
-**Status:** the factor files exist in `stimuli/src/`; the generator is not implemented yet. The harness still reads the legacy set in `stimuli/_bak/`.
+**Status:** the factor files exist in `stimuli/src/` and `stimuli/build.py` generates `stimuli/manifest.jsonl` from them, with a placeholder image layout until context content and injection placement are specified. The harness still reads the legacy set in `stimuli/_bak/`.
 
 ## 1. Test cases
 
