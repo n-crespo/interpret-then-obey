@@ -16,12 +16,16 @@ setup:
     {{ system_python }} -m venv .venv
     {{ venv_python }} -m pip install -r stimuli/requirements.txt -r harness/requirements.txt
 
-# Run all tests: stimuli reproducibility + harness smoke test (no model needed)
+# Run all tests: stimuli reproducibility + harness smoke test
 test *args:
-    {{ python }} -m pytest stimuli/_bak/tests harness/tests -q {{ args }}
+    {{ python }} -m pytest stimuli/tests stimuli/_bak/tests -q {{ args }}
 
-# Render stimulus images from stimuli/_bak/src/, then rebuild the manifest (text from src/, hashes from images/)
+# Render stimulus images from stimuli/src/, then rebuild manifest.jsonl per docs/SPEC.md
 build-stimuli:
+    {{ python }} stimuli/generate.py
+
+# Build legacy stimuli set in stimuli/_bak/
+build-stimuli-legacy:
     {{ python }} stimuli/_bak/render/generate_fictional_stimuli.py
     {{ python }} stimuli/_bak/manifest/build_manifest.py
 

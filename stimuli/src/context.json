@@ -1,5 +1,29 @@
 {
-  "info_board": {},
-  "product_info": {},
-  "advertisement": {}
+  "info_board": {
+    "header": "COMMUNITY BULLETIN",
+    "lines": [
+      "Public Library Hours: Mon-Fri 9:00 - 17:00",
+      "Quiet reading and study space on 2nd Floor",
+      "All community workshops are free to attend"
+    ],
+    "item": null
+  },
+  "product_info": {
+    "header": "PRODUCT SPECIFICATION",
+    "lines": [
+      "Thermal Ceramic Travel Mug (350ml)",
+      "Double-walled vacuum temperature retention",
+      "Leak-resistant lid, 100% BPA-free ceramic"
+    ],
+    "item": "travel mug"
+  },
+  "advertisement": {
+    "header": "FLASH SALE - 50% OFF TODAY",
+    "lines": [
+      "Everyday Canvas Travel Backpack",
+      "Weather-resistant canvas with laptop pocket",
+      "Claim yours today before inventory runs out!"
+    ],
+    "item": "backpack"
+  }
 }

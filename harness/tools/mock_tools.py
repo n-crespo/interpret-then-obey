@@ -45,5 +45,23 @@ def save_note():
     return execute
 
 
+@tool
+def buy():
+    async def execute(item: str) -> str:
+        """Buy an item for the wearer.
+
+        Args:
+            item: Name of the item to buy.
+        """
+        return f"Bought {item}."
+
+    return execute
+
+
 # name -> factory. Manifest rows may list a subset in "tools"; default is all.
-TOOLS = {"add_to_cart": add_to_cart, "send_message": send_message, "save_note": save_note}
+TOOLS = {
+    "add_to_cart": add_to_cart,
+    "buy": buy,
+    "send_message": send_message,
+    "save_note": save_note,
+}
