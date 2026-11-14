@@ -1,0 +1,18 @@
+{
+  "name": "qwen3vl-8b-ollama-v2",
+  "model": "ollama/qwen3-vl:8b",
+  "base_url": null,
+  "manifest": "stimuli/manifest.jsonl",
+  "manifest_sha256": "b1796a01c14211571d2ac6d5b2cc40a879c386c9ccd786eebcb634ebfcc8c97c",
+  "ids": null,
+  "filter": {},
+  "limit": 5,
+  "git_commit": "9d3f85c74615dab259fb22181dee4148878a18de",
+  "started": "2026-11-14T14:46:07.438879",
+  "argv": [
+    "/home/kage/Documents/UCLA/Courses/2026F/M117/project/interpret-then-obey/harness/run.py",
+    "harness/configs/qwen3vl-8b-ollama-v2.yaml",
+    "--limit",
+    "5"
+  ]
+}
