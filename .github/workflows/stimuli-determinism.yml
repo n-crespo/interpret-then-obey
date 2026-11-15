@@ -1,0 +1,40 @@
+name: stimuli determinism
+
+# Re-renders every stimulus on each OS and fails if the committed manifest
+# (and so any image_sha256) would change.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "stimuli/**"
+      - "harness/manifest.py"
+      - ".github/workflows/stimuli-determinism.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install pinned Pillow
+        run: python -m pip install -r stimuli/requirements.txt pytest
+      - name: Regenerate stimuli
+        run: python stimuli/generate.py
+      - name: Committed manifest must be unchanged
+        shell: bash
+        run: git diff --exit-code --stat -- stimuli/manifest.jsonl
+      - name: Stimuli tests (incl. rebuild vs committed manifest)
+        run: python -m pytest stimuli/tests -q

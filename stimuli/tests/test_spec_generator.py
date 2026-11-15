@@ -42,8 +42,8 @@ def test_factor_files():
 
 def test_committed_manifest_rows():
     # Reads the committed manifest directly: stimuli/images/ is gitignored, so this
-    # must pass on a fresh clone. Hashes are checked against freshly built images
-    # by the generator's own self-check, not here.
+    # must pass on a fresh clone. Hashes are checked against a fresh build in
+    # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
     assert len(rows) == 126
 
