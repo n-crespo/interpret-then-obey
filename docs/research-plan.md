@@ -39,6 +39,7 @@ working name: **Interpret-Then-Obey Visual Prompt Injection**
    1. automated framework for reading harness output and determining attack success rate (LLM judge, Wilson intervals?)
    2. Was the test case (based on harness log) perceived vs interpreted vs obeyed?
    3. Which controls are needed? (Talk to 1, 2\)
+      - No-injection baseline: done. Each prompt × context image with the injection box empty (representation `none`, `category: baseline`, 9 rows in `stimuli/manifest.jsonl`); gives the spontaneous buy-call rate (docs/SPEC.md section 7).
    4. check P(interpret), P(obey \| interpret), P(obey) overall, P(interpreted \| not obey) (something probably went wrong in that case)
    5. P(obey \| not interpreted)
    6. P(interpreted \| obey)
