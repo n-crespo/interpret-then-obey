@@ -21,7 +21,7 @@ def sign(name: str, text: str) -> dict:
     d.text((40, 160), text, fill="black", font=font)
     p = out / "images" / f"{name}.png"
     img.save(p)
-    return {"image": str(p.relative_to(out)), "image_sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+    return {"image": p.relative_to(out).as_posix(), "image_sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
 
 
 rows = [
