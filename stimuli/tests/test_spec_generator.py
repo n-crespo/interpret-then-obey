@@ -30,8 +30,16 @@ def test_factor_files():
     # Rule 1: english is the first representation
     assert list(representations.keys())[0] == "english"
 
-    # Rule 2: every representation has a rendition for every injection
+    # The no-injection baseline is one representation, last, with nothing to render.
+    baselines = [rep_id for rep_id, rep in representations.items() if rep["category"] == "baseline"]
+    assert baselines == ["none"] == list(representations)[-1:]
+    assert representations["none"]["format"] == "none"
+    assert "injections" not in representations["none"]
+
+    # Rule 2: every (non-baseline) representation has a rendition for every injection
     for rep_id, rep in representations.items():
+        if rep["format"] == "none":
+            continue
         assert "buy_bear" in rep["injections"], f"{rep_id} missing buy_bear"
         content = rep["injections"]["buy_bear"]["content"]
         assert isinstance(content, list) and len(content) > 0
@@ -45,7 +53,20 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 90
+    assert len(rows) == 99
+
+    # 9 baseline rows: one per prompt x context, injection box left empty.
+    baseline = [r for r in rows if r["category"] == "baseline"]
+    assert len(baseline) == 9
+    assert {(r["prompt_id"], r["context_id"]) for r in baseline} == {
+        (p, c) for p in ("read", "help", "buy") for c in ("info_board", "product_info", "advertisement")
+    }
+    for r in baseline:
+        assert r["representation_id"] == "none"
+        assert r["language"] is None and r["script"] is None
+    # The baseline must look like no other image.
+    assert len({r["image_sha256"] for r in baseline}) == 3  # one image per context
+    assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
 
     for r in rows:
         assert r["tools"] == ["buy"]
@@ -112,3 +133,39 @@ def test_non_latin_scripts_are_real_text():
     tengwar = "".join(representations["elvish_tengwar"]["injections"]["buy_bear"]["content"])
     assert all(c.isspace() or 0xF8D0 <= ord(c) <= 0xF8FF for c in piqad)
     assert all(c.isspace() or 0xE000 <= ord(c) <= 0xE07F for c in tengwar)
+
+
+def test_baseline_differs_from_injected_only_inside_the_injection_box(tmp_path):
+    """Outside the injection box's interior, a baseline image equals every injected image
+    of the same context pixel for pixel; inside, it is the empty box (fill + corner notches).
+    """
+    import importlib.util
+    from PIL import Image, ImageChops
+
+    spec = importlib.util.spec_from_file_location("stimuli_generate", STIMULI / "generate.py")
+    gen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gen)
+
+    contexts = gen.load_json(SRC / "context.json")
+    representations = gen.load_json(SRC / "representations.json")
+    # Interior of the box, inside its 2px border.
+    interior = (42, gen.INJECTION_BOX_TOP + 2, gen.WIDTH - 41, gen.INJECTION_BOX_BOTTOM - 1)
+
+    def render(name, context_id, rep, rendition):
+        path = tmp_path / f"{name}.png"
+        gen.render_stimulus_image(path, context_id, contexts[context_id], rep, rendition)
+        return Image.open(path).convert("RGB")
+
+    for context_id in contexts:
+        base = render(f"{context_id}.none", context_id, representations["none"], None)
+        inside = base.crop(interior)
+        assert len(inside.getcolors()) == 2, "baseline box holds more than its fill and notches"
+        for rep_id, rep in representations.items():
+            if rep["format"] == "none":
+                continue
+            img = render(f"{context_id}.{rep_id}", context_id, rep, rep["injections"]["buy_bear"])
+            diff = ImageChops.difference(base, img)
+            assert diff.getbbox() is not None, f"{context_id}.{rep_id} draws nothing"
+            masked = diff.copy()
+            masked.paste((0, 0, 0), interior)
+            assert masked.getbbox() is None, f"{context_id}.{rep_id} differs from the baseline outside the box"
