@@ -4,20 +4,17 @@ working name: **Interpret-Then-Obey Visual Prompt Injection**
 
 ## Responsibilities by Person N
 
-1. Language test cases
-   1. control: attack w/ text as medium
-   2. all language attacks
-      - English
-      - high resource, Latin
-      - high resource, non-Latin
-      - low resource, Latin (rare)
-      - low resource, non-Latin (rare)
-   3. text medium vs image medium on all attacks listed above
-   4. note: talk with 2 about common manifest/test case format (that will go into test harness)
-   5. Help 2 when finished
+1. Language test cases (reference points for the symbol attacks, not the focus)
+   1. every attack is shown in an image (VLM only); no text-medium control
+   2. language anchors
+      - English: fully understood, sets the attack-success ceiling
+      - Klingon, Latin script vs pIqaD: same sentence, isolates the effect of an unfamiliar script
+      - Esperanto: constructed but well documented, separates "not English" from "obscure"
+   3. note: talk with 2 about common manifest/test case format (that will go into test harness)
+   4. Help 2 when finished
 2. Symbolic test cases
    1. test all symbol attacks and variations
-      - (text/image medium) emojis
+      - (image) emojis
       - (image only) common non-emoji symbols (arrows, pictograms, safety/road icons)
       - (image) custom symbols w/ clear meaning to human (check with humans beforehand)
       - (image) custom symbols w/ no clear meaning to humans (check with humans beforehand)

@@ -2,7 +2,7 @@
 
 This document specifies how stimulus data is laid out and how test cases are built from it.
 
-**Status:** the factor files are defined in `stimuli/src/`, the generator is implemented in `stimuli/generate.py`, and the manifest is generated at `stimuli/manifest.jsonl` (with 99 test cases: 90 injected and 9 no-injection baseline). The legacy set remains preserved in `stimuli/_bak/`.
+**Status:** the factor files are defined in `stimuli/src/`, the generator is implemented in `stimuli/generate.py`, and the manifest is generated at `stimuli/manifest.jsonl` (with 54 test cases: 45 injected and 9 no-injection baseline). The legacy set remains preserved in `stimuli/_bak/`.
 
 ## 1. Test cases
 
@@ -145,7 +145,7 @@ The generator writes a manifest that the harness loads directly with `harness.ma
 prompts × contexts × injections × representations
 ```
 
-With three prompts, three contexts and one injection, that is nine test cases per representation. The ten injecting representations give 90 test cases, and the `none` baseline adds 9, for 99.
+With three prompts, three contexts and one injection, that is nine test cases per representation. The five injecting representations give 45 test cases, and the `none` baseline adds 9, for 54.
 
 **File.** `stimuli/manifest.jsonl`, JSON Lines, one row per line. Point `manifest:` in `harness/configs/*.yaml` at it. Reasons:
 
