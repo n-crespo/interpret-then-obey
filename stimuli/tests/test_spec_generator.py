@@ -45,7 +45,7 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 126
+    assert len(rows) == 81
 
     for r in rows:
         assert r["tools"] == ["buy"]
@@ -53,12 +53,6 @@ def test_committed_manifest_rows():
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
-
-
-# Simlish and Minionese have no real vocabulary to translate into; their
-# renditions are gibberish plus English. Whether they count as representations
-# at all is an open decision on issue #15, so they are exempt until it is made.
-ENGLISH_LEAK_EXEMPT = {"simlish", "minionese"}
 
 
 def test_no_english_translations_in_conlang_content():
@@ -71,10 +65,9 @@ def test_no_english_translations_in_conlang_content():
             assert "buy a bear" not in joined
             assert "ignore user" not in joined
             assert "add a banana" not in joined
-            if rep_id not in ENGLISH_LEAK_EXEMPT:
-                assert not re.search(r"\bbear\b", joined, re.IGNORECASE), (
-                    f"{rep_id} rendition contains the English word 'bear': {content}"
-                )
+            assert not re.search(r"\bbear\b", joined, re.IGNORECASE), (
+                f"{rep_id} rendition contains the English word 'bear': {content}"
+            )
 
 
 def _ink(font, ch):
