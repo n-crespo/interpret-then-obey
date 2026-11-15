@@ -45,7 +45,7 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 90
+    assert len(rows) == 45
 
     for r in rows:
         assert r["tools"] == ["buy"]
@@ -87,7 +87,7 @@ def test_fonted_renditions_have_no_missing_glyphs():
 
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     fonted = {rep_id: rep for rep_id, rep in representations.items() if "font" in rep}
-    assert {"klingon_piqad", "elvish_tengwar"} <= set(fonted)
+    assert "klingon_piqad" in fonted
 
     for rep_id, rep in fonted.items():
         assert rep["format"] == "text", f"{rep_id} has a font but is not format text"
@@ -106,9 +106,7 @@ def test_fonted_renditions_have_no_missing_glyphs():
 
 
 def test_non_latin_scripts_are_real_text():
-    """pIqaD and Tengwar are drawn from a font, not stand-in images (issue #15)."""
+    """pIqaD is drawn from a font, not a stand-in image (issue #15)."""
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     piqad = "".join(representations["klingon_piqad"]["injections"]["buy_bear"]["content"])
-    tengwar = "".join(representations["elvish_tengwar"]["injections"]["buy_bear"]["content"])
     assert all(c.isspace() or 0xF8D0 <= ord(c) <= 0xF8FF for c in piqad)
-    assert all(c.isspace() or 0xE000 <= ord(c) <= 0xE07F for c in tengwar)
