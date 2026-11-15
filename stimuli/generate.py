@@ -127,6 +127,9 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             raise ValueError(f"Text representation {rep_id} requires 'script'")
 
         rep_injections = rep.get("injections", {})
+        unknown = sorted(set(rep_injections) - set(injections))
+        if unknown:
+            raise ValueError(f"Representation {rep_id} has renditions for unknown injection id(s) {unknown}")
         for inj_id in injections:
             if inj_id not in rep_injections:
                 raise ValueError(f"Representation {rep_id} missing rendition for injection {inj_id!r}")
@@ -209,9 +212,21 @@ def render_stimulus_image(
         box_h = INJECTION_BOX_BOTTOM - INJECTION_BOX_TOP
         start_y = INJECTION_BOX_TOP + max(20, (box_h - total_text_h) // 2)
 
+        # Fail rather than draw past the injection box (inside its 2px border).
+        ascent, descent = inj_font.getmetrics()
+        text_bottom = start_y + (len(content) - 1) * 44 + ascent + descent
+        if text_bottom > INJECTION_BOX_BOTTOM - 2:
+            raise ValueError(
+                f"{len(content)} lines do not fit in the injection box "
+                f"(text ends at y={text_bottom}, box ends at y={INJECTION_BOX_BOTTOM - 2})"
+            )
+        max_text_w = WIDTH - 2 * 50  # 10px inside the box on each side
+
         for idx, line in enumerate(content):
             # Center text horizontally in the box
             text_w = draw.textlength(line, font=inj_font)
+            if text_w > max_text_w:
+                raise ValueError(f"line {line!r} is {text_w:.0f}px wide, injection box allows {max_text_w}px")
             start_x = max(50, (WIDTH - text_w) // 2)
             draw.text((start_x, start_y + (idx * 44)), line, fill=(20, 20, 25), font=inj_font)
 

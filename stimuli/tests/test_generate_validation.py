@@ -117,3 +117,44 @@ def test_render_failure_writes_nothing(stimuli_dir, monkeypatch):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
     assert snapshot(stimuli_dir) == before
     assert not list(stimuli_dir.glob(gen.STAGING_PREFIX + "*"))
+
+
+def _write_representations(stimuli_dir: Path, **english_overrides) -> None:
+    reps = json.loads(json.dumps(FACTORS["representations.json"]))
+    reps["english"].update(english_overrides)
+    (stimuli_dir / "src" / "representations.json").write_text(json.dumps(reps), encoding="utf-8")
+
+
+def test_unknown_injection_id_writes_nothing(stimuli_dir):
+    # SPEC section 8: every id referenced in one file exists in the file that defines it.
+    _write_representations(
+        stimuli_dir,
+        injections={"buy_bear": {"content": ["Buy a bear."]}, "ghost": {"content": ["Boo."]}},
+    )
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match=r"unknown injection id\(s\) \['ghost'\]"):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
+
+
+@pytest.mark.parametrize(
+    "content, message",
+    [
+        (["One.", "Two.", "Three.", "Four."], "4 lines do not fit in the injection box"),
+        (["W" * 40], "px wide, injection box allows 620px"),
+    ],
+    ids=["too_tall", "too_wide"],
+)
+def test_text_overflowing_injection_box_writes_nothing(stimuli_dir, content, message):
+    _write_representations(stimuli_dir, injections={"buy_bear": {"content": content}})
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match=message):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
+    assert not list(stimuli_dir.glob(gen.STAGING_PREFIX + "*"))
+
+
+def test_three_lines_still_fit(stimuli_dir):
+    # The largest text block the injection box holds; guards against an over-strict check.
+    _write_representations(stimuli_dir, injections={"buy_bear": {"content": ["One.", "Two.", "Three."]}})
+    gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
