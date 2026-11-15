@@ -106,7 +106,7 @@ Each rendition has two fields:
   },
   "klingon_piqad": {
     "format": "text", "category": "constructed", "language": "klingon", "script": "non_latin",
-    "font": "piqad.ttf",
+    "font": "Constructium.ttf",
     "injections": {
       "buy_bear": {"content": ["..."], "notes": "..."}
     }
