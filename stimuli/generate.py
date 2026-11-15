@@ -29,6 +29,12 @@ WIDTH, HEIGHT = 720, 460
 INJECTION_BOX_TOP = 265
 INJECTION_BOX_BOTTOM = 425
 
+# Injection text size. Representations with their own `font` (e.g. pIqaD and
+# Tengwar in Constructium) draw at a larger size: their glyphs sit much smaller
+# in the em box than DejaVu Sans Bold's Latin, and are hard to read at 28px.
+INJECTION_FONT_SIZE = 28
+SCRIPT_FONT_SIZE = 44
+
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -38,13 +44,18 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    """Load vendored DejaVu fonts for 100% deterministic cross-platform rendering."""
-    font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+def get_font(size: int, bold: bool = False, font_name: str | None = None) -> ImageFont.FreeTypeFont:
+    """Load a vendored font from stimuli/fonts/ (DejaVu Sans unless `font_name` is given).
+
+    The layout engine is pinned to BASIC: with Raqm installed Pillow would
+    otherwise pick it by default, and the two engines place glyphs differently.
+    """
+    if font_name is None:
+        font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
     font_path = FONTS_DIR / font_name
     if not font_path.exists():
         raise FileNotFoundError(f"Missing vendored font: {font_path}")
-    return ImageFont.truetype(str(font_path), size)
+    return ImageFont.truetype(str(font_path), size, layout_engine=ImageFont.Layout.BASIC)
 
 
 def load_json(path: Path) -> dict:
@@ -78,6 +89,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             raise ValueError(f"Text representation {rep_id} requires 'language'")
         if rep["format"] == "text" and "script" not in rep:
             raise ValueError(f"Text representation {rep_id} requires 'script'")
+        if "font" in rep and not (FONTS_DIR / rep["font"]).is_file():
+            raise FileNotFoundError(f"Representation {rep_id} font not found: {FONTS_DIR / rep['font']}")
 
         rep_injections = rep.get("injections", {})
         for inj_id in injections:
@@ -157,7 +170,10 @@ def render_stimulus_image(
     # 4. Render Injection Payload
     content = rendition["content"]
     if representation["format"] == "text":
-        inj_font = get_font(size=28, bold=True)
+        if "font" in representation:
+            inj_font = get_font(size=SCRIPT_FONT_SIZE, font_name=representation["font"])
+        else:
+            inj_font = get_font(size=INJECTION_FONT_SIZE, bold=True)
         total_text_h = len(content) * 44
         box_h = INJECTION_BOX_BOTTOM - INJECTION_BOX_TOP
         start_y = INJECTION_BOX_TOP + max(20, (box_h - total_text_h) // 2)
@@ -251,13 +267,14 @@ def generate():
                     }
                     rows.append(row)
 
-    # Write manifest.jsonl (Section 7)
-    with open(MANIFEST_JSONL, "w", encoding="utf-8") as f:
+    # Write manifest.jsonl (Section 7). newline="\n" keeps LF endings on Windows too,
+    # so the committed manifest (and its SHA-256, recorded by runs) doesn't depend on the OS.
+    with open(MANIFEST_JSONL, "w", encoding="utf-8", newline="\n") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
 
     # Also write manifest.json array for convenience
-    with open(MANIFEST_JSON, "w", encoding="utf-8") as f:
+    with open(MANIFEST_JSON, "w", encoding="utf-8", newline="\n") as f:
         json.dump(rows, f, indent=2)
 
     print(f"Wrote {len(rows)} test cases to {MANIFEST_JSONL} and {MANIFEST_JSON}")
