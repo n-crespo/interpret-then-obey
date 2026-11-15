@@ -6,24 +6,34 @@ Combines the 4 factors:
   prompts × contexts × injections × representations
 
 Deterministically renders images to stimuli/images/<id>.png and writes
-the harness-loadable manifest to stimuli/manifest.jsonl.
+the harness-loadable manifest to stimuli/manifest.jsonl (the only file it
+writes, per docs/SPEC.md section 7).
+
+Section 8: if any check fails, nothing is written. Images and the manifest
+are built in a staging dir under stimuli/, the staged manifest is checked
+with harness.manifest.load_manifest(..., verify_hashes=True), and only then
+are both moved into place.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import os
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+from harness.manifest import load_manifest  # noqa: E402
+
 STIMULI_DIR = REPO_ROOT / "stimuli"
 SRC_DIR = STIMULI_DIR / "src"
 FONTS_DIR = STIMULI_DIR / "fonts"
-IMAGES_DIR = STIMULI_DIR / "images"
-MANIFEST_JSONL = STIMULI_DIR / "manifest.jsonl"
-MANIFEST_JSON = STIMULI_DIR / "manifest.json"
+STAGING_PREFIX = ".generate-"  # gitignored; removed after every run
 
 WIDTH, HEIGHT = 720, 460
 INJECTION_BOX_TOP = 265
@@ -53,11 +63,29 @@ def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(font_path), size, layout_engine=ImageFont.Layout.BASIC)
 
 
+class DuplicateKeyError(ValueError):
+    pass
+
+
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
+    # json.load would otherwise silently keep the last of two equal keys,
+    # dropping a factor (or a field) without any error.
+    out = {}
+    for k, v in pairs:
+        if k in out:
+            raise DuplicateKeyError(f"duplicate key {k!r}")
+        out[k] = v
+    return out
+
+
 def load_json(path: Path) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Missing factor file: {path}")
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        try:
+            return json.load(f, object_pairs_hook=_reject_duplicate_keys)
+        except DuplicateKeyError as e:
+            raise ValueError(f"{path.name}: {e}") from None
 
 
 def validate_factors(prompts: dict, contexts: dict, injections: dict, representations: dict) -> None:
@@ -70,6 +98,19 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         raise ValueError("injections.json is empty")
     if not representations:
         raise ValueError("representations.json is empty")
+
+    # Row ids are the four factor ids joined with '.', so a '.' inside one
+    # could make two combinations collide (a.b + c vs a + b.c) and would make
+    # ids ambiguous to split.
+    for fname, factor in (
+        ("prompts.json", prompts),
+        ("context.json", contexts),
+        ("injections.json", injections),
+        ("representations.json", representations),
+    ):
+        for fid in factor:
+            if not fid or "." in fid:
+                raise ValueError(f"{fname}: id {fid!r} must be non-empty and must not contain '.'")
 
     rep_keys = list(representations.keys())
     if rep_keys[0] != "english":
@@ -202,23 +243,12 @@ def render_stimulus_image(
     img.save(image_path, format="PNG", compress_level=0)
 
 
-def generate():
-    print("Loading factor files from stimuli/src/...")
-    prompts = load_json(SRC_DIR / "prompts.json")
-    contexts = load_json(SRC_DIR / "context.json")
-    injections = load_json(SRC_DIR / "injections.json")
-    representations = load_json(SRC_DIR / "representations.json")
-
-    validate_factors(prompts, contexts, injections, representations)
-
-    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-
-    rows = []
+def build_rows(
+    prompts: dict, contexts: dict, injections: dict, representations: dict, images_rel: str
+) -> list[tuple[dict, tuple]]:
+    """Every row in memory (image_sha256 filled in after rendering), each with its render arguments."""
+    out = []
     seen_ids = set()
-
-    total_combinations = len(prompts) * len(contexts) * len(injections) * len(representations)
-    print(f"Expanding factorial grid: {len(prompts)} prompts × {len(contexts)} contexts × {len(injections)} injections × {len(representations)} representations = {total_combinations} test cases")
-
     for prompt_id, prompt_data in prompts.items():
         for context_id, context_data in contexts.items():
             for injection_id, injection_data in injections.items():
@@ -228,27 +258,12 @@ def generate():
                         raise ValueError(f"Duplicate sample id: {sample_id}")
                     seen_ids.add(sample_id)
 
-                    rel_image_path = f"stimuli/images/{sample_id}.png"
-                    abs_image_path = REPO_ROOT / rel_image_path
-
-                    rendition = rep_data["injections"][injection_id]
-
-                    render_stimulus_image(
-                        abs_image_path,
-                        context_id,
-                        context_data,
-                        rep_data,
-                        rendition,
-                    )
-
-                    image_sha256 = sha256_file(abs_image_path)
-
                     expected_item = injection_data["expected_item"]
                     row = {
                         "id": sample_id,
                         "user_prompt": prompt_data["text"],
-                        "image": rel_image_path,
-                        "image_sha256": image_sha256,
+                        "image": f"{images_rel}/{sample_id}.png",
+                        "image_sha256": None,
                         "expected_calls": [{"name": "buy", "args": {"item": expected_item}}],
                         "tools": ["buy"],
                         "prompt_id": prompt_id,
@@ -259,27 +274,69 @@ def generate():
                         "language": rep_data.get("language"),
                         "script": rep_data.get("script"),
                     }
-                    rows.append(row)
+                    rendition = rep_data["injections"][injection_id]
+                    out.append((row, (context_id, context_data, rep_data, rendition)))
+    return out
 
-    # Write manifest.jsonl (Section 7)
-    # newline="\n": text mode would write CRLF on Windows and the manifest would differ.
-    with open(MANIFEST_JSONL, "w", encoding="utf-8", newline="\n") as f:
-        for r in rows:
-            f.write(json.dumps(r) + "\n")
 
-    # Also write manifest.json array for convenience
-    with open(MANIFEST_JSON, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(rows, f, indent=2)
+def _swap_in_dir(new: Path, dest: Path, trash: Path) -> None:
+    """Replace dest with new. The old dest is moved into trash and deleted with it."""
+    old = None
+    if dest.exists():
+        old = trash / "previous-images"
+        os.replace(dest, old)
+    try:
+        os.replace(new, dest)
+    except BaseException:
+        if old is not None:
+            os.replace(old, dest)
+        raise
 
-    print(f"Wrote {len(rows)} test cases to {MANIFEST_JSONL} and {MANIFEST_JSON}")
 
-    # Self-validation: verify harness load and hashes
-    print("Verifying manifest with harness.manifest.load_manifest(..., verify_hashes=True)...")
-    sys.path.insert(0, str(REPO_ROOT))
-    from harness.manifest import load_manifest
-    loaded = load_manifest(MANIFEST_JSONL, verify_hashes=True)
-    assert len(loaded) == len(rows), f"Loaded {len(loaded)} != expected {len(rows)}"
-    print(f"SUCCESS: Verified all {len(loaded)} test cases and SHA-256 hashes cleanly!")
+def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[dict]:
+    print(f"Loading factor files from {src_dir}...")
+    prompts = load_json(src_dir / "prompts.json")
+    contexts = load_json(src_dir / "context.json")
+    injections = load_json(src_dir / "injections.json")
+    representations = load_json(src_dir / "representations.json")
+
+    validate_factors(prompts, contexts, injections, representations)
+
+    total_combinations = len(prompts) * len(contexts) * len(injections) * len(representations)
+    print(f"Expanding factorial grid: {len(prompts)} prompts × {len(contexts)} contexts × {len(injections)} injections × {len(representations)} representations = {total_combinations} test cases")
+
+    # Image paths in the manifest are relative to stimuli_dir's parent (the repo root).
+    images_rel = f"{stimuli_dir.name}/images"
+    built = build_rows(prompts, contexts, injections, representations, images_rel)
+    rows = [row for row, _ in built]
+
+    # Render and write under `staging`, which mirrors the layout of
+    # stimuli_dir's parent, so the staged manifest's paths resolve to the
+    # staged images. Nothing outside it changes until every check has passed.
+    staging = Path(tempfile.mkdtemp(prefix=STAGING_PREFIX, dir=stimuli_dir))
+    try:
+        for row, render_args in built:
+            staged_image = staging / row["image"]
+            render_stimulus_image(staged_image, *render_args)
+            row["image_sha256"] = sha256_file(staged_image)
+
+        staged_manifest = staging / stimuli_dir.name / "manifest.jsonl"
+        with open(staged_manifest, "w", encoding="utf-8", newline="\n") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+        print("Verifying manifest with harness.manifest.load_manifest(..., verify_hashes=True)...")
+        loaded = load_manifest(staged_manifest, image_root=staging, verify_hashes=True)
+        if len(loaded) != len(rows):
+            raise ValueError(f"Loaded {len(loaded)} rows, expected {len(rows)}")
+
+        _swap_in_dir(staging / images_rel, stimuli_dir / "images", staging)
+        os.replace(staged_manifest, stimuli_dir / "manifest.jsonl")
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
+
+    print(f"SUCCESS: wrote and verified {len(rows)} test cases in {stimuli_dir / 'manifest.jsonl'}")
+    return rows
 
 
 if __name__ == "__main__":
