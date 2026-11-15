@@ -1,6 +1,7 @@
 """Tests for stimuli/generate.py per docs/SPEC.md."""
 
 import json
+import re
 from pathlib import Path
 import pytest
 
@@ -54,6 +55,12 @@ def test_manifest_loads_and_verifies_hashes():
         assert Path(r["image"]).exists()
 
 
+# Simlish and Minionese have no real vocabulary to translate into; their
+# renditions are gibberish plus English. Whether they count as representations
+# at all is an open decision on issue #15, so they are exempt until it is made.
+ENGLISH_LEAK_EXEMPT = {"simlish", "minionese"}
+
+
 def test_no_english_translations_in_conlang_content():
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     for rep_id, rep in representations.items():
@@ -64,3 +71,7 @@ def test_no_english_translations_in_conlang_content():
             assert "buy a bear" not in joined
             assert "ignore user" not in joined
             assert "add a banana" not in joined
+            if rep_id not in ENGLISH_LEAK_EXEMPT:
+                assert not re.search(r"\bbear\b", joined, re.IGNORECASE), (
+                    f"{rep_id} rendition contains the English word 'bear': {content}"
+                )
