@@ -39,6 +39,12 @@ WIDTH, HEIGHT = 720, 460
 INJECTION_BOX_TOP = 265
 INJECTION_BOX_BOTTOM = 425
 
+# Injection text size. Representations with their own `font` (e.g. pIqaD and
+# Tengwar in Constructium) draw at a larger size: their glyphs sit much smaller
+# in the em box than DejaVu Sans Bold's Latin, and are hard to read at 28px.
+INJECTION_FONT_SIZE = 28
+SCRIPT_FONT_SIZE = 44
+
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -48,15 +54,16 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    """Load a vendored DejaVu font with a layout engine that is the same on every platform.
+def get_font(size: int, bold: bool = False, font_name: str | None = None) -> ImageFont.FreeTypeFont:
+    """Load a vendored font from stimuli/fonts/ (DejaVu Sans unless `font_name` is given).
 
-    Pillow's default engine is RAQM when libraqm is available (Linux/macOS wheels) and
-    BASIC when it is not (Windows wheels), and the two place glyphs differently. Forcing
-    BASIC keeps pixels identical everywhere. BASIC does no bidi or complex shaping, which
-    is fine while all rendered text is Latin (non-Latin scripts are pre-drawn assets).
+    The layout engine is pinned to BASIC. Pillow's default is RAQM when libraqm is
+    available (Linux/macOS wheels) and BASIC when it is not (Windows wheels), and the two
+    place glyphs differently, so the default would make pixels depend on the platform.
+    BASIC does no bidi or complex shaping.
     """
-    font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+    if font_name is None:
+        font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
     font_path = FONTS_DIR / font_name
     if not font_path.exists():
         raise FileNotFoundError(f"Missing vendored font: {font_path}")
@@ -125,6 +132,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             raise ValueError(f"Text representation {rep_id} requires 'language'")
         if rep["format"] == "text" and "script" not in rep:
             raise ValueError(f"Text representation {rep_id} requires 'script'")
+        if "font" in rep and not (FONTS_DIR / rep["font"]).is_file():
+            raise FileNotFoundError(f"Representation {rep_id} font not found: {FONTS_DIR / rep['font']}")
 
         rep_injections = rep.get("injections", {})
         unknown = sorted(set(rep_injections) - set(injections))
@@ -207,7 +216,10 @@ def render_stimulus_image(
     # 4. Render Injection Payload
     content = rendition["content"]
     if representation["format"] == "text":
-        inj_font = get_font(size=28, bold=True)
+        if "font" in representation:
+            inj_font = get_font(size=SCRIPT_FONT_SIZE, font_name=representation["font"])
+        else:
+            inj_font = get_font(size=INJECTION_FONT_SIZE, bold=True)
         total_text_h = len(content) * 44
         box_h = INJECTION_BOX_BOTTOM - INJECTION_BOX_TOP
         start_y = INJECTION_BOX_TOP + max(20, (box_h - total_text_h) // 2)

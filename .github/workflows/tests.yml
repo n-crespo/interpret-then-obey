@@ -1,0 +1,55 @@
+name: tests
+
+# Runs the full suite (`just test`: stimuli + harness smoke test) the same way
+# it runs locally: `just setup` builds .venv, then `just test` uses it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Superseded PR pushes are cancelled; every commit on main gets a full result.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: pytest (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 3.11 is the real floor: pillow==13.0.0 has no 3.10 wheels.
+          - { os: ubuntu-latest, python: "3.11" }
+          - { os: ubuntu-latest, python: "3.15" }
+          # Windows: the main dev platform, and the Pillow wheel that differs most.
+          - { os: windows-latest, python: "3.15" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: |
+            stimuli/requirements.txt
+            harness/requirements.txt
+
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+        with:
+          just-version: "1.59.0"
+
+      - name: Install dependencies
+        run: just setup
+
+      - name: Run tests
+        run: just test -ra

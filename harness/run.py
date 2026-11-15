@@ -1,7 +1,7 @@
 """CLI: config + manifest -> Inspect run -> runs/<date>_<name>/ (logs, results.jsonl, meta).
 
   python -m harness.run harness/configs/qwen3vl-8b-ollama.yaml
-  python -m harness.run CFG --limit 5 --filter section=language --ids a,b
+  python -m harness.run CFG --limit 5 --filter category=natural --ids a,b
   python -m harness.run --resume runs/2026-11-05_qwen3vl-8b-ollama   # rerun errored/unfinished rows only
 """
 
