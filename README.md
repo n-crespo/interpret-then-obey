@@ -70,5 +70,6 @@ so a result can be traced back to exactly what produced it.
   (`stimuli/fonts/`) and the pinned Pillow are used. `just test` checks this
   (the check is skipped, not failed, on a different Pillow version).
 - If you change the stimuli, run `just build-stimuli` and commit the new images _and_ manifest together.
-- `just test` regenerates gitignored fixture files in `harness/fixtures/`, and `run`/`run-dry`
+- `just test` writes only to a temp dir: it dry-runs the harness (mock model) over the first
+  rows of `stimuli/manifest.jsonl`, rendering the images it needs there. `run`/`run-dry`
   write to `runs/`. Don't commit those by accident.
