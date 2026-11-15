@@ -18,7 +18,7 @@ setup:
 
 # Run all tests: stimuli reproducibility + harness smoke test
 test *args:
-    {{ python }} -m pytest stimuli/tests -q {{ args }}
+    {{ python }} -m pytest stimuli/tests harness/tests -q {{ args }}
 
 # Render stimulus images from stimuli/src/, then rebuild manifest.jsonl per docs/SPEC.md
 build-stimuli:
