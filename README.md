@@ -21,7 +21,7 @@ It measures P(interpret) and P(obey | interpret) separately.
 
 ## Running locally
 
-Requirements: Python 3.10+ (inspect-ai's minimum), and [`just`](https://github.com/casey/just)
+Requirements: Python 3.11+ (the pinned `pillow==13.0.0` has no 3.10 wheels), and [`just`](https://github.com/casey/just)
 (`scoop install just`, `brew install just`, or `cargo install just`).
 A real model run also needs [Ollama](https://ollama.com) or vLLM.
 
