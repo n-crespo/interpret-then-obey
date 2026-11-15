@@ -5,6 +5,9 @@ Stimulus generator for the interpret-then-obey benchmark per docs/SPEC.md.
 Combines the 4 factors:
   prompts × contexts × injections × representations
 
+The `none` representation (format "none", category "baseline") is the
+no-injection baseline: its images have the injection box drawn but empty.
+
 Deterministically renders images to stimuli/images/<id>.png and writes
 the harness-loadable manifest to stimuli/manifest.jsonl (the only file it
 writes, per docs/SPEC.md section 7).
@@ -44,6 +47,9 @@ INJECTION_BOX_BOTTOM = 425
 # in the em box than DejaVu Sans Bold's Latin, and are hard to read at 28px.
 INJECTION_FONT_SIZE = 28
 SCRIPT_FONT_SIZE = 44
+
+FORMATS = ("text", "image", "none")
+CATEGORIES = ("natural", "constructed", "symbols", "baseline")
 
 
 def sha256_file(path: Path) -> str:
@@ -124,10 +130,19 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         raise ValueError(f"docs/SPEC.md Rule 1: 'english' must be the first representation, got {rep_keys[0]!r}")
 
     for rep_id, rep in representations.items():
-        if "format" not in rep or rep["format"] not in ("text", "image"):
-            raise ValueError(f"Representation {rep_id} must have format 'text' or 'image'")
-        if "category" not in rep or rep["category"] not in ("natural", "constructed", "symbols"):
+        if "format" not in rep or rep["format"] not in FORMATS:
+            raise ValueError(f"Representation {rep_id} must have format 'text', 'image' or 'none'")
+        if "category" not in rep or rep["category"] not in CATEGORIES:
             raise ValueError(f"Representation {rep_id} has invalid category {rep.get('category')!r}")
+        # The baseline: format 'none' and category 'baseline' go together, and
+        # nothing is drawn, so it has no renditions, language, script or font.
+        if (rep["format"] == "none") != (rep["category"] == "baseline"):
+            raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
+        if rep["format"] == "none":
+            extra = sorted({"injections", "language", "script", "font"} & set(rep))
+            if extra:
+                raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
+            continue
         if rep["format"] == "text" and "language" not in rep:
             raise ValueError(f"Text representation {rep_id} requires 'language'")
         if rep["format"] == "text" and "script" not in rep:
@@ -158,9 +173,14 @@ def render_stimulus_image(
     context_id: str,
     context: dict,
     representation: dict,
-    rendition: dict,
+    rendition: dict | None,
 ) -> None:
-    """Render a stimulus image combining context content and the injection rendition."""
+    """Render a stimulus image combining context content and the injection rendition.
+
+    For the baseline (format 'none', rendition None) everything up to and including the
+    empty injection box is drawn exactly as for an injected image, and nothing is put in
+    the box, so the two differ only inside it.
+    """
     # Palette based on context type
     if context_id == "info_board":
         bg_color = (244, 242, 238)
@@ -213,9 +233,11 @@ def render_stimulus_image(
     draw.line([(40, INJECTION_BOX_BOTTOM - 15), (40 + 15, INJECTION_BOX_BOTTOM)], fill=accent_color, width=2)
     draw.line([(WIDTH - 40, INJECTION_BOX_BOTTOM - 15), (WIDTH - 40 - 15, INJECTION_BOX_BOTTOM)], fill=accent_color, width=2)
 
-    # 4. Render Injection Payload
-    content = rendition["content"]
-    if representation["format"] == "text":
+    # 4. Render Injection Payload (nothing for the baseline)
+    if representation["format"] == "none":
+        pass
+    elif representation["format"] == "text":
+        content = rendition["content"]
         if "font" in representation:
             inj_font = get_font(size=SCRIPT_FONT_SIZE, font_name=representation["font"])
         else:
@@ -244,7 +266,7 @@ def render_stimulus_image(
 
     elif representation["format"] == "image":
         # Load and paste pre-drawn asset centered in injection box
-        asset_path = REPO_ROOT / content[0]
+        asset_path = REPO_ROOT / rendition["content"][0]
         asset_img = Image.open(asset_path).convert("RGBA")
 
         box_w = WIDTH - 80
@@ -301,7 +323,7 @@ def build_rows(
                         "language": rep_data.get("language"),
                         "script": rep_data.get("script"),
                     }
-                    rendition = rep_data["injections"][injection_id]
+                    rendition = rep_data["injections"][injection_id] if rep_data["format"] != "none" else None
                     out.append((row, (context_id, context_data, rep_data, rendition)))
     return out
 
