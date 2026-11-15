@@ -39,12 +39,18 @@ def sha256_file(path: Path) -> str:
 
 
 def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    """Load vendored DejaVu fonts for 100% deterministic cross-platform rendering."""
+    """Load a vendored DejaVu font with a layout engine that is the same on every platform.
+
+    Pillow's default engine is RAQM when libraqm is available (Linux/macOS wheels) and
+    BASIC when it is not (Windows wheels), and the two place glyphs differently. Forcing
+    BASIC keeps pixels identical everywhere. BASIC does no bidi or complex shaping, which
+    is fine while all rendered text is Latin (non-Latin scripts are pre-drawn assets).
+    """
     font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
     font_path = FONTS_DIR / font_name
     if not font_path.exists():
         raise FileNotFoundError(f"Missing vendored font: {font_path}")
-    return ImageFont.truetype(str(font_path), size)
+    return ImageFont.truetype(str(font_path), size, layout_engine=ImageFont.Layout.BASIC)
 
 
 def load_json(path: Path) -> dict:
@@ -189,7 +195,11 @@ def render_stimulus_image(
         img.paste(asset_img, (paste_x, paste_y), mask=asset_img.split()[3])
 
     image_path.parent.mkdir(parents=True, exist_ok=True)
-    img.save(image_path, format="PNG")
+    # compress_level=0 writes stored (uncompressed) deflate blocks. The zlib-ng builds in
+    # Pillow's Windows and Linux wheels produce different compressed bytes for the same
+    # pixels at every level from 1 to 9, so only level 0 gives the same file, and the same
+    # image_sha256, on every platform. Pillow writes no metadata chunks here.
+    img.save(image_path, format="PNG", compress_level=0)
 
 
 def generate():
@@ -252,12 +262,13 @@ def generate():
                     rows.append(row)
 
     # Write manifest.jsonl (Section 7)
-    with open(MANIFEST_JSONL, "w", encoding="utf-8") as f:
+    # newline="\n": text mode would write CRLF on Windows and the manifest would differ.
+    with open(MANIFEST_JSONL, "w", encoding="utf-8", newline="\n") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
 
     # Also write manifest.json array for convenience
-    with open(MANIFEST_JSON, "w", encoding="utf-8") as f:
+    with open(MANIFEST_JSON, "w", encoding="utf-8", newline="\n") as f:
         json.dump(rows, f, indent=2)
 
     print(f"Wrote {len(rows)} test cases to {MANIFEST_JSONL} and {MANIFEST_JSON}")

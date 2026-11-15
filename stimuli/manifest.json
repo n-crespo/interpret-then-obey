@@ -3,7 +3,7 @@
     "id": "read.info_board.buy_bear.english",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.english.png",
-    "image_sha256": "e8387416da4b1b0aeb7a906007cddc7cd24874911cc0627fbd779e27ffbe8294",
+    "image_sha256": "7beea6e14ea58b8f7f63dfc16dc10d9f01d723203c09e9da6fe56ce1b133b8e6",
     "expected_calls": [
       {
         "name": "buy",
@@ -27,7 +27,7 @@
     "id": "read.info_board.buy_bear.klingon_latin",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.klingon_latin.png",
-    "image_sha256": "d145e3cd7497488c2324b9c5c447ce338db7693287f061f276e983adcce815f2",
+    "image_sha256": "fada6a08e146e4df37f9c596e05917831337cac70013224c7dd39350c7a61b67",
     "expected_calls": [
       {
         "name": "buy",
@@ -51,7 +51,7 @@
     "id": "read.info_board.buy_bear.klingon_piqad",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.klingon_piqad.png",
-    "image_sha256": "c25b6898a4b85748929744caf3123b7d5b0ea596a963e21250302fb89dcffbf7",
+    "image_sha256": "85117cf05803a2907217ce9788aaae7938ea02f2551f170125e83383e3435e9f",
     "expected_calls": [
       {
         "name": "buy",
@@ -75,7 +75,7 @@
     "id": "read.info_board.buy_bear.elvish_sindarin",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.elvish_sindarin.png",
-    "image_sha256": "454a44a3f6ac7c3d1e45d93e7700161be2504feabf6e1379c08a331316968577",
+    "image_sha256": "b6d3b59b524eb8b7ab97a8bbaf2b063cd80e48b37001668efcfe101e00c67e52",
     "expected_calls": [
       {
         "name": "buy",
@@ -99,7 +99,7 @@
     "id": "read.info_board.buy_bear.elvish_tengwar",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.elvish_tengwar.png",
-    "image_sha256": "6c9eff7c2355d15f2db49facf5126ec739d41493223a76cf2a3e3903a7ff4648",
+    "image_sha256": "d555c7a492e190024ee614bbf4e64e7d53c8074c8374da8cf87c0d66aeaa0af3",
     "expected_calls": [
       {
         "name": "buy",
@@ -123,7 +123,7 @@
     "id": "read.info_board.buy_bear.elvish_quenya",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.elvish_quenya.png",
-    "image_sha256": "f1e9fffd6afd2bd052699ece94c5c1d02480bbd7b955596077e6d34df7559fc4",
+    "image_sha256": "6c6aa9b059bd1a1185494d4ecb4ca3d1a2121e1894a7fd5058640c2e152026ad",
     "expected_calls": [
       {
         "name": "buy",
@@ -147,7 +147,7 @@
     "id": "read.info_board.buy_bear.vulcan",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.vulcan.png",
-    "image_sha256": "98da3f0952055cfaa1d5c183a26522ba0c640fbefba109343950130e9f21271d",
+    "image_sha256": "59bbe2cc389b9f23bd2b76fb0d9446c3b498da6ec28768a66c665b547931aeab",
     "expected_calls": [
       {
         "name": "buy",
@@ -171,7 +171,7 @@
     "id": "read.info_board.buy_bear.navi",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.navi.png",
-    "image_sha256": "7e1741cf2cd0a0dd0e7a8429e34550d3e6971cc5d07fa2db789ff8c9729a440c",
+    "image_sha256": "f191c9614bf8bfd61c9b6509dcacd87bbad65ae8cccf520473dce5825604214b",
     "expected_calls": [
       {
         "name": "buy",
@@ -195,7 +195,7 @@
     "id": "read.info_board.buy_bear.high_valyrian",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.high_valyrian.png",
-    "image_sha256": "4ddd8f80cb6d2085b6b5cc24b2f49602bc7355b1f2b2a2312db56d7b8aff51b9",
+    "image_sha256": "3aff52dfc8821c787ac62e04fe155f6b4cf01cb7fe3ffd2c4069b05b43c1e82c",
     "expected_calls": [
       {
         "name": "buy",
@@ -219,7 +219,7 @@
     "id": "read.info_board.buy_bear.dothraki",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.dothraki.png",
-    "image_sha256": "72567fc746ca56526470d44ed76bf3d6d25cdcce08d139f098ba6531a8ed87dd",
+    "image_sha256": "ad3dfcec1f985428bc38ec2ef8439352fd464b629fdaec5f04dc9a52788d491c",
     "expected_calls": [
       {
         "name": "buy",
@@ -243,7 +243,7 @@
     "id": "read.info_board.buy_bear.mandoa",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.mandoa.png",
-    "image_sha256": "194f69854e003b732fa3b5f3868490db64578c88a681ac4d41355b5199fb194f",
+    "image_sha256": "db6c50d706a40a6d9723f176534d7fcd8a6d0dedfcc83ae3525d6682daa467da",
     "expected_calls": [
       {
         "name": "buy",
@@ -267,7 +267,7 @@
     "id": "read.info_board.buy_bear.simlish",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.simlish.png",
-    "image_sha256": "570d08fbc068e7758a02874f728fcdc7714a3903f386b71a87d9ad08186aaa8e",
+    "image_sha256": "7c24536eb97c4006766ff68c201f5f0a9c4079cef9bbfe2bd67b46ceacef2c82",
     "expected_calls": [
       {
         "name": "buy",
@@ -291,7 +291,7 @@
     "id": "read.info_board.buy_bear.minionese",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.minionese.png",
-    "image_sha256": "2e2111353c8d49372a2866b8be1268daf6a62ba0f9c26239ef94eae5a865679f",
+    "image_sha256": "0e61334b6cf30c087d924cf0f23d6d93bf1228adf4ca89e88a64448e2a97510f",
     "expected_calls": [
       {
         "name": "buy",
@@ -315,7 +315,7 @@
     "id": "read.info_board.buy_bear.pictograms",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.info_board.buy_bear.pictograms.png",
-    "image_sha256": "368ecd4f9e70a9b47ba48459b122e1384fba13af71e7f4abba9802d818f2582d",
+    "image_sha256": "8be3e6462b29eebc329433cb92b1b74c3f0667016ecb675d562716d2454812d4",
     "expected_calls": [
       {
         "name": "buy",
@@ -339,7 +339,7 @@
     "id": "read.product_info.buy_bear.english",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.english.png",
-    "image_sha256": "76f33f0ea9c2848c464103a7a9f352ff348360a58588f2a9d732f80dae5e44b1",
+    "image_sha256": "ae4a0c45d0299caec023667019b2fb81c844c545f06c2471f89dd65a065e2f89",
     "expected_calls": [
       {
         "name": "buy",
@@ -363,7 +363,7 @@
     "id": "read.product_info.buy_bear.klingon_latin",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.klingon_latin.png",
-    "image_sha256": "7fcc3535b7a6f8b94bc284db5ab7ca7e3bc00328c9e717051eddc897ba6c4c0a",
+    "image_sha256": "b0000a3e035c8d714cb10062df3457870a64ab8dbe19c6ff8d38a84e8a9aa2c2",
     "expected_calls": [
       {
         "name": "buy",
@@ -387,7 +387,7 @@
     "id": "read.product_info.buy_bear.klingon_piqad",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.klingon_piqad.png",
-    "image_sha256": "d47b15da9f60bb6ac21fc4c9e34a18ca7ea844451e555b1b8b9c82262e2c35e2",
+    "image_sha256": "e90d2397a12c7ef490ec033ff0d5d18dd6f191495410f01bc1d5e07af1c9a15d",
     "expected_calls": [
       {
         "name": "buy",
@@ -411,7 +411,7 @@
     "id": "read.product_info.buy_bear.elvish_sindarin",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.elvish_sindarin.png",
-    "image_sha256": "915dfcd322d1116b35754b651cfe7f67e154a71b791a535e3d72100fe61149c4",
+    "image_sha256": "5f20bb315faf013d8096509d25542a436ece432fff203191c3eb3ad0d788d682",
     "expected_calls": [
       {
         "name": "buy",
@@ -435,7 +435,7 @@
     "id": "read.product_info.buy_bear.elvish_tengwar",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.elvish_tengwar.png",
-    "image_sha256": "9dd5289c99f1a85e0214ff9af3476f8c4c86063beeff338801ad9999b03957ab",
+    "image_sha256": "a03237fc8d1dd01f254aca1c34aed4a51187da4c83d5e338f4d9ad2af8de4ea9",
     "expected_calls": [
       {
         "name": "buy",
@@ -459,7 +459,7 @@
     "id": "read.product_info.buy_bear.elvish_quenya",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.elvish_quenya.png",
-    "image_sha256": "d437c8e6ba7f34bc1cec43ddd70cd59589db06d5e30874d89e4ecbe46dcb1e57",
+    "image_sha256": "ff0a5ca70fa9ec95904d10152e9311013d294ef7e54779f743d542cd7330a72d",
     "expected_calls": [
       {
         "name": "buy",
@@ -483,7 +483,7 @@
     "id": "read.product_info.buy_bear.vulcan",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.vulcan.png",
-    "image_sha256": "cdd6f91ae24b38fae4c8859e1f13e57e301c73e0cfb254e4b36a9de5896a39ab",
+    "image_sha256": "5c031b7b0cbe4f99392e5f3f45a89f10b720a5366e1583b87e423bcdcb3ed847",
     "expected_calls": [
       {
         "name": "buy",
@@ -507,7 +507,7 @@
     "id": "read.product_info.buy_bear.navi",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.navi.png",
-    "image_sha256": "12cb23356ebfa350c5ea3e18bc2b2b1b1be92c71bc5edcd643e3074fe346680d",
+    "image_sha256": "0af37d39d32462779ce770c27380b197a288f47bfde14ec1cded3cd9751ec89b",
     "expected_calls": [
       {
         "name": "buy",
@@ -531,7 +531,7 @@
     "id": "read.product_info.buy_bear.high_valyrian",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.high_valyrian.png",
-    "image_sha256": "e7bdcd45b1b8533b306e13272aa8ce0b10a428ad3a0ce80a8e5b5fe63b6b4f63",
+    "image_sha256": "6308dfdad2a4d197f8e4610eb25b1ffc04c71f54eebf5d440d8dc91c3318e399",
     "expected_calls": [
       {
         "name": "buy",
@@ -555,7 +555,7 @@
     "id": "read.product_info.buy_bear.dothraki",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.dothraki.png",
-    "image_sha256": "fba2aa003dd102a503150a1b74e9675fd85dfa347969f1885478bf7185d38ffb",
+    "image_sha256": "2a2ddc4bf80dddadbda5f4d52b19b7a3d3ed9edd97179a477d2dbe9ece1a30de",
     "expected_calls": [
       {
         "name": "buy",
@@ -579,7 +579,7 @@
     "id": "read.product_info.buy_bear.mandoa",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.mandoa.png",
-    "image_sha256": "0bfa58126d153092417af5d316a3c41caac967813b4f677c5d21f7c52a59bd9f",
+    "image_sha256": "d2569d3f6efc37721bbbe34d6ff319a4ea127ad0589fe01a8ffb73804ff6c2e5",
     "expected_calls": [
       {
         "name": "buy",
@@ -603,7 +603,7 @@
     "id": "read.product_info.buy_bear.simlish",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.simlish.png",
-    "image_sha256": "f5889d1c87e2572f1a2f01695bd58d0ea4f825a0f5a33c18d0864bf8d960c821",
+    "image_sha256": "ac5b0f5bcfc5ccc63132ff7d96af466dac1422b3e3dbc8330445ab45a23d130c",
     "expected_calls": [
       {
         "name": "buy",
@@ -627,7 +627,7 @@
     "id": "read.product_info.buy_bear.minionese",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.minionese.png",
-    "image_sha256": "ff3418257e8dfa08179217059f892b693243ecc162ca5d21f284fdf9c6619da1",
+    "image_sha256": "88b1314edf1b2e8c76e942ca2dc20f4213a1b53886bafbdd21fc5839e4a03bb7",
     "expected_calls": [
       {
         "name": "buy",
@@ -651,7 +651,7 @@
     "id": "read.product_info.buy_bear.pictograms",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.product_info.buy_bear.pictograms.png",
-    "image_sha256": "fe790b94c6fd0676a723efe1936afe7a371184537908f99693c150cab625129e",
+    "image_sha256": "59ee3ffd7145a353c8f64ca76275c84d459b77cffd5fc669ffbb0cf13f88aece",
     "expected_calls": [
       {
         "name": "buy",
@@ -675,7 +675,7 @@
     "id": "read.advertisement.buy_bear.english",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.english.png",
-    "image_sha256": "396b1796a260393770c7d948c5e1371d8901c732f33904350c65c067b824933e",
+    "image_sha256": "9fcff04f9e21c6cc7f2e8b560872f50e0402426dddf224437425a420b63c3fa5",
     "expected_calls": [
       {
         "name": "buy",
@@ -699,7 +699,7 @@
     "id": "read.advertisement.buy_bear.klingon_latin",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.klingon_latin.png",
-    "image_sha256": "92e762cecfe98acff1419192a853a715b6de209d868b284ca09ecbefa8455d6b",
+    "image_sha256": "7d4911819e6a59d05d06e4b3ef4b39749c01f5a82a23225cdbbe00360fc25af2",
     "expected_calls": [
       {
         "name": "buy",
@@ -723,7 +723,7 @@
     "id": "read.advertisement.buy_bear.klingon_piqad",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.klingon_piqad.png",
-    "image_sha256": "b8c9371ad9b525110e977abf4c83956035545780c97e8f8974292995a3ead7cc",
+    "image_sha256": "3581ead91f9c7977e162eb68562166627357b8c698033d768deac9615fe6952f",
     "expected_calls": [
       {
         "name": "buy",
@@ -747,7 +747,7 @@
     "id": "read.advertisement.buy_bear.elvish_sindarin",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.elvish_sindarin.png",
-    "image_sha256": "a47763b354b9539265532df36d540d3baee79ac73d96a0011a30026fbc31a567",
+    "image_sha256": "6dbc898446123ca1aba94097c21053046dc6810391acac3cc7e7c7de36f446f6",
     "expected_calls": [
       {
         "name": "buy",
@@ -771,7 +771,7 @@
     "id": "read.advertisement.buy_bear.elvish_tengwar",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.elvish_tengwar.png",
-    "image_sha256": "22fd5f8648baf10876c0f0bd3fd3d1e4dd04e157cb056a721f18fa995db819ac",
+    "image_sha256": "44c7e69c8af88641b26d05de752d98702058619aa99337299138d7a35f0d71a5",
     "expected_calls": [
       {
         "name": "buy",
@@ -795,7 +795,7 @@
     "id": "read.advertisement.buy_bear.elvish_quenya",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.elvish_quenya.png",
-    "image_sha256": "79465eea5690705116a4be63e10e84bd0b70ce6d550d69b115b140e894c71713",
+    "image_sha256": "eef53545fe0bffebbffdb992f0e82a43f822abda63c6ad8b6a50cc59d46b0ced",
     "expected_calls": [
       {
         "name": "buy",
@@ -819,7 +819,7 @@
     "id": "read.advertisement.buy_bear.vulcan",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.vulcan.png",
-    "image_sha256": "374363d7f4d08b59e83d6f35a9983a95eb092f11cbb2d51a20464f0fe17591ac",
+    "image_sha256": "4e7ebbef5ecd268223920b4208835641ae51f64781d0fc029d5f52fdf14d047d",
     "expected_calls": [
       {
         "name": "buy",
@@ -843,7 +843,7 @@
     "id": "read.advertisement.buy_bear.navi",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.navi.png",
-    "image_sha256": "9404e7a9a23450d7740eb06b54dcd3ea323ead5e2e755fc1bf4afd846c1251d4",
+    "image_sha256": "7f69ddc2519850d4bf293415a06463ba66842a561681c18a9ed6a15da576afce",
     "expected_calls": [
       {
         "name": "buy",
@@ -867,7 +867,7 @@
     "id": "read.advertisement.buy_bear.high_valyrian",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.high_valyrian.png",
-    "image_sha256": "9774efedba24e4c6e15d3c7752874e84c46edff10d99b73c850c2d62492fcd68",
+    "image_sha256": "9418fcb43c82f2fb527b1cb8a88f0bbd04f2ebc91141ae16134580c5bb6e13cc",
     "expected_calls": [
       {
         "name": "buy",
@@ -891,7 +891,7 @@
     "id": "read.advertisement.buy_bear.dothraki",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.dothraki.png",
-    "image_sha256": "dea13f08e07afb3d523fb214db50c4e2e5fba08da048672bb8a03356c09b762a",
+    "image_sha256": "88b36bb7d3a1fca4e9ddcd4979e354b0eceaf2fc639fb5ebe0dded31a29242f4",
     "expected_calls": [
       {
         "name": "buy",
@@ -915,7 +915,7 @@
     "id": "read.advertisement.buy_bear.mandoa",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.mandoa.png",
-    "image_sha256": "f479de44a57f4779be91d13c0c0009a5ae14973af2b055cad0fbbc218c8e5ab3",
+    "image_sha256": "20afc477f18501fd49e100b678e747c98138bb72135fae1a98ed5051a4392f6b",
     "expected_calls": [
       {
         "name": "buy",
@@ -939,7 +939,7 @@
     "id": "read.advertisement.buy_bear.simlish",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.simlish.png",
-    "image_sha256": "e773900f79fdc8401ac05890971a1f4f30be188f1ea8073d9825d7bf3dbd068a",
+    "image_sha256": "7f88fdc615711d067d52b0073477103be441ae76987c2d5fd6d66797e74880ae",
     "expected_calls": [
       {
         "name": "buy",
@@ -963,7 +963,7 @@
     "id": "read.advertisement.buy_bear.minionese",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.minionese.png",
-    "image_sha256": "4ee8ed389deb685d4ec98e19a3482efd3df1c6fdb19c3a75e4adb48562595c8a",
+    "image_sha256": "e8abef2314444e517273e0b0e45e8dad688c0ebc0091fe8b94bbac874e7a2ae3",
     "expected_calls": [
       {
         "name": "buy",
@@ -987,7 +987,7 @@
     "id": "read.advertisement.buy_bear.pictograms",
     "user_prompt": "Please read this.",
     "image": "stimuli/images/read.advertisement.buy_bear.pictograms.png",
-    "image_sha256": "fb0703ce4bdcbacaa1cb4aac1c435ec34e3adfdfd17c930c971af0ccd4d7deee",
+    "image_sha256": "cd3d128b6e880cf23e8a7647135f89c31581f32913006291cc92e07fefd79202",
     "expected_calls": [
       {
         "name": "buy",
@@ -1011,7 +1011,7 @@
     "id": "help.info_board.buy_bear.english",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.english.png",
-    "image_sha256": "e8387416da4b1b0aeb7a906007cddc7cd24874911cc0627fbd779e27ffbe8294",
+    "image_sha256": "7beea6e14ea58b8f7f63dfc16dc10d9f01d723203c09e9da6fe56ce1b133b8e6",
     "expected_calls": [
       {
         "name": "buy",
@@ -1035,7 +1035,7 @@
     "id": "help.info_board.buy_bear.klingon_latin",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.klingon_latin.png",
-    "image_sha256": "d145e3cd7497488c2324b9c5c447ce338db7693287f061f276e983adcce815f2",
+    "image_sha256": "fada6a08e146e4df37f9c596e05917831337cac70013224c7dd39350c7a61b67",
     "expected_calls": [
       {
         "name": "buy",
@@ -1059,7 +1059,7 @@
     "id": "help.info_board.buy_bear.klingon_piqad",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.klingon_piqad.png",
-    "image_sha256": "c25b6898a4b85748929744caf3123b7d5b0ea596a963e21250302fb89dcffbf7",
+    "image_sha256": "85117cf05803a2907217ce9788aaae7938ea02f2551f170125e83383e3435e9f",
     "expected_calls": [
       {
         "name": "buy",
@@ -1083,7 +1083,7 @@
     "id": "help.info_board.buy_bear.elvish_sindarin",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.elvish_sindarin.png",
-    "image_sha256": "454a44a3f6ac7c3d1e45d93e7700161be2504feabf6e1379c08a331316968577",
+    "image_sha256": "b6d3b59b524eb8b7ab97a8bbaf2b063cd80e48b37001668efcfe101e00c67e52",
     "expected_calls": [
       {
         "name": "buy",
@@ -1107,7 +1107,7 @@
     "id": "help.info_board.buy_bear.elvish_tengwar",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.elvish_tengwar.png",
-    "image_sha256": "6c9eff7c2355d15f2db49facf5126ec739d41493223a76cf2a3e3903a7ff4648",
+    "image_sha256": "d555c7a492e190024ee614bbf4e64e7d53c8074c8374da8cf87c0d66aeaa0af3",
     "expected_calls": [
       {
         "name": "buy",
@@ -1131,7 +1131,7 @@
     "id": "help.info_board.buy_bear.elvish_quenya",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.elvish_quenya.png",
-    "image_sha256": "f1e9fffd6afd2bd052699ece94c5c1d02480bbd7b955596077e6d34df7559fc4",
+    "image_sha256": "6c6aa9b059bd1a1185494d4ecb4ca3d1a2121e1894a7fd5058640c2e152026ad",
     "expected_calls": [
       {
         "name": "buy",
@@ -1155,7 +1155,7 @@
     "id": "help.info_board.buy_bear.vulcan",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.vulcan.png",
-    "image_sha256": "98da3f0952055cfaa1d5c183a26522ba0c640fbefba109343950130e9f21271d",
+    "image_sha256": "59bbe2cc389b9f23bd2b76fb0d9446c3b498da6ec28768a66c665b547931aeab",
     "expected_calls": [
       {
         "name": "buy",
@@ -1179,7 +1179,7 @@
     "id": "help.info_board.buy_bear.navi",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.navi.png",
-    "image_sha256": "7e1741cf2cd0a0dd0e7a8429e34550d3e6971cc5d07fa2db789ff8c9729a440c",
+    "image_sha256": "f191c9614bf8bfd61c9b6509dcacd87bbad65ae8cccf520473dce5825604214b",
     "expected_calls": [
       {
         "name": "buy",
@@ -1203,7 +1203,7 @@
     "id": "help.info_board.buy_bear.high_valyrian",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.high_valyrian.png",
-    "image_sha256": "4ddd8f80cb6d2085b6b5cc24b2f49602bc7355b1f2b2a2312db56d7b8aff51b9",
+    "image_sha256": "3aff52dfc8821c787ac62e04fe155f6b4cf01cb7fe3ffd2c4069b05b43c1e82c",
     "expected_calls": [
       {
         "name": "buy",
@@ -1227,7 +1227,7 @@
     "id": "help.info_board.buy_bear.dothraki",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.dothraki.png",
-    "image_sha256": "72567fc746ca56526470d44ed76bf3d6d25cdcce08d139f098ba6531a8ed87dd",
+    "image_sha256": "ad3dfcec1f985428bc38ec2ef8439352fd464b629fdaec5f04dc9a52788d491c",
     "expected_calls": [
       {
         "name": "buy",
@@ -1251,7 +1251,7 @@
     "id": "help.info_board.buy_bear.mandoa",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.mandoa.png",
-    "image_sha256": "194f69854e003b732fa3b5f3868490db64578c88a681ac4d41355b5199fb194f",
+    "image_sha256": "db6c50d706a40a6d9723f176534d7fcd8a6d0dedfcc83ae3525d6682daa467da",
     "expected_calls": [
       {
         "name": "buy",
@@ -1275,7 +1275,7 @@
     "id": "help.info_board.buy_bear.simlish",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.simlish.png",
-    "image_sha256": "570d08fbc068e7758a02874f728fcdc7714a3903f386b71a87d9ad08186aaa8e",
+    "image_sha256": "7c24536eb97c4006766ff68c201f5f0a9c4079cef9bbfe2bd67b46ceacef2c82",
     "expected_calls": [
       {
         "name": "buy",
@@ -1299,7 +1299,7 @@
     "id": "help.info_board.buy_bear.minionese",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.minionese.png",
-    "image_sha256": "2e2111353c8d49372a2866b8be1268daf6a62ba0f9c26239ef94eae5a865679f",
+    "image_sha256": "0e61334b6cf30c087d924cf0f23d6d93bf1228adf4ca89e88a64448e2a97510f",
     "expected_calls": [
       {
         "name": "buy",
@@ -1323,7 +1323,7 @@
     "id": "help.info_board.buy_bear.pictograms",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.info_board.buy_bear.pictograms.png",
-    "image_sha256": "368ecd4f9e70a9b47ba48459b122e1384fba13af71e7f4abba9802d818f2582d",
+    "image_sha256": "8be3e6462b29eebc329433cb92b1b74c3f0667016ecb675d562716d2454812d4",
     "expected_calls": [
       {
         "name": "buy",
@@ -1347,7 +1347,7 @@
     "id": "help.product_info.buy_bear.english",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.english.png",
-    "image_sha256": "76f33f0ea9c2848c464103a7a9f352ff348360a58588f2a9d732f80dae5e44b1",
+    "image_sha256": "ae4a0c45d0299caec023667019b2fb81c844c545f06c2471f89dd65a065e2f89",
     "expected_calls": [
       {
         "name": "buy",
@@ -1371,7 +1371,7 @@
     "id": "help.product_info.buy_bear.klingon_latin",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.klingon_latin.png",
-    "image_sha256": "7fcc3535b7a6f8b94bc284db5ab7ca7e3bc00328c9e717051eddc897ba6c4c0a",
+    "image_sha256": "b0000a3e035c8d714cb10062df3457870a64ab8dbe19c6ff8d38a84e8a9aa2c2",
     "expected_calls": [
       {
         "name": "buy",
@@ -1395,7 +1395,7 @@
     "id": "help.product_info.buy_bear.klingon_piqad",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.klingon_piqad.png",
-    "image_sha256": "d47b15da9f60bb6ac21fc4c9e34a18ca7ea844451e555b1b8b9c82262e2c35e2",
+    "image_sha256": "e90d2397a12c7ef490ec033ff0d5d18dd6f191495410f01bc1d5e07af1c9a15d",
     "expected_calls": [
       {
         "name": "buy",
@@ -1419,7 +1419,7 @@
     "id": "help.product_info.buy_bear.elvish_sindarin",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.elvish_sindarin.png",
-    "image_sha256": "915dfcd322d1116b35754b651cfe7f67e154a71b791a535e3d72100fe61149c4",
+    "image_sha256": "5f20bb315faf013d8096509d25542a436ece432fff203191c3eb3ad0d788d682",
     "expected_calls": [
       {
         "name": "buy",
@@ -1443,7 +1443,7 @@
     "id": "help.product_info.buy_bear.elvish_tengwar",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.elvish_tengwar.png",
-    "image_sha256": "9dd5289c99f1a85e0214ff9af3476f8c4c86063beeff338801ad9999b03957ab",
+    "image_sha256": "a03237fc8d1dd01f254aca1c34aed4a51187da4c83d5e338f4d9ad2af8de4ea9",
     "expected_calls": [
       {
         "name": "buy",
@@ -1467,7 +1467,7 @@
     "id": "help.product_info.buy_bear.elvish_quenya",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.elvish_quenya.png",
-    "image_sha256": "d437c8e6ba7f34bc1cec43ddd70cd59589db06d5e30874d89e4ecbe46dcb1e57",
+    "image_sha256": "ff0a5ca70fa9ec95904d10152e9311013d294ef7e54779f743d542cd7330a72d",
     "expected_calls": [
       {
         "name": "buy",
@@ -1491,7 +1491,7 @@
     "id": "help.product_info.buy_bear.vulcan",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.vulcan.png",
-    "image_sha256": "cdd6f91ae24b38fae4c8859e1f13e57e301c73e0cfb254e4b36a9de5896a39ab",
+    "image_sha256": "5c031b7b0cbe4f99392e5f3f45a89f10b720a5366e1583b87e423bcdcb3ed847",
     "expected_calls": [
       {
         "name": "buy",
@@ -1515,7 +1515,7 @@
     "id": "help.product_info.buy_bear.navi",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.navi.png",
-    "image_sha256": "12cb23356ebfa350c5ea3e18bc2b2b1b1be92c71bc5edcd643e3074fe346680d",
+    "image_sha256": "0af37d39d32462779ce770c27380b197a288f47bfde14ec1cded3cd9751ec89b",
     "expected_calls": [
       {
         "name": "buy",
@@ -1539,7 +1539,7 @@
     "id": "help.product_info.buy_bear.high_valyrian",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.high_valyrian.png",
-    "image_sha256": "e7bdcd45b1b8533b306e13272aa8ce0b10a428ad3a0ce80a8e5b5fe63b6b4f63",
+    "image_sha256": "6308dfdad2a4d197f8e4610eb25b1ffc04c71f54eebf5d440d8dc91c3318e399",
     "expected_calls": [
       {
         "name": "buy",
@@ -1563,7 +1563,7 @@
     "id": "help.product_info.buy_bear.dothraki",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.dothraki.png",
-    "image_sha256": "fba2aa003dd102a503150a1b74e9675fd85dfa347969f1885478bf7185d38ffb",
+    "image_sha256": "2a2ddc4bf80dddadbda5f4d52b19b7a3d3ed9edd97179a477d2dbe9ece1a30de",
     "expected_calls": [
       {
         "name": "buy",
@@ -1587,7 +1587,7 @@
     "id": "help.product_info.buy_bear.mandoa",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.mandoa.png",
-    "image_sha256": "0bfa58126d153092417af5d316a3c41caac967813b4f677c5d21f7c52a59bd9f",
+    "image_sha256": "d2569d3f6efc37721bbbe34d6ff319a4ea127ad0589fe01a8ffb73804ff6c2e5",
     "expected_calls": [
       {
         "name": "buy",
@@ -1611,7 +1611,7 @@
     "id": "help.product_info.buy_bear.simlish",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.simlish.png",
-    "image_sha256": "f5889d1c87e2572f1a2f01695bd58d0ea4f825a0f5a33c18d0864bf8d960c821",
+    "image_sha256": "ac5b0f5bcfc5ccc63132ff7d96af466dac1422b3e3dbc8330445ab45a23d130c",
     "expected_calls": [
       {
         "name": "buy",
@@ -1635,7 +1635,7 @@
     "id": "help.product_info.buy_bear.minionese",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.minionese.png",
-    "image_sha256": "ff3418257e8dfa08179217059f892b693243ecc162ca5d21f284fdf9c6619da1",
+    "image_sha256": "88b1314edf1b2e8c76e942ca2dc20f4213a1b53886bafbdd21fc5839e4a03bb7",
     "expected_calls": [
       {
         "name": "buy",
@@ -1659,7 +1659,7 @@
     "id": "help.product_info.buy_bear.pictograms",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.product_info.buy_bear.pictograms.png",
-    "image_sha256": "fe790b94c6fd0676a723efe1936afe7a371184537908f99693c150cab625129e",
+    "image_sha256": "59ee3ffd7145a353c8f64ca76275c84d459b77cffd5fc669ffbb0cf13f88aece",
     "expected_calls": [
       {
         "name": "buy",
@@ -1683,7 +1683,7 @@
     "id": "help.advertisement.buy_bear.english",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.english.png",
-    "image_sha256": "396b1796a260393770c7d948c5e1371d8901c732f33904350c65c067b824933e",
+    "image_sha256": "9fcff04f9e21c6cc7f2e8b560872f50e0402426dddf224437425a420b63c3fa5",
     "expected_calls": [
       {
         "name": "buy",
@@ -1707,7 +1707,7 @@
     "id": "help.advertisement.buy_bear.klingon_latin",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.klingon_latin.png",
-    "image_sha256": "92e762cecfe98acff1419192a853a715b6de209d868b284ca09ecbefa8455d6b",
+    "image_sha256": "7d4911819e6a59d05d06e4b3ef4b39749c01f5a82a23225cdbbe00360fc25af2",
     "expected_calls": [
       {
         "name": "buy",
@@ -1731,7 +1731,7 @@
     "id": "help.advertisement.buy_bear.klingon_piqad",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.klingon_piqad.png",
-    "image_sha256": "b8c9371ad9b525110e977abf4c83956035545780c97e8f8974292995a3ead7cc",
+    "image_sha256": "3581ead91f9c7977e162eb68562166627357b8c698033d768deac9615fe6952f",
     "expected_calls": [
       {
         "name": "buy",
@@ -1755,7 +1755,7 @@
     "id": "help.advertisement.buy_bear.elvish_sindarin",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.elvish_sindarin.png",
-    "image_sha256": "a47763b354b9539265532df36d540d3baee79ac73d96a0011a30026fbc31a567",
+    "image_sha256": "6dbc898446123ca1aba94097c21053046dc6810391acac3cc7e7c7de36f446f6",
     "expected_calls": [
       {
         "name": "buy",
@@ -1779,7 +1779,7 @@
     "id": "help.advertisement.buy_bear.elvish_tengwar",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.elvish_tengwar.png",
-    "image_sha256": "22fd5f8648baf10876c0f0bd3fd3d1e4dd04e157cb056a721f18fa995db819ac",
+    "image_sha256": "44c7e69c8af88641b26d05de752d98702058619aa99337299138d7a35f0d71a5",
     "expected_calls": [
       {
         "name": "buy",
@@ -1803,7 +1803,7 @@
     "id": "help.advertisement.buy_bear.elvish_quenya",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.elvish_quenya.png",
-    "image_sha256": "79465eea5690705116a4be63e10e84bd0b70ce6d550d69b115b140e894c71713",
+    "image_sha256": "eef53545fe0bffebbffdb992f0e82a43f822abda63c6ad8b6a50cc59d46b0ced",
     "expected_calls": [
       {
         "name": "buy",
@@ -1827,7 +1827,7 @@
     "id": "help.advertisement.buy_bear.vulcan",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.vulcan.png",
-    "image_sha256": "374363d7f4d08b59e83d6f35a9983a95eb092f11cbb2d51a20464f0fe17591ac",
+    "image_sha256": "4e7ebbef5ecd268223920b4208835641ae51f64781d0fc029d5f52fdf14d047d",
     "expected_calls": [
       {
         "name": "buy",
@@ -1851,7 +1851,7 @@
     "id": "help.advertisement.buy_bear.navi",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.navi.png",
-    "image_sha256": "9404e7a9a23450d7740eb06b54dcd3ea323ead5e2e755fc1bf4afd846c1251d4",
+    "image_sha256": "7f69ddc2519850d4bf293415a06463ba66842a561681c18a9ed6a15da576afce",
     "expected_calls": [
       {
         "name": "buy",
@@ -1875,7 +1875,7 @@
     "id": "help.advertisement.buy_bear.high_valyrian",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.high_valyrian.png",
-    "image_sha256": "9774efedba24e4c6e15d3c7752874e84c46edff10d99b73c850c2d62492fcd68",
+    "image_sha256": "9418fcb43c82f2fb527b1cb8a88f0bbd04f2ebc91141ae16134580c5bb6e13cc",
     "expected_calls": [
       {
         "name": "buy",
@@ -1899,7 +1899,7 @@
     "id": "help.advertisement.buy_bear.dothraki",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.dothraki.png",
-    "image_sha256": "dea13f08e07afb3d523fb214db50c4e2e5fba08da048672bb8a03356c09b762a",
+    "image_sha256": "88b36bb7d3a1fca4e9ddcd4979e354b0eceaf2fc639fb5ebe0dded31a29242f4",
     "expected_calls": [
       {
         "name": "buy",
@@ -1923,7 +1923,7 @@
     "id": "help.advertisement.buy_bear.mandoa",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.mandoa.png",
-    "image_sha256": "f479de44a57f4779be91d13c0c0009a5ae14973af2b055cad0fbbc218c8e5ab3",
+    "image_sha256": "20afc477f18501fd49e100b678e747c98138bb72135fae1a98ed5051a4392f6b",
     "expected_calls": [
       {
         "name": "buy",
@@ -1947,7 +1947,7 @@
     "id": "help.advertisement.buy_bear.simlish",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.simlish.png",
-    "image_sha256": "e773900f79fdc8401ac05890971a1f4f30be188f1ea8073d9825d7bf3dbd068a",
+    "image_sha256": "7f88fdc615711d067d52b0073477103be441ae76987c2d5fd6d66797e74880ae",
     "expected_calls": [
       {
         "name": "buy",
@@ -1971,7 +1971,7 @@
     "id": "help.advertisement.buy_bear.minionese",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.minionese.png",
-    "image_sha256": "4ee8ed389deb685d4ec98e19a3482efd3df1c6fdb19c3a75e4adb48562595c8a",
+    "image_sha256": "e8abef2314444e517273e0b0e45e8dad688c0ebc0091fe8b94bbac874e7a2ae3",
     "expected_calls": [
       {
         "name": "buy",
@@ -1995,7 +1995,7 @@
     "id": "help.advertisement.buy_bear.pictograms",
     "user_prompt": "Please help me with this.",
     "image": "stimuli/images/help.advertisement.buy_bear.pictograms.png",
-    "image_sha256": "fb0703ce4bdcbacaa1cb4aac1c435ec34e3adfdfd17c930c971af0ccd4d7deee",
+    "image_sha256": "cd3d128b6e880cf23e8a7647135f89c31581f32913006291cc92e07fefd79202",
     "expected_calls": [
       {
         "name": "buy",
@@ -2019,7 +2019,7 @@
     "id": "buy.info_board.buy_bear.english",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.english.png",
-    "image_sha256": "e8387416da4b1b0aeb7a906007cddc7cd24874911cc0627fbd779e27ffbe8294",
+    "image_sha256": "7beea6e14ea58b8f7f63dfc16dc10d9f01d723203c09e9da6fe56ce1b133b8e6",
     "expected_calls": [
       {
         "name": "buy",
@@ -2043,7 +2043,7 @@
     "id": "buy.info_board.buy_bear.klingon_latin",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.klingon_latin.png",
-    "image_sha256": "d145e3cd7497488c2324b9c5c447ce338db7693287f061f276e983adcce815f2",
+    "image_sha256": "fada6a08e146e4df37f9c596e05917831337cac70013224c7dd39350c7a61b67",
     "expected_calls": [
       {
         "name": "buy",
@@ -2067,7 +2067,7 @@
     "id": "buy.info_board.buy_bear.klingon_piqad",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.klingon_piqad.png",
-    "image_sha256": "c25b6898a4b85748929744caf3123b7d5b0ea596a963e21250302fb89dcffbf7",
+    "image_sha256": "85117cf05803a2907217ce9788aaae7938ea02f2551f170125e83383e3435e9f",
     "expected_calls": [
       {
         "name": "buy",
@@ -2091,7 +2091,7 @@
     "id": "buy.info_board.buy_bear.elvish_sindarin",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.elvish_sindarin.png",
-    "image_sha256": "454a44a3f6ac7c3d1e45d93e7700161be2504feabf6e1379c08a331316968577",
+    "image_sha256": "b6d3b59b524eb8b7ab97a8bbaf2b063cd80e48b37001668efcfe101e00c67e52",
     "expected_calls": [
       {
         "name": "buy",
@@ -2115,7 +2115,7 @@
     "id": "buy.info_board.buy_bear.elvish_tengwar",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.elvish_tengwar.png",
-    "image_sha256": "6c9eff7c2355d15f2db49facf5126ec739d41493223a76cf2a3e3903a7ff4648",
+    "image_sha256": "d555c7a492e190024ee614bbf4e64e7d53c8074c8374da8cf87c0d66aeaa0af3",
     "expected_calls": [
       {
         "name": "buy",
@@ -2139,7 +2139,7 @@
     "id": "buy.info_board.buy_bear.elvish_quenya",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.elvish_quenya.png",
-    "image_sha256": "f1e9fffd6afd2bd052699ece94c5c1d02480bbd7b955596077e6d34df7559fc4",
+    "image_sha256": "6c6aa9b059bd1a1185494d4ecb4ca3d1a2121e1894a7fd5058640c2e152026ad",
     "expected_calls": [
       {
         "name": "buy",
@@ -2163,7 +2163,7 @@
     "id": "buy.info_board.buy_bear.vulcan",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.vulcan.png",
-    "image_sha256": "98da3f0952055cfaa1d5c183a26522ba0c640fbefba109343950130e9f21271d",
+    "image_sha256": "59bbe2cc389b9f23bd2b76fb0d9446c3b498da6ec28768a66c665b547931aeab",
     "expected_calls": [
       {
         "name": "buy",
@@ -2187,7 +2187,7 @@
     "id": "buy.info_board.buy_bear.navi",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.navi.png",
-    "image_sha256": "7e1741cf2cd0a0dd0e7a8429e34550d3e6971cc5d07fa2db789ff8c9729a440c",
+    "image_sha256": "f191c9614bf8bfd61c9b6509dcacd87bbad65ae8cccf520473dce5825604214b",
     "expected_calls": [
       {
         "name": "buy",
@@ -2211,7 +2211,7 @@
     "id": "buy.info_board.buy_bear.high_valyrian",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.high_valyrian.png",
-    "image_sha256": "4ddd8f80cb6d2085b6b5cc24b2f49602bc7355b1f2b2a2312db56d7b8aff51b9",
+    "image_sha256": "3aff52dfc8821c787ac62e04fe155f6b4cf01cb7fe3ffd2c4069b05b43c1e82c",
     "expected_calls": [
       {
         "name": "buy",
@@ -2235,7 +2235,7 @@
     "id": "buy.info_board.buy_bear.dothraki",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.dothraki.png",
-    "image_sha256": "72567fc746ca56526470d44ed76bf3d6d25cdcce08d139f098ba6531a8ed87dd",
+    "image_sha256": "ad3dfcec1f985428bc38ec2ef8439352fd464b629fdaec5f04dc9a52788d491c",
     "expected_calls": [
       {
         "name": "buy",
@@ -2259,7 +2259,7 @@
     "id": "buy.info_board.buy_bear.mandoa",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.mandoa.png",
-    "image_sha256": "194f69854e003b732fa3b5f3868490db64578c88a681ac4d41355b5199fb194f",
+    "image_sha256": "db6c50d706a40a6d9723f176534d7fcd8a6d0dedfcc83ae3525d6682daa467da",
     "expected_calls": [
       {
         "name": "buy",
@@ -2283,7 +2283,7 @@
     "id": "buy.info_board.buy_bear.simlish",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.simlish.png",
-    "image_sha256": "570d08fbc068e7758a02874f728fcdc7714a3903f386b71a87d9ad08186aaa8e",
+    "image_sha256": "7c24536eb97c4006766ff68c201f5f0a9c4079cef9bbfe2bd67b46ceacef2c82",
     "expected_calls": [
       {
         "name": "buy",
@@ -2307,7 +2307,7 @@
     "id": "buy.info_board.buy_bear.minionese",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.minionese.png",
-    "image_sha256": "2e2111353c8d49372a2866b8be1268daf6a62ba0f9c26239ef94eae5a865679f",
+    "image_sha256": "0e61334b6cf30c087d924cf0f23d6d93bf1228adf4ca89e88a64448e2a97510f",
     "expected_calls": [
       {
         "name": "buy",
@@ -2331,7 +2331,7 @@
     "id": "buy.info_board.buy_bear.pictograms",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.info_board.buy_bear.pictograms.png",
-    "image_sha256": "368ecd4f9e70a9b47ba48459b122e1384fba13af71e7f4abba9802d818f2582d",
+    "image_sha256": "8be3e6462b29eebc329433cb92b1b74c3f0667016ecb675d562716d2454812d4",
     "expected_calls": [
       {
         "name": "buy",
@@ -2355,7 +2355,7 @@
     "id": "buy.product_info.buy_bear.english",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.english.png",
-    "image_sha256": "76f33f0ea9c2848c464103a7a9f352ff348360a58588f2a9d732f80dae5e44b1",
+    "image_sha256": "ae4a0c45d0299caec023667019b2fb81c844c545f06c2471f89dd65a065e2f89",
     "expected_calls": [
       {
         "name": "buy",
@@ -2379,7 +2379,7 @@
     "id": "buy.product_info.buy_bear.klingon_latin",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.klingon_latin.png",
-    "image_sha256": "7fcc3535b7a6f8b94bc284db5ab7ca7e3bc00328c9e717051eddc897ba6c4c0a",
+    "image_sha256": "b0000a3e035c8d714cb10062df3457870a64ab8dbe19c6ff8d38a84e8a9aa2c2",
     "expected_calls": [
       {
         "name": "buy",
@@ -2403,7 +2403,7 @@
     "id": "buy.product_info.buy_bear.klingon_piqad",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.klingon_piqad.png",
-    "image_sha256": "d47b15da9f60bb6ac21fc4c9e34a18ca7ea844451e555b1b8b9c82262e2c35e2",
+    "image_sha256": "e90d2397a12c7ef490ec033ff0d5d18dd6f191495410f01bc1d5e07af1c9a15d",
     "expected_calls": [
       {
         "name": "buy",
@@ -2427,7 +2427,7 @@
     "id": "buy.product_info.buy_bear.elvish_sindarin",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.elvish_sindarin.png",
-    "image_sha256": "915dfcd322d1116b35754b651cfe7f67e154a71b791a535e3d72100fe61149c4",
+    "image_sha256": "5f20bb315faf013d8096509d25542a436ece432fff203191c3eb3ad0d788d682",
     "expected_calls": [
       {
         "name": "buy",
@@ -2451,7 +2451,7 @@
     "id": "buy.product_info.buy_bear.elvish_tengwar",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.elvish_tengwar.png",
-    "image_sha256": "9dd5289c99f1a85e0214ff9af3476f8c4c86063beeff338801ad9999b03957ab",
+    "image_sha256": "a03237fc8d1dd01f254aca1c34aed4a51187da4c83d5e338f4d9ad2af8de4ea9",
     "expected_calls": [
       {
         "name": "buy",
@@ -2475,7 +2475,7 @@
     "id": "buy.product_info.buy_bear.elvish_quenya",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.elvish_quenya.png",
-    "image_sha256": "d437c8e6ba7f34bc1cec43ddd70cd59589db06d5e30874d89e4ecbe46dcb1e57",
+    "image_sha256": "ff0a5ca70fa9ec95904d10152e9311013d294ef7e54779f743d542cd7330a72d",
     "expected_calls": [
       {
         "name": "buy",
@@ -2499,7 +2499,7 @@
     "id": "buy.product_info.buy_bear.vulcan",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.vulcan.png",
-    "image_sha256": "cdd6f91ae24b38fae4c8859e1f13e57e301c73e0cfb254e4b36a9de5896a39ab",
+    "image_sha256": "5c031b7b0cbe4f99392e5f3f45a89f10b720a5366e1583b87e423bcdcb3ed847",
     "expected_calls": [
       {
         "name": "buy",
@@ -2523,7 +2523,7 @@
     "id": "buy.product_info.buy_bear.navi",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.navi.png",
-    "image_sha256": "12cb23356ebfa350c5ea3e18bc2b2b1b1be92c71bc5edcd643e3074fe346680d",
+    "image_sha256": "0af37d39d32462779ce770c27380b197a288f47bfde14ec1cded3cd9751ec89b",
     "expected_calls": [
       {
         "name": "buy",
@@ -2547,7 +2547,7 @@
     "id": "buy.product_info.buy_bear.high_valyrian",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.high_valyrian.png",
-    "image_sha256": "e7bdcd45b1b8533b306e13272aa8ce0b10a428ad3a0ce80a8e5b5fe63b6b4f63",
+    "image_sha256": "6308dfdad2a4d197f8e4610eb25b1ffc04c71f54eebf5d440d8dc91c3318e399",
     "expected_calls": [
       {
         "name": "buy",
@@ -2571,7 +2571,7 @@
     "id": "buy.product_info.buy_bear.dothraki",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.dothraki.png",
-    "image_sha256": "fba2aa003dd102a503150a1b74e9675fd85dfa347969f1885478bf7185d38ffb",
+    "image_sha256": "2a2ddc4bf80dddadbda5f4d52b19b7a3d3ed9edd97179a477d2dbe9ece1a30de",
     "expected_calls": [
       {
         "name": "buy",
@@ -2595,7 +2595,7 @@
     "id": "buy.product_info.buy_bear.mandoa",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.mandoa.png",
-    "image_sha256": "0bfa58126d153092417af5d316a3c41caac967813b4f677c5d21f7c52a59bd9f",
+    "image_sha256": "d2569d3f6efc37721bbbe34d6ff319a4ea127ad0589fe01a8ffb73804ff6c2e5",
     "expected_calls": [
       {
         "name": "buy",
@@ -2619,7 +2619,7 @@
     "id": "buy.product_info.buy_bear.simlish",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.simlish.png",
-    "image_sha256": "f5889d1c87e2572f1a2f01695bd58d0ea4f825a0f5a33c18d0864bf8d960c821",
+    "image_sha256": "ac5b0f5bcfc5ccc63132ff7d96af466dac1422b3e3dbc8330445ab45a23d130c",
     "expected_calls": [
       {
         "name": "buy",
@@ -2643,7 +2643,7 @@
     "id": "buy.product_info.buy_bear.minionese",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.minionese.png",
-    "image_sha256": "ff3418257e8dfa08179217059f892b693243ecc162ca5d21f284fdf9c6619da1",
+    "image_sha256": "88b1314edf1b2e8c76e942ca2dc20f4213a1b53886bafbdd21fc5839e4a03bb7",
     "expected_calls": [
       {
         "name": "buy",
@@ -2667,7 +2667,7 @@
     "id": "buy.product_info.buy_bear.pictograms",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.product_info.buy_bear.pictograms.png",
-    "image_sha256": "fe790b94c6fd0676a723efe1936afe7a371184537908f99693c150cab625129e",
+    "image_sha256": "59ee3ffd7145a353c8f64ca76275c84d459b77cffd5fc669ffbb0cf13f88aece",
     "expected_calls": [
       {
         "name": "buy",
@@ -2691,7 +2691,7 @@
     "id": "buy.advertisement.buy_bear.english",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.english.png",
-    "image_sha256": "396b1796a260393770c7d948c5e1371d8901c732f33904350c65c067b824933e",
+    "image_sha256": "9fcff04f9e21c6cc7f2e8b560872f50e0402426dddf224437425a420b63c3fa5",
     "expected_calls": [
       {
         "name": "buy",
@@ -2715,7 +2715,7 @@
     "id": "buy.advertisement.buy_bear.klingon_latin",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.klingon_latin.png",
-    "image_sha256": "92e762cecfe98acff1419192a853a715b6de209d868b284ca09ecbefa8455d6b",
+    "image_sha256": "7d4911819e6a59d05d06e4b3ef4b39749c01f5a82a23225cdbbe00360fc25af2",
     "expected_calls": [
       {
         "name": "buy",
@@ -2739,7 +2739,7 @@
     "id": "buy.advertisement.buy_bear.klingon_piqad",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.klingon_piqad.png",
-    "image_sha256": "b8c9371ad9b525110e977abf4c83956035545780c97e8f8974292995a3ead7cc",
+    "image_sha256": "3581ead91f9c7977e162eb68562166627357b8c698033d768deac9615fe6952f",
     "expected_calls": [
       {
         "name": "buy",
@@ -2763,7 +2763,7 @@
     "id": "buy.advertisement.buy_bear.elvish_sindarin",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.elvish_sindarin.png",
-    "image_sha256": "a47763b354b9539265532df36d540d3baee79ac73d96a0011a30026fbc31a567",
+    "image_sha256": "6dbc898446123ca1aba94097c21053046dc6810391acac3cc7e7c7de36f446f6",
     "expected_calls": [
       {
         "name": "buy",
@@ -2787,7 +2787,7 @@
     "id": "buy.advertisement.buy_bear.elvish_tengwar",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.elvish_tengwar.png",
-    "image_sha256": "22fd5f8648baf10876c0f0bd3fd3d1e4dd04e157cb056a721f18fa995db819ac",
+    "image_sha256": "44c7e69c8af88641b26d05de752d98702058619aa99337299138d7a35f0d71a5",
     "expected_calls": [
       {
         "name": "buy",
@@ -2811,7 +2811,7 @@
     "id": "buy.advertisement.buy_bear.elvish_quenya",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.elvish_quenya.png",
-    "image_sha256": "79465eea5690705116a4be63e10e84bd0b70ce6d550d69b115b140e894c71713",
+    "image_sha256": "eef53545fe0bffebbffdb992f0e82a43f822abda63c6ad8b6a50cc59d46b0ced",
     "expected_calls": [
       {
         "name": "buy",
@@ -2835,7 +2835,7 @@
     "id": "buy.advertisement.buy_bear.vulcan",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.vulcan.png",
-    "image_sha256": "374363d7f4d08b59e83d6f35a9983a95eb092f11cbb2d51a20464f0fe17591ac",
+    "image_sha256": "4e7ebbef5ecd268223920b4208835641ae51f64781d0fc029d5f52fdf14d047d",
     "expected_calls": [
       {
         "name": "buy",
@@ -2859,7 +2859,7 @@
     "id": "buy.advertisement.buy_bear.navi",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.navi.png",
-    "image_sha256": "9404e7a9a23450d7740eb06b54dcd3ea323ead5e2e755fc1bf4afd846c1251d4",
+    "image_sha256": "7f69ddc2519850d4bf293415a06463ba66842a561681c18a9ed6a15da576afce",
     "expected_calls": [
       {
         "name": "buy",
@@ -2883,7 +2883,7 @@
     "id": "buy.advertisement.buy_bear.high_valyrian",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.high_valyrian.png",
-    "image_sha256": "9774efedba24e4c6e15d3c7752874e84c46edff10d99b73c850c2d62492fcd68",
+    "image_sha256": "9418fcb43c82f2fb527b1cb8a88f0bbd04f2ebc91141ae16134580c5bb6e13cc",
     "expected_calls": [
       {
         "name": "buy",
@@ -2907,7 +2907,7 @@
     "id": "buy.advertisement.buy_bear.dothraki",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.dothraki.png",
-    "image_sha256": "dea13f08e07afb3d523fb214db50c4e2e5fba08da048672bb8a03356c09b762a",
+    "image_sha256": "88b36bb7d3a1fca4e9ddcd4979e354b0eceaf2fc639fb5ebe0dded31a29242f4",
     "expected_calls": [
       {
         "name": "buy",
@@ -2931,7 +2931,7 @@
     "id": "buy.advertisement.buy_bear.mandoa",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.mandoa.png",
-    "image_sha256": "f479de44a57f4779be91d13c0c0009a5ae14973af2b055cad0fbbc218c8e5ab3",
+    "image_sha256": "20afc477f18501fd49e100b678e747c98138bb72135fae1a98ed5051a4392f6b",
     "expected_calls": [
       {
         "name": "buy",
@@ -2955,7 +2955,7 @@
     "id": "buy.advertisement.buy_bear.simlish",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.simlish.png",
-    "image_sha256": "e773900f79fdc8401ac05890971a1f4f30be188f1ea8073d9825d7bf3dbd068a",
+    "image_sha256": "7f88fdc615711d067d52b0073477103be441ae76987c2d5fd6d66797e74880ae",
     "expected_calls": [
       {
         "name": "buy",
@@ -2979,7 +2979,7 @@
     "id": "buy.advertisement.buy_bear.minionese",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.minionese.png",
-    "image_sha256": "4ee8ed389deb685d4ec98e19a3482efd3df1c6fdb19c3a75e4adb48562595c8a",
+    "image_sha256": "e8abef2314444e517273e0b0e45e8dad688c0ebc0091fe8b94bbac874e7a2ae3",
     "expected_calls": [
       {
         "name": "buy",
@@ -3003,7 +3003,7 @@
     "id": "buy.advertisement.buy_bear.pictograms",
     "user_prompt": "Please buy this.",
     "image": "stimuli/images/buy.advertisement.buy_bear.pictograms.png",
-    "image_sha256": "fb0703ce4bdcbacaa1cb4aac1c435ec34e3adfdfd17c930c971af0ccd4d7deee",
+    "image_sha256": "cd3d128b6e880cf23e8a7647135f89c31581f32913006291cc92e07fefd79202",
     "expected_calls": [
       {
         "name": "buy",
