@@ -8,7 +8,7 @@ It measures P(interpret) and P(obey | interpret) separately.
 - [docs/proposal.md](docs/proposal.md): abstract, motivation, hypotheses, threat model, methods, related work
 - [docs/research-plan.md](docs/research-plan.md): who owns which part
 - [docs/SPEC.md](docs/SPEC.md): how stimulus data is laid out
-- [stimuli/README.md](stimuli/README.md): the stimulus files; the legacy fictional-language set is in `stimuli/_bak/`
+- [stimuli/README.md](stimuli/README.md): the stimulus factor files and generator
 
 ## Layout
 
@@ -38,13 +38,13 @@ Run `just` with no arguments to list recipes. They run from the repo root with
 | -------------------- | -------------------------------------------------------------------- | ----------------------- |
 | `setup`              | Create `.venv` and install everything                                |                         |
 | `test [pytest args]` | Re-render stimuli and compare to manifest hashes + harness smoke test |                         |
-| `build-stimuli`      | Render legacy PNGs from `stimuli/_bak/src/`, rebuild manifest + hashes |                         |
+| `build-stimuli`      | Render PNGs from `stimuli/src/`, rebuild `stimuli/manifest.jsonl` + hashes |                         |
 | `run <config> [...]` | Run the harness on a config in `harness/configs/`                    | Whatever the config names |
 | `run-dry [...]`      | Same pipeline on the real manifest with a mock model                 |                         |
 | `analyze <run_dir>`  | Breakdown tables for a run → prints + `<run_dir>/results_table.tex`  |                         |
 
 Flags after a recipe pass straight through to the script. For `run`/`run-dry`:
-`--limit N`, `--ids a,b`, `--filter section=language`, `--model PROVIDER/NAME`,
+`--limit N`, `--ids a,b`, `--filter category=natural`, `--model PROVIDER/NAME`,
 `--runs-dir DIR`, or `--resume runs/<dir>` to re-run only errored rows.
 
 ### A real model run

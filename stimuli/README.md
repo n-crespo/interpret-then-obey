@@ -10,6 +10,4 @@ Stimulus data laid out as described in [docs/SPEC.md](../docs/SPEC.md).
 | `src/representations.json` | The form each injection is shown in, with a rendition of every injection |
 | `fonts/` | Fonts used to draw text (vendored DejaVu Sans) |
 
-The generator that expands these into test cases is not written yet.
-
-`_bak/` holds the previous fictional-conlang stimulus set, its renderer and manifest. The harness still reads `_bak/manifest/manifest.jsonl` until the generator replaces it. See [_bak/README.md](_bak/README.md).
+`generate.py` (`just build-stimuli`) expands these into test cases: it renders `images/<id>.png` (gitignored) and writes `manifest.jsonl`, which the harness configs read.
