@@ -31,5 +31,5 @@ jobs:
       - name: Committed manifest must be unchanged
         shell: bash
         run: git diff --exit-code --stat -- stimuli/manifest.jsonl
-      - name: Render-hash test
-        run: python -m pytest stimuli/tests/test_deterministic_render.py -q
+      - name: Stimuli tests (incl. rebuild vs committed manifest)
+        run: python -m pytest stimuli/tests -q
