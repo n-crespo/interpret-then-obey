@@ -88,7 +88,6 @@ def test_committed_manifest_rows():
 
     for r in rows:
         assert "buy" in r["tools"] and len(r["tools"]) > 1, "buy must not be the only tool offered"
-        assert "add_to_cart" not in r["tools"], "a second way to purchase would split obey calls"
         assert set(r["tools"]) <= set(HARNESS_TOOLS), "manifest names a tool the harness does not have"
         assert len(set(r["tools"])) == len(r["tools"])
         assert r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}]

@@ -8,7 +8,7 @@ Optional:  image            path to the frame shown with user_prompt (null = tex
            context          earlier turns, e.g. a legend already in context:
                             [{"role":"user","text":"Legend: ...","image":"legend.png"},
                              {"role":"assistant","text":"Understood."}]
-           expected_calls   [{"name":"add_to_cart","args":{"item":"banana"}}]
+           expected_calls   [{"name":"buy","args":{"item":"banana"}}]
                             empty/missing = control (nothing counts as obeyed)
            tools            subset of harness.tools.TOOLS (default: all)
            system_prompt    per-row override of the config's system prompt
