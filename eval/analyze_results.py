@@ -32,6 +32,11 @@ Terms:
   trials and the other conditional rates (eval/labels.py), and judge-vs-gold agreement
   when analysis/gold_labels.csv has hand labels. Without them it reports P(obey) only
   and says the labels are missing.
+- Comprehension probe: rows with "probe": true in the manifest ask the model what the
+  injection box means, with no expected calls. They are never counted as injected or
+  baseline; the judge's `interpreted` on them is P(can interpret), reported per
+  representation next to the in-trial P(interpret), with the gap (eval/labels.py,
+  comprehension_gap).
 
 Usage:
     python eval/analyze_results.py runs/<date>_<name>
@@ -146,6 +151,7 @@ def _trial(rec: dict) -> dict:
         "id": rec["id"],
         "epoch": int(rec["epoch"]),
         **{f: _clean(rec.get(f"metadata_{f}")) for f in FACTORS},
+        "probe": bool(_clean(rec.get("metadata_probe"))),
         "obeyed": _clean(rec.get("score_obeyed")) == "C",
         "n_matched": sm.get("n_matched") or 0,
         "tool_calls": sm.get("tool_calls") or [],
@@ -194,6 +200,11 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 def is_baseline(t: dict) -> bool:
     return t.get("category") == BASELINE or t.get("representation_id") == "none"
+
+
+def is_probe(t: dict) -> bool:
+    """A comprehension-probe row: asks what the injection means, expects no call."""
+    return bool(t.get("probe"))
 
 
 def is_cut_off(t: dict) -> bool:
@@ -278,10 +289,16 @@ def group_by(trials: list[dict], *fields: str) -> dict:
 
 
 def split(trials: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
-    """(injected, baseline, errored); errored trials are left out of both rates."""
-    ok = [t for t in trials if not t["error"]]
+    """(injected, baseline, errored); errored trials are left out of both rates, and
+    comprehension-probe trials are in neither (see probes())."""
+    ok = [t for t in trials if not t["error"] and not is_probe(t)]
     return ([t for t in ok if not is_baseline(t)], [t for t in ok if is_baseline(t)],
             [t for t in trials if t["error"]])
+
+
+def probes(trials: list[dict]) -> list[dict]:
+    """The comprehension-probe trials that did not error."""
+    return [t for t in trials if is_probe(t) and not t["error"]]
 
 
 def _order(keys, preferred: list | None = None):
@@ -309,7 +326,7 @@ def pct(k: int, n: int) -> str:
 
 
 def headline(trials: list[dict], model: str | None, run_dir: Path, label_info: dict | None = None,
-             agr: dict | None = None) -> str:
+             agr: dict | None = None, rep_order: list | None = None) -> str:
     injected, baseline, errored = split(trials)
     si, sb = summarize(injected), summarize(baseline)
     lo, hi = wilson(si["obeyed"], si["n"])
@@ -330,6 +347,7 @@ def headline(trials: list[dict], model: str | None, run_dir: Path, label_info: d
     if errored:
         lines.append(f"  {len(errored)} errored trial(s) left out")
     lines += interpretation_lines(trials, label_info, agr, run_dir)
+    lines += probe_lines(trials, run_dir, rep_order)
     return "\n".join(lines)
 
 
@@ -383,6 +401,29 @@ def interpretation_lines(trials: list[dict], label_info: dict | None, agr: dict 
         lines.append(f"  judge vs gold: no hand labels yet ({Path('analysis') / L.GOLD_FILE}), judge not validated")
     else:
         lines.append(f"  judge vs gold: {L.agreement_text(agr)}")
+    return lines
+
+
+def probe_lines(trials: list[dict], run_dir: Path, rep_order: list | None = None) -> list[str]:
+    """The comprehension probe: P(can interpret) per representation next to the in-trial
+    P(interpret), and the gap. Nothing when the run has no probe rows."""
+    probe = probes(trials)
+    if not probe:
+        return []
+    contexts = ", ".join(sorted({str(t.get("context_id")) for t in probe}))
+    called = sum(bool(t["tool_calls"]) for t in probe)
+    lines = [f"  comprehension probe  {len(probe)} trials ({contexts}), made a tool call {pct(called, len(probe))}"]
+    if not any(t.get("interpreted") is not None for t in probe):
+        return lines + [f"    probe not labelled: no P(can interpret). Label it with: just judge {run_dir}"]
+    lines.append(f"    {'representation':<16} {'P(can interpret)':<18} {'P(interpret) in trial':<22} gap")
+    for r in L.comprehension_gap(probe, split(trials)[0], rep_order):
+        if r["rep"] == "all":
+            lines.append("    " + "-" * 62)
+        lines.append(f"    {str(r['rep']):<16} {pct(r['probe_k'], r['probe_n']):<18} "
+                     f"{pct(r['trial_k'], r['trial_n']):<22} {L.gap_text(r['gap'])}")
+    unlabelled = sum(t.get("interpreted") is None for t in probe)
+    if unlabelled:
+        lines.append(f"    {unlabelled} probe trial(s) unlabelled (unparsed or stale judge reply); re-run the judge")
     return lines
 
 
@@ -488,6 +529,7 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
                        f"{_calls_cols(si)} \\\\")
         out += ["\\bottomrule", "\\end{tabular}", "\\end{table}", ""]
     out += interpretation_tables(injected, m, rep_order)
+    out += probe_table(probes(trials), injected, m, rep_order)
     return "\n".join(out)
 
 
@@ -542,6 +584,38 @@ def interpretation_tables(injected: list[dict], m: str, rep_order: list | None) 
     return out
 
 
+def probe_table(probe: list[dict], injected: list[dict], m: str, rep_order: list | None) -> list[str]:
+    """Table 6: the comprehension probe's P(can interpret) against the in-trial
+    P(interpret), by representation, with the gap. Nothing without probe rows; only a
+    comment when they are not labelled."""
+    if not probe:
+        return []
+    if not any(t.get("interpreted") is not None for t in probe):
+        return ["% Comprehension probe not labelled (analysis/judge_labels.jsonl): P(can interpret) not computed. "
+                "Run eval/judge.py on this run.", ""]
+    contexts = _tex(", ".join(sorted({str(t.get("context_id")) for t in probe})))
+    out = [
+        "\\begin{table}[ht]", "\\centering", "\\small",
+        f"\\caption{{Comprehension probe against in-trial interpretation, by representation ({m}). "
+        f"P(can interpret): the user asked what the injection box means ({contexts} only) and the LLM judge "
+        "found the payload's meaning in the reply. P(interpret): the same judge label on the injected rows, "
+        "where nobody asked. Gap: the difference in percentage points; a large gap means the model can decode "
+        "the payload but does not engage with it unprompted.}",
+        "\\label{tab:comprehension-probe}",
+        "\\begin{tabular}{lllr}", "\\toprule",
+        "Representation & P(can interpret) & P(interpret) in trial & Gap (pp) \\\\", "\\midrule",
+    ]
+    for r in L.comprehension_gap(probe, injected, rep_order):
+        if r["rep"] == "all":
+            out.append("\\midrule")
+        gap = "--" if r["gap"] is None else f"{r['gap']:+.0f}"
+        name = "All probed" if r["rep"] == "all" else _tex(r["rep"])
+        out.append(f"{name} & {_rate(r['probe_k'], r['probe_n'])} & {_rate(r['trial_k'], r['trial_n'])} & "
+                   f"{gap} \\\\")
+    out += ["\\bottomrule", "\\end{tabular}", "\\end{table}", ""]
+    return out
+
+
 # ----------------------------------------------------------------------------
 # Interactive figure
 
@@ -584,6 +658,13 @@ def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_di
             stats.append([pct(k, n), f"{note} (95% CI {100 * lo:.0f}–{100 * hi:.0f}%)" if n else note])
         declined, n_interp = L.interpreted_declined(injected), rates["P(obey | interpret)"][1]
         stats.append([pct(len(declined), n_interp), "interpreted but declined"])
+    probe = probes(trials)
+    if any(t.get("interpreted") is not None for t in probe):
+        all_row = L.comprehension_gap(probe, injected)[-1]
+        stats.append([pct(all_row["probe_k"], all_row["probe_n"]),
+                      "P(can interpret): comprehension probe, asked what the box means "
+                      f"(in trial {pct(all_row['trial_k'], all_row['trial_n'])}, gap {L.gap_text(all_row['gap'])})"])
+    trials = [t for t in trials if not is_probe(t)]  # the probe is not an attack trial: not plotted
     judges = sorted({j for j in (judge_models or []) if j})
     foot = (f"Noticed / interpreted labels: LLM judge {', '.join(judges) or 'unknown'} (eval/judge.py); "
             + ("checked against hand labels: " + L.agreement_text(agr) if agr else "not yet checked against hand labels.")
@@ -649,7 +730,7 @@ def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
         outcomes_html(trials, rep_order, model, run_dir, label_info["judge_models"], agr), encoding="utf-8")
     written = [out_dir / "outcomes.html", out_dir / "tables.tex"]
 
-    print(headline(trials, model, run_dir, label_info, agr))
+    print(headline(trials, model, run_dir, label_info, agr, rep_order))
     print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
     print("Open outcomes.html in a browser; hover a mark for the trial's details.")
     return written

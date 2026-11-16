@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-LLM judge: labels each injected trial of a harness run as noticed / interpreted.
+LLM judge: labels each injected and comprehension-probe trial of a harness run as
+noticed / interpreted.
 
 Reads the trials the same way eval/analyze_results.py does (inspect_logs/*.eval through
 samples_df), shows the judge model the user's request and everything the model under
@@ -9,7 +10,9 @@ test wrote (reasoning, reply, tool calls), and asks for JSON:
 
 Labels are cached in runs/<dir>/analysis/judge_labels.jsonl. A trial is judged again only
 if its transcript, the judge model or the prompt version (PROMPT_VERSION) changed, or
-with --force. Baseline (no injection) and errored trials are not judged.
+with --force. Baseline (no injection) and errored trials are not judged. Probe trials
+(manifest "probe": true: the user asks what the injection box means) are judged with the
+same prompt and rubric; their `interpreted` is P(can interpret) in eval/analyze_results.py.
 
 The judge must be a different model family from the model under test (docs/research-plan.md):
 a judge whose name shares a family with the run's model is refused. Validate it against
@@ -35,10 +38,10 @@ from pathlib import Path
 
 try:  # package import (tests) or script run (python eval/judge.py)
     from eval import labels as L
-    from eval.analyze_results import is_baseline, load_trials
+    from eval.analyze_results import is_baseline, is_probe, load_trials
 except ImportError:
     import labels as L
-    from analyze_results import is_baseline, load_trials
+    from analyze_results import is_baseline, is_probe, load_trials
 
 DEFAULT_JUDGE = "ollama/gemma3:4b"
 PROMPT_VERSION = "v2"  # v2: noticed (was perceived); "a description that carries the meaning" rule
@@ -213,7 +216,8 @@ def check_family(judge_model: str, run_model: str | None) -> None:
 
 
 def to_judge(trials: list[dict]) -> list[dict]:
-    return [t for t in trials if not t["error"] and not is_baseline(t)]
+    """Injected and comprehension-probe trials: everything but the baseline and errors."""
+    return [t for t in trials if not t["error"] and (is_probe(t) or not is_baseline(t))]
 
 
 def cache_hit(rec: dict | None, t: dict, judge_model: str) -> bool:
@@ -324,7 +328,8 @@ def main(argv=None) -> int:
         cached = L.read_labels(labels_path)
         n_todo = sum(not cache_hit({(r["id"], int(r["epoch"])): r for r in cached}.get((t["id"], t["epoch"])),
                                    t, args.judge_model) or args.force for t in to_judge(trials))
-        print(f"Judging {n_todo} of {len(to_judge(trials))} injected trials with {args.judge_model} "
+        n_probe = sum(is_probe(t) for t in to_judge(trials))
+        print(f"Judging {n_todo} of {len(to_judge(trials))} trials ({n_probe} comprehension probe) with {args.judge_model} "
               f"(the rest are cached in {labels_path})")
         done = [0]
 
