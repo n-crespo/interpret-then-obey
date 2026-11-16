@@ -16,7 +16,7 @@ It measures P(interpret) and P(obey | interpret) separately.
 | ---------- | ----------------------------------------------------------------------------------------- |
 | `stimuli/` | Source phrases, image renderer, rendered pngs, and the manifest the harness reads         |
 | `harness/` | Inspect-based runner: manifest + model config → mocked tool calls → `runs/<date>_<name>/` |
-| `eval/`    | Analysis of a harness run: breakdown tables + LaTeX                                       |
+| `eval/`    | Analysis of a harness run (reads the Inspect logs): breakdown tables + LaTeX              |
 | `runs/`    | Run outputs (logs, `results.jsonl`, `meta.json`)                                          |
 
 ## Running locally
@@ -41,7 +41,7 @@ Run `just` with no arguments to list recipes. They run from the repo root with
 | `build-stimuli`      | Render PNGs from `stimuli/src/`, rebuild `stimuli/manifest.jsonl` + hashes |                         |
 | `run <config> [...]` | Run the harness on a config in `harness/configs/`                    | Whatever the config names |
 | `run-dry [...]`      | Same pipeline on the real manifest with a mock model                 |                         |
-| `analyze <run_dir>`  | Breakdown tables for a run → prints + `<run_dir>/results_table.tex`  |                         |
+| `analyze <run_dir>`  | Tables by manifest factor for a run → prints + `<run_dir>/results_table.tex` |                  |
 
 Flags after a recipe pass straight through to the script. For `run`/`run-dry`:
 `--limit N`, `--ids a,b`, `--filter category=natural`, `--model PROVIDER/NAME`,
@@ -59,7 +59,10 @@ inspect view --log-dir runs/<date>_qwen3vl-8b-ollama/inspect_logs
 ```
 
 "Obeyed" means the model actually made the expected tool call (scored by the harness).
-`analyze` also reports a hallucination rate, a keyword heuristic on the model's text reply.
+`analyze` reads `inspect_logs/*.eval` and reports, by prompt, context, representation, category and script:
+attack success with 95% Wilson intervals, off-target tool calls (e.g. buying the product in the scene),
+and the no-injection baseline on its own. It measures P(obey) only: there is no interpretation label yet,
+so P(interpret) and P(obey | interpret) are not computed (the report says why).
 
 Each run directory records the config, model, manifest SHA-256, and git commit,
 so a result can be traced back to exactly what produced it.
