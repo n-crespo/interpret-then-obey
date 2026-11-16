@@ -41,7 +41,7 @@ Run `just` with no arguments to list recipes. They run from the repo root with
 | `build-stimuli`      | Render PNGs from `stimuli/src/`, rebuild `stimuli/manifest.jsonl` + hashes |                         |
 | `run <config> [...]` | Run the harness on a config in `harness/configs/`                    | Whatever the config names |
 | `run-dry [...]`      | Same pipeline on the real manifest with a mock model                 |                         |
-| `analyze <run_dir>`  | Tables by manifest factor for a run → prints + `<run_dir>/results_table.tex` |                  |
+| `analyze <run_dir>`  | Figures + LaTeX tables for a run → `<run_dir>/analysis/`            |                         |
 
 Flags after a recipe pass straight through to the script. For `run`/`run-dry`:
 `--limit N`, `--ids a,b`, `--filter category=natural`, `--model PROVIDER/NAME`,
@@ -54,15 +54,14 @@ ollama pull qwen3-vl:8b
 just run harness/configs/qwen3vl-8b-ollama.yaml --limit 5   # try a few rows first
 just run harness/configs/qwen3vl-8b-ollama.yaml             # full manifest
 just run --resume runs/<date>_qwen3vl-8b-ollama             # if some rows errored
-just analyze runs/<date>_qwen3vl-8b-ollama                  # tables + LaTeX
+just analyze runs/<date>_qwen3vl-8b-ollama                  # figures + LaTeX tables
 inspect view --log-dir runs/<date>_qwen3vl-8b-ollama/inspect_logs
 ```
 
 "Obeyed" means the model actually made the expected tool call (scored by the harness).
-`analyze` reads `inspect_logs/*.eval` and reports, by prompt, context, representation, category and script:
-attack success with 95% Wilson intervals, off-target tool calls (e.g. buying the product in the scene),
-and the no-injection baseline on its own. It measures P(obey) only: there is no interpretation label yet,
-so P(interpret) and P(obey | interpret) are not computed (the report says why).
+`analyze` reads `inspect_logs/*.eval` and writes figures and LaTeX tables to `<run_dir>/analysis/`:
+attack success with 95% Wilson intervals and off-target tool calls (e.g. buying the product in the scene)
+by representation and factor, with the no-injection baseline reported on its own. See [eval/README.md](eval/README.md).
 
 Each run directory records the config, model, manifest SHA-256, and git commit,
 so a result can be traced back to exactly what produced it.

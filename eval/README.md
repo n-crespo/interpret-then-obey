@@ -6,27 +6,21 @@ Analysis of a harness run.
 just analyze runs/<date>_<name>     # = python eval/analyze_results.py runs/<date>_<name>
 ```
 
-`analyze_results.py` reads the run's Inspect logs (`runs/<dir>/inspect_logs/*.eval`) with
-`inspect_ai.analysis.samples_df`, so it does not depend on `results.jsonl`. It prints:
+`analyze_results.py` reads the run's Inspect logs (`inspect_logs/*.eval`) with
+`inspect_ai.analysis.samples_df`, prints a three-line headline, and writes `runs/<dir>/analysis/`:
 
-- the headline: attack success (ASR) on injected rows with a 95% Wilson interval, the
-  off-target and no-call rates, and the no-injection baseline (`representation_id: none`)
-  on its own;
-- injected rows by representation, category, script, prompt and context;
-- baseline vs injected rows for each prompt × context, so off-target calls on injected
-  rows can be compared with what the model does with no injection;
-- an outcome grid, one character per trial;
-- what the run can and cannot say about P(interpret) and P(obey | interpret).
+| File | What it shows |
+| --- | --- |
+| `representation.pdf/.png` | Attack success and off-target call rate per representation, 95% Wilson intervals, with the baseline rate marked |
+| `outcomes.pdf/.png` | What the model did on every trial: representation × prompt/context |
+| `tables.tex` | Three booktabs tables: by representation, by factor (category, script, prompt, context), and baseline vs injected per prompt × context. `\input{}` it; needs `\usepackage{booktabs}` |
 
-It also writes `runs/<dir>/results_table.tex` (by representation, with the baseline row).
+The `none` representation (no injection) is never counted in attack success. It is
+reported on its own, as how often the model bought the injected item anyway and how
+often it made any tool call. That second rate is the reference for off-target calls.
+
+Only P(obey) is measured. P(interpret) and P(obey | interpret) need a per-trial
+label of whether the model understood the payload (`docs/proposal.md`), and nothing
+produces one yet.
 
 Tests: `python -m pytest eval/tests -q` (part of `just test`).
-
-Planned, not built yet:
-
-```
-eval/
-├── judge/                 # LLM judge for "interpreted", different model family
-├── gold/                  # hand-labeled set + agreement script (judge validation)
-└── report/                # figures
-```
