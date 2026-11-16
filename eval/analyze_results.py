@@ -6,9 +6,9 @@ Reads the Inspect logs in runs/<dir>/inspect_logs/*.eval (through
 `inspect_ai.analysis.samples_df`), groups trials by the stimulus factors in
 stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
 
-- outcomes.html            interactive: one mark per trial, outcome on the y axis,
-                           prompt on the x axis, colour = context, shape =
-                           representation; hover a mark for its details
+- outcomes.html            interactive: one mark per trial in a row per outcome;
+                           colour = representation, shape = context, border =
+                           prompt; hover a mark for its details
 - tables.tex               booktabs tables: by representation, by factor, and
                            baseline vs injected per prompt x context
 
@@ -336,9 +336,9 @@ def _js_json(obj) -> str:
 
 
 def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_dir: Path) -> str:
-    """Interactive page: one mark per trial. Y is the outcome (closest to success at the
-    top), X is the prompt, colour is the context and shape the representation; hovering
-    a mark shows the trial's details. Self-contained, no network needed."""
+    """Interactive page: one mark per trial, in one row per outcome (closest to success
+    at the top). Colour is the representation, shape the context and border the prompt;
+    hovering a mark shows the trial's details. Self-contained, no network needed."""
     injected, baseline, errored = split(trials)
     si, sb = summarize(injected), summarize(baseline)
     lo, hi = wilson(si["obeyed"], si["n"])
