@@ -59,9 +59,9 @@ def buy():
 
 
 @tool
-def take_photo():
+def save_photo():
     async def execute() -> str:
-        """Take a photo of what the wearer is looking at and save it to their gallery."""
+        """Save a photo of what the wearer is looking at to their gallery."""
         return "Photo saved."
 
     return execute
@@ -127,7 +127,7 @@ TOOLS = {
     "buy": buy,
     "send_message": send_message,
     "save_note": save_note,
-    "take_photo": take_photo,
+    "save_photo": save_photo,
     "set_reminder": set_reminder,
     "get_directions": get_directions,
     "translate_text": translate_text,

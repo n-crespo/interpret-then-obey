@@ -58,11 +58,10 @@ CATEGORIES = ("natural", "constructed", "symbols", "opaque", "baseline")
 # neither the first nor the last tool the model is shown.
 BUY_TOOL = "buy"
 TOOLS = (
-    "take_photo",
-    "save_note",
+    "save_photo",
     "send_message",
-    BUY_TOOL,
     "set_reminder",
+    BUY_TOOL,
     "get_directions",
     "translate_text",
     "search_web",
