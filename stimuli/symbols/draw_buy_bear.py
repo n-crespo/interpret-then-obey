@@ -158,7 +158,7 @@ def emoji() -> None:
     """Emoji strip: bear, right arrow, shopping cart (U+1F43B U+27A1 U+1F6D2).
 
     Assembled from the Noto Emoji images vendored in stimuli/symbols/noto_emoji/
-    (see its README for source and licence), pasted unscaled. Shown as a picture
+    (Apache-2.0; see its README for source and licence), pasted unscaled. Shown as a picture
     so the stimuli never depend on which emoji font a machine has.
     """
     glyphs = [Image.open(NOTO / f"emoji_u{cp}.png").convert("RGBA") for cp in ("1f43b", "27a1", "1f6d2")]
