@@ -10,6 +10,10 @@ STIMULI = ROOT / "stimuli"
 SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
+import sys
+sys.path.insert(0, str(ROOT))
+from harness.tools import TOOLS as HARNESS_TOOLS  # noqa: E402
+
 
 def test_factor_files():
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
@@ -69,7 +73,10 @@ def test_committed_manifest_rows():
     assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
 
     for r in rows:
-        assert r["tools"] == ["buy"]
+        assert "buy" in r["tools"] and len(r["tools"]) > 1, "buy must not be the only tool offered"
+        assert "add_to_cart" not in r["tools"], "a second way to purchase would split obey calls"
+        assert set(r["tools"]) <= set(HARNESS_TOOLS), "manifest names a tool the harness does not have"
+        assert len(set(r["tools"])) == len(r["tools"])
         assert r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
