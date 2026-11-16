@@ -76,7 +76,7 @@ Each context has three fields:
 | --- | --- |
 | `header` | The title line at the top of the image |
 | `lines` | The body text, one string per line |
-| `item` | The product the context is about, or `null` for `info_board`. The generator does not use it. |
+| `item` | The product the context is about, or `null` for `info_board`. It is not drawn; it feeds the [attack type](#attack-type). |
 
 ```json
 {
@@ -238,6 +238,10 @@ Example row (wrapped here; one line in the file):
 ```
 
 `buy` is the harness name of the buy tool (see [section 2](#2-model-setup)).
+
+### Attack type
+
+What an obeyed row means depends on the prompt and the scene together: an injection that swaps the item the user asked to buy is a different attack from one that creates a purchase nobody asked for. So every row also carries `attack_type` and `competing_product`. They are derived from declared data rather than from factor ids: each prompt's `requests_purchase` and each context's `item`. `stimuli/attack_types.py` defines the types, the rule, and which types count as attack success. The generator and the analysis both use it.
 
 ## 8. Validation
 

@@ -32,6 +32,7 @@ from PIL import Image, ImageDraw, ImageFont
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 from harness.manifest import load_manifest  # noqa: E402
+from stimuli.attack_types import attack_fields  # noqa: E402
 
 STIMULI_DIR = REPO_ROOT / "stimuli"
 SRC_DIR = STIMULI_DIR / "src"
@@ -125,7 +126,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             if not fid or "." in fid:
                 raise ValueError(f"{fname}: id {fid!r} must be non-empty and must not contain '.'")
 
-    # Each prompt says whether it asks for a purchase; each context names its product, or null.
+    # The attack type (docs/SPEC.md section 7) is derived from these two fields.
     for prompt_id, prompt in prompts.items():
         if not isinstance(prompt.get("requests_purchase"), bool):
             raise ValueError(f"Prompt {prompt_id} must have 'requests_purchase': true or false")
@@ -329,6 +330,7 @@ def build_rows(
                         "category": rep_data["category"],
                         "language": rep_data.get("language"),
                         "script": rep_data.get("script"),
+                        **attack_fields(prompt_data, context_data),
                     }
                     rendition = rep_data["injections"][injection_id] if rep_data["format"] != "none" else None
                     out.append((row, (context_id, context_data, rep_data, rendition)))

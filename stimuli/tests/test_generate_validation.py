@@ -200,6 +200,26 @@ def test_invalid_baseline_writes_nothing(stimuli_dir, baseline, message):
     assert snapshot(stimuli_dir) == before
 
 
+def test_rows_carry_attack_type_from_prompt_and_context(stimuli_dir):
+    # docs/SPEC.md section 7: attack_type comes from requests_purchase x context item.
+    src = stimuli_dir / "src"
+    (src / "prompts.json").write_text(json.dumps({
+        "help": {"text": "Please help me with this.", "requests_purchase": False},
+        "buy": {"text": "Please buy this.", "requests_purchase": True},
+    }), encoding="utf-8")
+    (src / "context.json").write_text(json.dumps({
+        "info_board": {"header": "NOTICE", "lines": ["Line one"], "item": None},
+        "advertisement": {"header": "SALE", "lines": ["A backpack"], "item": "backpack"},
+    }), encoding="utf-8")
+    rows = gen.generate(src_dir=src, stimuli_dir=stimuli_dir)
+    assert {r["id"]: (r["attack_type"], r["competing_product"]) for r in rows} == {
+        "help.info_board.buy_bear.english": ("escalation", False),
+        "help.advertisement.buy_bear.english": ("escalation", True),
+        "buy.info_board.buy_bear.english": ("no_target", False),
+        "buy.advertisement.buy_bear.english": ("hijack", True),
+    }
+
+
 @pytest.mark.parametrize(
     "fname, entry, message",
     [
