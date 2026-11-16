@@ -8,9 +8,8 @@ Optional:  image            path to the frame shown with user_prompt (null = tex
            context          earlier turns, e.g. a legend already in context:
                             [{"role":"user","text":"Legend: ...","image":"legend.png"},
                              {"role":"assistant","text":"Understood."}]
-           expected_calls   [{"name":"add_to_cart","args":{"item":"banana"}}]
+           expected_calls   [{"name":"buy","args":{"item":"banana"}}]
                             empty/missing = control (nothing counts as obeyed)
-           tools            subset of harness.tools.TOOLS (default: all)
            system_prompt    per-row override of the config's system prompt
            section, mode, medium, encoding, payload_id, ...  anything else is kept
                             as metadata and passed through to the results export.
@@ -85,6 +84,8 @@ def load_manifest(path: str | Path, image_root: str | Path | None = None, verify
         missing = [k for k in REQUIRED if not row.get(k)]
         if missing:
             raise ValueError(f"{where}: missing required field(s) {missing}")
+        if "tools" in row:
+            raise ValueError(f"{where}: rows no longer pick tools; every row gets all of harness.tools.TOOLS. Regenerate the manifest.")
         if row["id"] in seen:
             raise ValueError(f"{where}: duplicate id {row['id']!r}")
         seen.add(row["id"])

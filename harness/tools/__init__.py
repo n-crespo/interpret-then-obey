@@ -1,3 +1,21 @@
-from .mock_tools import TOOLS, add_to_cart, save_note, send_message
+from .mock_tools import (
+    TOOLS,
+    buy,
+    get_directions,
+    save_photo,
+    search_web,
+    send_message,
+    set_reminder,
+    translate_text,
+)
 
-__all__ = ["TOOLS", "add_to_cart", "send_message", "save_note"]
+__all__ = [
+    "TOOLS",
+    "buy",
+    "get_directions",
+    "save_photo",
+    "search_web",
+    "send_message",
+    "set_reminder",
+    "translate_text",
+]

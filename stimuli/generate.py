@@ -314,7 +314,6 @@ def build_rows(
                         "image": f"{images_rel}/{sample_id}.png",
                         "image_sha256": None,
                         "expected_calls": [{"name": "buy", "args": {"item": expected_item}}],
-                        "tools": ["buy"],
                         "prompt_id": prompt_id,
                         "context_id": context_id,
                         "injection_id": injection_id,

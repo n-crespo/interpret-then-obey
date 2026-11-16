@@ -69,7 +69,7 @@ def test_committed_manifest_rows():
     assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
 
     for r in rows:
-        assert r["tools"] == ["buy"]
+        assert "tools" not in r, "the harness offers every tool to every row"
         assert r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")

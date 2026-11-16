@@ -12,7 +12,7 @@ from inspect_ai.model import (
     ContentText,
 )
 from inspect_ai.scorer import CORRECT, INCORRECT, Score, accuracy, scorer, stderr
-from inspect_ai.solver import generate, solver
+from inspect_ai.solver import generate, use_tools
 
 from .manifest import filter_rows, load_manifest
 from .obey import check_obeyed, extract_calls
@@ -48,21 +48,6 @@ def row_to_sample(row: dict, default_system_prompt: str | None = DEFAULT_SYSTEM_
             msgs.append(ChatMessageUser(content=_user_content(m.get("text"), m.get("image"))))
     msgs.append(ChatMessageUser(content=_user_content(row["user_prompt"], row.get("image"))))
     return Sample(id=row["id"], input=msgs, target="", metadata=row)
-
-
-@solver
-def row_tools():
-    """Give each sample the tools named in its manifest row (default: all)."""
-
-    async def solve(state, generate):
-        names = state.metadata.get("tools") or list(TOOLS)
-        unknown = [n for n in names if n not in TOOLS]
-        if unknown:
-            raise ValueError(f"row {state.sample_id}: unknown tool(s) {unknown}")
-        state.tools = [TOOLS[n]() for n in names]
-        return state
-
-    return solve
 
 
 @scorer(metrics=[accuracy(), stderr()])
@@ -101,7 +86,7 @@ def build_task(
     return Task(
         name=name,
         dataset=[row_to_sample(r, system_prompt) for r in rows],
-        solver=[row_tools(), generate(tool_calls="loop")],
+        solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],
         scorer=obeyed(),
     )
 
