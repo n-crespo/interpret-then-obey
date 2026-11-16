@@ -1,7 +1,8 @@
 """Send one real HTTP request through Inspect's ollama/ provider to a local stub server.
 
-The mock model never builds an HTTP client, so it can't catch openai/httpx incompatibilities
-(openai 3.x broke every real request with "unsupported operand type(s) for +: 'float' and 'Timeout'").
+The mock model never builds an HTTP client, so it can't catch inspect-ai/openai mismatches: an old
+inspect-ai with openai 3.x broke every real request ("unsupported operand type(s) for +: 'float' and
+'Timeout'"), and a new inspect-ai with openai 2.x refuses to create the ollama/ model at all.
 No GPU or Ollama needed."""
 
 import asyncio

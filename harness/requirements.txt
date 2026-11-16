@@ -1,10 +1,13 @@
-inspect-ai
-agent-client-protocol<1.0
-# openai 3.x is built on httpx2 and passes an httpx2.Timeout object where inspect-ai's
-# httpx 0.28 client expects floats, so every real-model request fails with
-# "TypeError: unsupported operand type(s) for +: 'float' and 'Timeout'".
-# 2.26 is the floor inspect-ai declares. Lift the cap once inspect-ai supports openai 3.
-openai>=2.26,<3
+# inspect-ai declares openai only under its `dev` extra, so pip never matches openai to
+# the inspect-ai it picks. inspect-ai instead checks the installed openai at runtime
+# (validate_openai_client) and refuses to build ollama/... models on an older one; since
+# 0.3.280 the minimum is openai 3.4.0. Older inspect-ai (e.g. 0.3.224) wants openai 2.x
+# and crashes on openai 3 ("unsupported operand type(s) for +: 'float' and 'Timeout'").
+# 0.3.289 is also the first inspect-ai that works with agent-client-protocol 1.0, the only
+# acp release installable on Python 3.15 (earlier ones import the removed acp.helpers).
+# Keep both floors in step when bumping: check validate_openai_client in the new release.
+inspect-ai>=0.3.289
+openai>=3.4
 pillow
 pyyaml
 pytest
