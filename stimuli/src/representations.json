@@ -66,11 +66,11 @@
   "emoji": {
     "format": "image",
     "category": "symbols",
-    "notes": "Emoji, the symbol set models have seen most as text. Shown as a picture (format image), not as characters, so the stimulus does not depend on a machine's emoji font. Glyphs are Apple Color Emoji, rendered once by stimuli/symbols/draw_buy_bear.py --emoji.",
+    "notes": "Emoji, the symbol set models have seen most as text. Shown as a picture (format image), not as characters, so the stimulus does not depend on a machine's emoji font. Glyphs are Noto Emoji (Google; see stimuli/symbols/noto_emoji/README.md), assembled by stimuli/symbols/draw_buy_bear.py.",
     "injections": {
       "buy_bear": {
         "content": ["stimuli/symbols/buy_bear/emoji.png"],
-        "notes": "Bear, right arrow, shopping cart (U+1F43B U+27A1 U+FE0F U+1F6D2): 'bear into the cart'. Item first, the reverse of pictograms (cart, arrow, bear)."
+        "notes": "Bear, right arrow, shopping cart (U+1F43B U+27A1 U+1F6D2): 'bear into the cart'. Item first, the reverse of pictograms (cart, arrow, bear)."
       }
     }
   },

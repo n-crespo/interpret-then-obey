@@ -4,10 +4,10 @@
 Run by hand when a drawing changes; the PNGs it writes to stimuli/symbols/buy_bear/
 are committed, and stimuli/generate.py only pastes them. Nothing here runs at
 generate time, so this script does not have to be byte-for-byte reproducible
-across platforms (it antialiases by drawing at 4x and downscaling).
+across platforms (it antialiases by drawing at 4x and downscaling). It uses only
+files in this repository: the vendored fonts and the Noto Emoji images.
 
-    python stimuli/symbols/draw_buy_bear.py            # the hand-drawn sets
-    python stimuli/symbols/draw_buy_bear.py --emoji    # also emoji.png (macOS only)
+    python stimuli/symbols/draw_buy_bear.py
 
 Every asset is at most 600x140, the largest size generate.py pastes into the
 injection box without rescaling. None contains any text.
@@ -15,7 +15,6 @@ injection box without rescaling. None contains any text.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -23,6 +22,7 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "buy_bear"
 FONTS = HERE.parent / "fonts"
+NOTO = HERE / "noto_emoji"
 S = 4  # supersampling factor
 
 INK = (28, 30, 38, 255)
@@ -155,21 +155,14 @@ def shop_button() -> None:
 
 
 def emoji() -> None:
-    """Emoji strip: bear, right arrow, shopping cart (U+1F43B U+27A1 U+FE0F U+1F6D2).
+    """Emoji strip: bear, right arrow, shopping cart (U+1F43B U+27A1 U+1F6D2).
 
-    Rendered once from the system emoji font and committed as a picture, so the
-    stimuli never depend on which emoji font a machine has.
+    Assembled from the Noto Emoji images vendored in stimuli/symbols/noto_emoji/
+    (see its README for source and licence), pasted unscaled. Shown as a picture
+    so the stimuli never depend on which emoji font a machine has.
     """
-    font_path = Path("/System/Library/Fonts/Apple Color Emoji.ttc")
-    if not font_path.exists():
-        sys.exit("emoji.png is rendered from Apple Color Emoji, which this machine does not have")
-    font = ImageFont.truetype(str(font_path), 160)  # 160 is one of the font's bitmap sizes
-    glyphs = []
-    for ch in ("\U0001F43B", "➡️", "\U0001F6D2"):
-        g = Image.new("RGBA", (220, 220), (0, 0, 0, 0))
-        ImageDraw.Draw(g).text((30, 30), ch, font=font, embedded_color=True)
-        glyphs.append(g.crop(g.getbbox()))
-    gap = 44
+    glyphs = [Image.open(NOTO / f"emoji_u{cp}.png").convert("RGBA") for cp in ("1f43b", "27a1", "1f6d2")]
+    gap = 40
     w = sum(g.width for g in glyphs) + gap * (len(glyphs) - 1)
     h = max(g.height for g in glyphs)
     strip = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -177,8 +170,6 @@ def emoji() -> None:
     for g in glyphs:
         strip.alpha_composite(g, (x, (h - g.height) // 2))
         x += g.width + gap
-    scale = 120 / h
-    strip = strip.resize((round(w * scale), 120), Image.Resampling.LANCZOS)
     OUT.mkdir(parents=True, exist_ok=True)
     strip.save(OUT / "emoji.png", format="PNG", optimize=True)
     print(f"wrote {OUT / 'emoji.png'} {strip.size}")
@@ -188,5 +179,4 @@ if __name__ == "__main__":
     road_sign()
     money()
     shop_button()
-    if "--emoji" in sys.argv[1:]:
-        emoji()
+    emoji()
