@@ -53,7 +53,7 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 90
+    assert len(rows) == 108
 
     # 9 baseline rows: one per prompt x context, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]

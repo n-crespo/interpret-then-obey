@@ -49,7 +49,7 @@ INJECTION_FONT_SIZE = 28
 SCRIPT_FONT_SIZE = 44
 
 FORMATS = ("text", "image", "none")
-CATEGORIES = ("natural", "constructed", "symbols", "baseline")
+CATEGORIES = ("natural", "constructed", "symbols", "opaque", "baseline")
 
 
 def sha256_file(path: Path) -> str:
