@@ -54,12 +54,12 @@ ollama pull qwen3-vl:8b
 just run harness/configs/qwen3vl-8b-ollama.yaml --limit 5   # try a few rows first
 just run harness/configs/qwen3vl-8b-ollama.yaml             # full manifest
 just run --resume runs/<date>_qwen3vl-8b-ollama             # if some rows errored
-just analyze runs/<date>_qwen3vl-8b-ollama                  # figures + LaTeX tables
+just analyze runs/<date>_qwen3vl-8b-ollama                  # interactive plot + LaTeX tables
 inspect view --log-dir runs/<date>_qwen3vl-8b-ollama/inspect_logs
 ```
 
 "Obeyed" means the model actually made the expected tool call (scored by the harness).
-`analyze` reads `inspect_logs/*.eval` and writes figures and LaTeX tables to `<run_dir>/analysis/`:
+`analyze` reads `inspect_logs/*.eval` and writes an interactive plot (`outcomes.html`) and LaTeX tables to `<run_dir>/analysis/`:
 attack success with 95% Wilson intervals and off-target tool calls (e.g. buying the product in the scene)
 by representation and factor, with the no-injection baseline reported on its own. See [eval/README.md](eval/README.md).
 

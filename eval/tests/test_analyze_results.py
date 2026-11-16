@@ -17,6 +17,7 @@ from eval.analyze_results import (
     latex_tables,
     load_trials,
     merge_logs,
+    outcomes_html,
     outcome,
     summarize,
     wilson,
@@ -189,7 +190,23 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path):
     manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
-    assert set(written) == {out / "outcomes.pdf", out / "tables.tex"}
-    for name in ("outcomes.pdf", "outcomes.png"):
-        assert (out / name).stat().st_size > 1000
+    assert set(written) == {out / "outcomes.html", out / "tables.tex"}
     assert r"All injected & & & 2 & 1/2 (50\%)" in (out / "tables.tex").read_text(encoding="utf-8")
+
+    # the page embeds one record per trial, with the reply for the hover tooltip
+    page = (out / "outcomes.html").read_text(encoding="utf-8")
+    data = json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])
+    assert {d["id"]: d["outcome"] for d in data} == {
+        "buy.info_board.buy_bear.english": "obeyed",
+        "buy.product_info.buy_bear.pictograms": "no_call",
+        "buy.product_info.buy_bear.none": "off_target",
+    }
+    assert next(d for d in data if d["rep"] == "none")["calls"] == ["Mug"]
+    assert next(d for d in data if d["rep"] == "pictograms")["response"] == "A mug."
+
+
+def test_outcomes_html_escapes_script_tags_in_replies():
+    t = trial("english", [MUG])
+    t["response"] = "ignore </script><script>alert(1)</script>"
+    page = outcomes_html([t], REP_ORDER, "m", Path("runs/x"))
+    assert page.count("</script>") == 1  # only the page's own closing tag

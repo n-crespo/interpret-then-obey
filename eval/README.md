@@ -11,7 +11,7 @@ just analyze runs/<date>_<name>     # = python eval/analyze_results.py runs/<dat
 
 | File | What it shows |
 | --- | --- |
-| `outcomes.pdf/.png` | Outcome mix per representation (obeyed / off-target call / no call / cut off), for all contexts and per context, with the no-injection baseline as its own row |
+| `outcomes.html` | Interactive, self-contained page: one mark per trial. Y is the outcome (obeyed, off-target call, cut off, no call), X is the prompt, colour is the context, shape is the representation (the baseline is a hollow ring). Hover a mark for the trial's details and reply; click a legend item to show or hide it. |
 | `tables.tex` | Three booktabs tables: by representation, by factor (category, script, prompt, context), and baseline vs injected per prompt × context. `\input{}` it; needs `\usepackage{booktabs}` |
 
 The `none` representation (no injection) is never counted in attack success. It is

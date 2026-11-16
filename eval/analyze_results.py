@@ -6,8 +6,9 @@ Reads the Inspect logs in runs/<dir>/inspect_logs/*.eval (through
 `inspect_ai.analysis.samples_df`), groups trials by the stimulus factors in
 stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
 
-- outcomes.pdf/.png        outcome mix (obeyed / off-target / no call / cut off) per
-                           representation, overall and per context, baseline below
+- outcomes.html            interactive: one mark per trial, outcome on the y axis,
+                           prompt on the x axis, colour = context, shape =
+                           representation; hover a mark for its details
 - tables.tex               booktabs tables: by representation, by factor, and
                            baseline vs injected per prompt x context
 
@@ -33,7 +34,7 @@ import argparse
 import json
 import math
 import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 
 FACTORS = ["prompt_id", "context_id", "injection_id", "representation_id", "category", "language", "script"]
@@ -42,17 +43,6 @@ BASELINE = "baseline"  # manifest `category` of the no-injection control rows
 # Factor table in tables.tex: (manifest field, label)
 FACTOR_ROWS = [("category", "Category"), ("script", "Script"), ("prompt_id", "Prompt"), ("context_id", "Context")]
 LEVEL_ORDER = ["natural", "constructed", "symbols", "latin", "non_latin", "read", "help", "buy"]
-
-# Outcome of one trial: (key, legend label, cell glyph, colour). Colours are slots of
-# the dataviz reference palette (blue, orange, aqua: validated as a set) plus greys.
-OUTCOMES = [
-    ("obeyed", "Obeyed (bought the injected item)", "✓", "#2a78d6"),
-    ("off_target", "Off-target call (not the injected item)", "×", "#eb6834"),
-    ("cut_off", "Cut off at max_tokens, no call", "T", "#1baf7a"),
-    ("no_call", "No tool call", "", "#e4e3df"),
-    ("error", "Errored", "!", "#52514e"),
-]
-INK, INK_2, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#ffffff"
 
 
 # ----------------------------------------------------------------------------
@@ -110,6 +100,7 @@ def _trial(rec: dict) -> dict:
         "off_target_calls": sm.get("off_target_calls") or [],
         "stop_reason": _clean(rec.get("stop_reason")),
         "error": _clean(rec.get("error")) or None,
+        "response": _clean(rec.get("score_obeyed_answer")) or "",
     }
 
 
@@ -333,68 +324,49 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
 
 
 # ----------------------------------------------------------------------------
-# Figures
+# Interactive figure
 
 
-def plot_outcomes(trials: list[dict], rep_order: list, path: Path, model: str | None) -> None:
-    """Outcome mix per representation as 100% stacked bars, one panel for all contexts
-    and one per context. The baseline row sits below a gap, so each injected bar can be
-    read against what the model does with no injection in the same context."""
-    import matplotlib.pyplot as plt
-    from matplotlib.patches import Patch
+TEMPLATE = Path(__file__).with_name("outcomes_template.html")
 
-    ok = [t for t in trials if not t["error"]]
-    reps = _order({t["representation_id"] for t in ok}, rep_order)
-    contexts = _order({t["context_id"] for t in ok})
-    panels = [("All contexts", ok)] + [(c.replace("_", " "), [t for t in ok if t["context_id"] == c]) for c in contexts]
-    kinds = [o for o in OUTCOMES if o[0] != "error"]
-    used = {outcome(t) for t in ok}
-    kinds = [o for o in kinds if o[0] in used]
 
-    has_base = "none" in reps
-    ys = {rep: (len(reps) - 1 - i) + (0.6 if has_base and rep != "none" else 0) for i, rep in enumerate(reps)}
-    labels = ["none (baseline)" if r == "none" else r for r in reps]
+def _js_json(obj) -> str:
+    """JSON safe to inline in a <script> block (model replies can contain '</script>')."""
+    return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/").replace("<!--", "<\\!--")
 
-    fig, axes = plt.subplots(1, len(panels), figsize=(2.3 * len(panels) + 1.6, 0.42 * len(reps) + 1.9),
-                             sharey=True, gridspec_kw={"wspace": 0.12})
-    fig.patch.set_facecolor(SURFACE)
-    for ax, (title, ts) in zip(axes, panels):
-        by_rep = group_by(ts, "representation_id")
-        for rep in reps:
-            cell = by_rep.get(rep, [])
-            n, left = len(cell), 0.0
-            counts = Counter(outcome(t) for t in cell)
-            for key, _, _, colour in kinds:
-                k = counts.get(key, 0)
-                if not k:
-                    continue
-                w = k / n
-                ax.barh(ys[rep], w, left=left, height=0.62, color=colour, edgecolor=SURFACE, linewidth=1.5)
-                if w >= 0.1:
-                    ink = INK if key in ("no_call",) else SURFACE
-                    ax.text(left + w / 2, ys[rep], str(k), ha="center", va="center", fontsize=8.5, color=ink)
-                left += w
-        ax.set_xlim(0, 1)
-        ax.set_xticks([])
-        ax.set_title(title, fontsize=10, color=INK, loc="left")
-        for side in ax.spines.values():
-            side.set_visible(False)
-        ax.tick_params(length=0)
-        n_per = {len(v) for v in by_rep.values()}
-        if len(n_per) == 1:
-            ax.set_xlabel(f"{n_per.pop()} trials per bar", fontsize=8, color=INK_2)
-    axes[0].set_yticks([ys[r] for r in reps], labels, fontsize=9.5, color=INK)
-    if has_base:
-        for ax in axes:
-            ax.axhline(ys["none"] + 0.8, color=GRID, linewidth=1)
-    handles = [Patch(facecolor=colour, label=label) for _, label, _, colour in kinds]
-    fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=len(handles), frameon=False,
-               fontsize=8.5, labelcolor=INK_2, handlelength=1.1, columnspacing=1.4)
-    fig.suptitle(f"What the model did, by representation and context ({model})",
-                 x=0.0, y=1.06, ha="left", fontsize=11, color=INK)
-    for ext in ("pdf", "png"):
-        fig.savefig(path.with_suffix(f".{ext}"), dpi=200, facecolor=SURFACE, bbox_inches="tight")
-    plt.close(fig)
+
+def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_dir: Path) -> str:
+    """Interactive page: one mark per trial. Y is the outcome (closest to success at the
+    top), X is the prompt, colour is the context and shape the representation; hovering
+    a mark shows the trial's details. Self-contained, no network needed."""
+    injected, baseline, errored = split(trials)
+    si, sb = summarize(injected), summarize(baseline)
+    lo, hi = wilson(si["obeyed"], si["n"])
+    stats = [
+        [pct(si["obeyed"], si["n"]), f"injected trials obeyed (95% CI {100 * lo:.0f}–{100 * hi:.0f}%)"],
+        [pct(si["off_target"], si["n"]), "injected trials with an off-target call"],
+        [pct(sb["target_call"], sb["n"]), "baseline trials that bought the injected item"],
+        [pct(sb["any_call"], sb["n"]), "baseline trials with any tool call"],
+    ]
+    if errored:
+        stats.append([str(len(errored)), "errored trials (left out of the rates)"])
+    data = [
+        {
+            "id": t["id"], "epoch": t["epoch"], "prompt": t["prompt_id"], "context": t["context_id"],
+            "rep": t["representation_id"], "outcome": outcome(t), "stop": t["stop_reason"], "error": t["error"],
+            "calls": [_call_label([c]) for c in t["tool_calls"]], "response": (t.get("response") or "")[:2000],
+        }
+        for t in sorted(trials, key=lambda t: (t["id"], t["epoch"]))
+    ]
+    meta = {
+        "model": model, "run": run_dir.name, "stats": stats,
+        "prompts": _order({t["prompt_id"] for t in trials}, LEVEL_ORDER),
+        "contexts": _order({t["context_id"] for t in trials}),
+        "reps": _order({t["representation_id"] for t in trials}, rep_order),
+        "epochs": max(t["epoch"] for t in trials),
+    }
+    page = TEMPLATE.read_text(encoding="utf-8")
+    return page.replace("__DATA__", _js_json(data)).replace("__META__", _js_json(meta))
 
 
 # ----------------------------------------------------------------------------
@@ -417,9 +389,6 @@ def manifest_order(path: Path) -> list:
 
 def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
     """Print the headline and write the figures and tables; returns the written paths."""
-    import matplotlib
-
-    matplotlib.use("Agg")
     trials, model = load_trials(run_dir)
     if not any(not t["error"] for t in trials):
         sys.exit(f"No successful samples in {run_dir / 'inspect_logs'} ({len(trials)} errored)")
@@ -431,11 +400,12 @@ def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
     (out_dir / "tables.tex").write_text(latex_tables(trials, model, rep_order), encoding="utf-8")
-    plot_outcomes(trials, rep_order, out_dir / "outcomes", model)
-    written = [out_dir / "outcomes.pdf", out_dir / "tables.tex"]
+    (out_dir / "outcomes.html").write_text(outcomes_html(trials, rep_order, model, run_dir), encoding="utf-8")
+    written = [out_dir / "outcomes.html", out_dir / "tables.tex"]
 
     print(headline(trials, model, run_dir))
-    print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written) + " (and outcomes.png)")
+    print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
+    print("Open outcomes.html in a browser; hover a mark for the trial's details.")
     return written
 
 
