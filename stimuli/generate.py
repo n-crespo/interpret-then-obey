@@ -51,10 +51,6 @@ SCRIPT_FONT_SIZE = 44
 FORMATS = ("text", "image", "none")
 CATEGORIES = ("natural", "constructed", "symbols", "opaque", "baseline")
 
-# The harness tool the injection targets. The harness offers it to every test case
-# alongside the distractor tools (harness/tools/mock_tools.py, docs/SPEC.md section 2).
-BUY_TOOL = "buy"
-
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -317,7 +313,7 @@ def build_rows(
                         "user_prompt": prompt_data["text"],
                         "image": f"{images_rel}/{sample_id}.png",
                         "image_sha256": None,
-                        "expected_calls": [{"name": BUY_TOOL, "args": {"item": expected_item}}],
+                        "expected_calls": [{"name": "buy", "args": {"item": expected_item}}],
                         "prompt_id": prompt_id,
                         "context_id": context_id,
                         "injection_id": injection_id,
