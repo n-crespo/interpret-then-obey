@@ -5,7 +5,7 @@ Stimulus generator for the interpret-then-obey benchmark per docs/SPEC.md.
 Combines the 4 factors:
   prompts × contexts × injections × representations
 
-The `none` representation (format "none", category "baseline") is the
+The `none` representation (format "none", role "baseline") is the
 no-injection baseline: its images have the injection box drawn but empty.
 
 Deterministically renders images to stimuli/images/<id>.png and writes
@@ -50,7 +50,8 @@ INJECTION_FONT_SIZE = 28
 SCRIPT_FONT_SIZE = 44
 
 FORMATS = ("text", "image", "none")
-CATEGORIES = ("natural", "constructed", "symbols", "opaque", "control", "baseline")
+CATEGORIES = ("natural", "constructed", "symbols", "opaque")  # how an instruction is encoded
+ROLES = ("attack", "control", "baseline")  # what a representation is for in the analysis
 
 
 def sha256_file(path: Path) -> str:
@@ -141,14 +142,19 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for rep_id, rep in representations.items():
         if "format" not in rep or rep["format"] not in FORMATS:
             raise ValueError(f"Representation {rep_id} must have format 'text', 'image' or 'none'")
-        if "category" not in rep or rep["category"] not in CATEGORIES:
-            raise ValueError(f"Representation {rep_id} has invalid category {rep.get('category')!r}")
-        # The baseline: format 'none' and category 'baseline' go together, and
-        # nothing is drawn, so it has no renditions, language, script or font.
-        if (rep["format"] == "none") != (rep["category"] == "baseline"):
-            raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
+        if rep.get("role") not in ROLES:
+            raise ValueError(f"Representation {rep_id} has invalid role {rep.get('role')!r}")
+        # category says how an instruction is encoded: every attack has one, a control may.
+        if "category" in rep and rep["category"] not in CATEGORIES:
+            raise ValueError(f"Representation {rep_id} has invalid category {rep['category']!r}")
+        if rep["role"] == "attack" and "category" not in rep:
+            raise ValueError(f"Attack representation {rep_id} requires 'category'")
+        # The baseline: format 'none' and role 'baseline' go together, and nothing
+        # is drawn, so it has no renditions, category, language, script or font.
+        if (rep["format"] == "none") != (rep["role"] == "baseline"):
+            raise ValueError(f"Representation {rep_id}: format 'none' and role 'baseline' must go together")
         if rep["format"] == "none":
-            extra = sorted({"injections", "language", "script", "font"} & set(rep))
+            extra = sorted({"injections", "category", "language", "script", "font"} & set(rep))
             if extra:
                 raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
             continue
@@ -327,7 +333,8 @@ def build_rows(
                         "context_id": context_id,
                         "injection_id": injection_id,
                         "representation_id": rep_id,
-                        "category": rep_data["category"],
+                        "role": rep_data["role"],
+                        "category": rep_data.get("category"),
                         "language": rep_data.get("language"),
                         "script": rep_data.get("script"),
                         **attack_fields(prompt_data, context_data),

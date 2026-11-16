@@ -31,7 +31,7 @@ def test_factor_files():
     assert list(representations.keys())[0] == "english"
 
     # The no-injection baseline is one representation, last, with nothing to render.
-    baselines = [rep_id for rep_id, rep in representations.items() if rep["category"] == "baseline"]
+    baselines = [rep_id for rep_id, rep in representations.items() if rep["role"] == "baseline"]
     assert baselines == ["none"] == list(representations)[-1:]
     assert representations["none"]["format"] == "none"
     assert "injections" not in representations["none"]
@@ -55,24 +55,24 @@ def test_committed_manifest_rows():
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
     assert len(rows) == 117
 
-    # 9 bear_only control rows: the injected item shown with no instruction.
-    control = [r for r in rows if r["category"] == "control"]
-    assert {r["representation_id"] for r in control} == {"bear_only"}
-    assert len(control) == 9
-    assert len({r["image_sha256"] for r in control}) == 3  # one image per context
+    # Controls: opaque (glyphs nobody can read) and bear_only (the item with no instruction).
+    control = [r for r in rows if r["role"] == "control"]
+    assert {(r["representation_id"], r["category"]) for r in control} == {("opaque", "opaque"), ("bear_only", None)}
+    assert len(control) == 18
+    assert {r["role"] for r in rows if r["representation_id"] not in ("opaque", "bear_only", "none")} == {"attack"}
 
     # 9 baseline rows: one per prompt x context, injection box left empty.
-    baseline = [r for r in rows if r["category"] == "baseline"]
+    baseline = [r for r in rows if r["role"] == "baseline"]
     assert len(baseline) == 9
     assert {(r["prompt_id"], r["context_id"]) for r in baseline} == {
         (p, c) for p in ("read", "help", "buy") for c in ("info_board", "product_info", "advertisement")
     }
     for r in baseline:
         assert r["representation_id"] == "none"
-        assert r["language"] is None and r["script"] is None
+        assert r["category"] is None and r["language"] is None and r["script"] is None
     # The baseline must look like no other image.
     assert len({r["image_sha256"] for r in baseline}) == 3  # one image per context
-    assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
+    assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["role"] != "baseline"}
 
     for r in rows:
         assert "tools" not in r, "the harness offers every tool to every row"
@@ -100,7 +100,7 @@ def test_committed_manifest_rows():
 def test_no_english_translations_in_conlang_content():
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     for rep_id, rep in representations.items():
-        if rep["category"] == "constructed" and rep["format"] == "text":
+        if rep.get("category") == "constructed" and rep["format"] == "text":
             content = rep["injections"]["buy_bear"]["content"]
             joined = " ".join(content).lower()
             # None of them should contain "buy a bear" or English translations
