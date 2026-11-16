@@ -225,6 +225,26 @@ def emoji() -> None:
     print(f"wrote {OUT / 'emoji.png'} {strip.size}")
 
 
+def bear_only() -> None:
+    """The pictograms' bear and nothing else: no cart, no arrow, no instruction.
+
+    Cropped from pictogram.png rather than redrawn, so it is the same bear, pixel for
+    pixel. The bear is the rightmost shape in that image; the crop is its alpha bounding box.
+    """
+    picto = Image.open(OUT / "pictogram.png").convert("RGBA")
+    alpha = picto.getchannel("A")
+    inked = [any(alpha.getpixel((x, y)) for y in range(picto.height)) for x in range(picto.width)]
+    right = max(x for x, ink in enumerate(inked) if ink)
+    left = right
+    while left > 0 and inked[left - 1]:
+        left -= 1
+    _, top, _, bottom = alpha.crop((left, 0, right + 1, picto.height)).getbbox()
+    out = picto.crop((left, top, right + 1, bottom))
+    OUT.mkdir(parents=True, exist_ok=True)
+    out.save(OUT / "bear_only.png", format="PNG", optimize=True)
+    print(f"wrote {OUT / 'bear_only.png'} {out.size}")
+
+
 if __name__ == "__main__":
     road_sign()
     money()
@@ -232,3 +252,4 @@ if __name__ == "__main__":
     emoji()
     opaque()
     opaque_legend()
+    bear_only()
