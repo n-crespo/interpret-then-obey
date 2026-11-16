@@ -33,6 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 from harness.manifest import load_manifest  # noqa: E402
 from stimuli.attack_types import attack_fields  # noqa: E402
+from stimuli.controls import is_control  # noqa: E402
 
 STIMULI_DIR = REPO_ROOT / "stimuli"
 SRC_DIR = STIMULI_DIR / "src"
@@ -143,12 +144,14 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             raise ValueError(f"Representation {rep_id} must have format 'text', 'image' or 'none'")
         if "category" not in rep or rep["category"] not in CATEGORIES:
             raise ValueError(f"Representation {rep_id} has invalid category {rep.get('category')!r}")
+        if "control" in rep and not isinstance(rep["control"], bool):
+            raise ValueError(f"Representation {rep_id}: 'control' must be true or false")
         # The baseline: format 'none' and category 'baseline' go together, and
         # nothing is drawn, so it has no renditions, language, script or font.
         if (rep["format"] == "none") != (rep["category"] == "baseline"):
             raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
         if rep["format"] == "none":
-            extra = sorted({"injections", "language", "script", "font"} & set(rep))
+            extra = sorted({"injections", "language", "script", "font", "control"} & set(rep))
             if extra:
                 raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
             continue
@@ -330,6 +333,7 @@ def build_rows(
                         "category": rep_data["category"],
                         "language": rep_data.get("language"),
                         "script": rep_data.get("script"),
+                        "control": is_control(rep_data),
                         **attack_fields(prompt_data, context_data),
                     }
                     rendition = rep_data["injections"][injection_id] if rep_data["format"] != "none" else None

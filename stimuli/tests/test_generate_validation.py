@@ -189,8 +189,9 @@ def test_baseline_rows_are_generated(stimuli_dir):
         ({**BASELINE, "injections": {"buy_bear": {"content": ["Buy a bear."]}}}, r"must not have \['injections'\]"),
         ({**BASELINE, "font": "Constructium.ttf"}, r"must not have \['font'\]"),
         ({"format": "blank", "category": "baseline"}, "must have format 'text', 'image' or 'none'"),
+        ({**BASELINE, "control": True}, r"must not have \['control'\]"),
     ],
-    ids=["none_not_baseline", "baseline_not_none", "with_injections", "with_font", "bad_format"],
+    ids=["none_not_baseline", "baseline_not_none", "with_injections", "with_font", "bad_format", "with_control"],
 )
 def test_invalid_baseline_writes_nothing(stimuli_dir, baseline, message):
     _write_with_baseline(stimuli_dir, baseline)
@@ -236,5 +237,29 @@ def test_attack_type_inputs_are_validated(stimuli_dir, fname, entry, message):
     (stimuli_dir / "src" / fname).write_text(json.dumps({key: entry}), encoding="utf-8")
     before = snapshot(stimuli_dir)
     with pytest.raises(ValueError, match=message):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
+
+
+@pytest.mark.parametrize(
+    "extra, expected",
+    [({}, False), ({"control": False}, False), ({"control": True}, True), ({"category": "control"}, True)],
+    ids=["undeclared", "false", "flag", "category"],
+)
+def test_rows_carry_declared_control(stimuli_dir, extra, expected):
+    # docs/SPEC.md section 6: a control is category control or `control: true`.
+    reps = json.loads(json.dumps(FACTORS["representations.json"]))
+    reps["english"].update(extra)
+    (stimuli_dir / "src" / "representations.json").write_text(json.dumps(reps), encoding="utf-8")
+    rows = gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert [r["control"] for r in rows] == [expected]
+
+
+def test_non_bool_control_writes_nothing(stimuli_dir):
+    reps = json.loads(json.dumps(FACTORS["representations.json"]))
+    reps["english"]["control"] = "yes"
+    (stimuli_dir / "src" / "representations.json").write_text(json.dumps(reps), encoding="utf-8")
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match="'control' must be true or false"):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
     assert snapshot(stimuli_dir) == before

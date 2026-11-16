@@ -61,6 +61,11 @@ def test_committed_manifest_rows():
     assert len(control) == 9
     assert len({r["image_sha256"] for r in control}) == 3  # one image per context
 
+    # opaque keeps category opaque beside opaque_legend; its declared `control` flag marks it.
+    flagged = {r["representation_id"] for r in rows if r["control"]}
+    assert flagged == {"bear_only", "opaque"}
+    assert {r["category"] for r in rows if r["representation_id"] in ("opaque", "opaque_legend")} == {"opaque"}
+
     # 9 baseline rows: one per prompt x context, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]
     assert len(baseline) == 9
