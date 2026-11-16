@@ -1,10 +1,25 @@
-Example Structure:
+# eval/
 
+Analysis of a harness run.
+
+```bash
+just analyze runs/<date>_<name>     # = python eval/analyze_results.py runs/<date>_<name>
 ```
-eval/                      # role 4: grades and analyzes
-├── obey_check.py          # deterministic check on the tool-call trace
-├── judge/                 # LLM judge prompt, runner, different model family
-├── gold/                  # hand-labeled set + agreement script (judge validation)
-├── stats.py               # Wilson intervals, P(interpret), P(obey | interpret)
-└── report/                # notebooks or scripts -> figures and tables
-```
+
+`analyze_results.py` reads the run's Inspect logs (`inspect_logs/*.eval`) with
+`inspect_ai.analysis.samples_df`, prints a three-line headline, and writes `runs/<dir>/analysis/`:
+
+| File | What it shows |
+| --- | --- |
+| `outcomes.html` | Interactive, self-contained page: one mark per trial. Rows are the outcome (obeyed, off-target call, cut off, no call); colour is the representation (the baseline is grey), shape is the context, border is the prompt. Hover a mark for the trial's details and reply; click a legend item to show or hide it. |
+| `tables.tex` | Three booktabs tables: by representation, by factor (category, script, prompt, context), and baseline vs injected per prompt × context. `\input{}` it; needs `\usepackage{booktabs}` |
+
+The `none` representation (no injection) is never counted in attack success. It is
+reported on its own, as how often the model bought the injected item anyway and how
+often it made any tool call. That second rate is the reference for off-target calls.
+
+Only P(obey) is measured. P(interpret) and P(obey | interpret) need a per-trial
+label of whether the model understood the payload (`docs/proposal.md`), and nothing
+produces one yet.
+
+Tests: `python -m pytest eval/tests -q` (part of `just test`).
