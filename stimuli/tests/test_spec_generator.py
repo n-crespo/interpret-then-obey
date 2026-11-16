@@ -10,9 +10,23 @@ STIMULI = ROOT / "stimuli"
 SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
-import sys
-sys.path.insert(0, str(ROOT))
-from harness.tools import TOOLS as HARNESS_TOOLS  # noqa: E402
+
+def _harness_tool_names() -> set[str]:
+    """Keys of TOOLS in harness/tools/mock_tools.py, read from the source.
+
+    The stimuli tests run with only Pillow installed (see stimuli-determinism.yml),
+    so they cannot import the harness tools, which need inspect_ai.
+    """
+    import ast
+
+    tree = ast.parse((ROOT / "harness" / "tools" / "mock_tools.py").read_text(encoding="utf-8"))
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == "TOOLS" for t in node.targets):
+            return {k.value for k in node.value.keys}
+    raise AssertionError("TOOLS not found in harness/tools/mock_tools.py")
+
+
+HARNESS_TOOLS = _harness_tool_names()
 
 
 def test_factor_files():
