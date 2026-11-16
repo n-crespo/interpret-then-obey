@@ -21,8 +21,11 @@ Terms:
   its own: how often the model bought the injected item anyway, and how often it
   called the tool at all (the reference for off-target calls).
 
-Only P(obey) is measurable: nothing yet labels whether the model interpreted the
-payload, so P(interpret) and P(obey | interpret) are not computed.
+- Perceived / interpreted: per-trial labels from the LLM judge (eval/judge.py), read
+  from analysis/judge_labels.jsonl. With them the analysis adds P(interpret),
+  P(obey | interpret) and the other conditional rates (eval/labels.py), and judge-vs-gold
+  agreement when analysis/gold_labels.csv has hand labels. Without them it reports
+  P(obey) only and says the labels are missing.
 
 Usage:
     python eval/analyze_results.py runs/<date>_<name>
@@ -36,6 +39,11 @@ import math
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+try:  # package import (tests, eval/judge.py) or script run (python eval/analyze_results.py)
+    from eval import labels as L
+except ImportError:
+    import labels as L
 
 FACTORS = ["prompt_id", "context_id", "injection_id", "representation_id", "category", "language", "script"]
 BASELINE = "baseline"  # manifest `category` of the no-injection control rows
@@ -73,6 +81,43 @@ def _stop_reason(sample):
     return out.stop_reason if out and out.choices else None
 
 
+def _content_parts(content) -> list[tuple[str, str]]:
+    if isinstance(content, str):
+        return [("text", content)] if content.strip() else []
+    out = []
+    for p in content or []:
+        if p.type == "reasoning" and (p.reasoning or "").strip():
+            out.append(("reasoning", p.reasoning))
+        elif p.type == "text" and (p.text or "").strip():
+            out.append(("text", p.text))
+        elif p.type == "image":
+            out.append(("image", "[image]"))
+    return out
+
+
+def _transcript_parts(sample) -> str:
+    """Everything after the system prompt, as a JSON list of labelled strings: the user's
+    request (images as [image]), the model's reasoning, replies and tool calls, and tool
+    results. This is what the interpretation judge (eval/judge.py) reads."""
+    parts = []
+    for m in sample.messages:
+        if m.role == "system":
+            continue
+        if m.role == "tool":
+            parts.append(f"TOOL RESULT: {m.text}")
+            continue
+        who = "USER" if m.role == "user" else "MODEL"
+        content = _content_parts(m.content)
+        if m.role == "user":
+            parts.append("USER: " + " ".join(text for _, text in content))
+            continue
+        for kind, text in content:
+            parts.append(f"{who} ({kind}): {text}" if kind == "reasoning" else f"{who}: {text}")
+        for tc in getattr(m, "tool_calls", None) or []:
+            parts.append(f"{who} (tool call): {tc.function}({json.dumps(tc.arguments, ensure_ascii=False)})")
+    return json.dumps(parts, ensure_ascii=False)
+
+
 def merge_logs(trials_per_log: list[list[dict]]) -> list[dict]:
     """A resumed run (`harness.run --resume`) has several logs, oldest first. A later
     result replaces an earlier one for the same (id, epoch) unless that would replace a
@@ -90,6 +135,7 @@ def merge_logs(trials_per_log: list[list[dict]]) -> list[dict]:
 def _trial(rec: dict) -> dict:
     """samples_df record -> trial dict."""
     sm: dict = _json(rec.get("score_obeyed_metadata"), {})
+    parts = _json(rec.get("transcript_parts"), [])
     return {
         "id": rec["id"],
         "epoch": int(rec["epoch"]),
@@ -101,6 +147,8 @@ def _trial(rec: dict) -> dict:
         "stop_reason": _clean(rec.get("stop_reason")),
         "error": _clean(rec.get("error")) or None,
         "response": _clean(rec.get("score_obeyed_answer")) or "",
+        "transcript_parts": parts,
+        "transcript": "\n\n".join(parts),
     }
 
 
@@ -115,7 +163,8 @@ def load_trials(run_dir: Path) -> tuple[list[dict], str | None]:
     if not logs:
         sys.exit(f"Error: no .eval logs in {log_dir}. Run the harness first: just run <config.yaml>")
 
-    columns = SampleSummary + SampleScores + [SampleColumn("stop_reason", path=_stop_reason, full=True)]
+    columns = SampleSummary + SampleScores + [SampleColumn("stop_reason", path=_stop_reason, full=True),
+                                              SampleColumn("transcript_parts", path=_transcript_parts, full=True)]
     per_log = [[_trial(rec) for rec in samples_df(str(lp), columns=columns, quiet=True).to_dict("records")]
                for lp in logs]
     model = read_eval_log(str(logs[-1]), header_only=True).eval.model
@@ -209,7 +258,8 @@ def pct(k: int, n: int) -> str:
     return f"{k}/{n} ({100 * k / n:.0f}%)" if n else "-"
 
 
-def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
+def headline(trials: list[dict], model: str | None, run_dir: Path, label_info: dict | None = None,
+             agr: dict | None = None) -> str:
     injected, baseline, errored = split(trials)
     si, sb = summarize(injected), summarize(baseline)
     lo, hi = wilson(si["obeyed"], si["n"])
@@ -222,8 +272,44 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
     ]
     if errored:
         lines.append(f"  {len(errored)} errored trial(s) left out")
-    lines.append("  P(obey) only: no interpretation label yet, so no P(interpret) or P(obey | interpret).")
+    lines += interpretation_lines(trials, label_info, agr, run_dir)
     return "\n".join(lines)
+
+
+def has_labels(trials: list[dict]) -> bool:
+    return any(t.get("interpreted") is not None for t in split(trials)[0])
+
+
+def obeyed_not_interpreted(injected: list[dict]) -> list[dict]:
+    """The proposal's diagnostic: obeyed although the judge found no interpretation."""
+    return [t for t in injected if t["obeyed"] and t.get("interpreted") is False]
+
+
+def interpretation_lines(trials: list[dict], label_info: dict | None, agr: dict | None, run_dir: Path) -> list[str]:
+    injected = split(trials)[0]
+    if not has_labels(trials):
+        info = label_info or {}
+        why = ("stale: the trials changed since they were judged" if info.get("stale") else
+               f"{info['unparsed']} judge replies could not be parsed" if info.get("unparsed") else
+               f"no {Path('analysis') / L.LABELS_FILE}")
+        return [f"  NO INTERPRETATION LABELS ({why}): P(obey) only, no P(interpret) or P(obey | interpret).",
+                f"  Label the trials with: just judge {run_dir}"]
+    n_lab = sum(t.get("interpreted") is not None for t in injected)
+    judges = ", ".join((label_info or {}).get("judge_models") or []) or "unknown judge"
+    lines = [f"  interpretation  judge {judges}, {n_lab}/{len(injected)} injected trials labelled"]
+    for name, k, n in L.conditional_rates(injected):
+        lo, hi = wilson(k, n)
+        ci = f"95% CI {100 * lo:.0f}-{100 * hi:.0f}%" if n else ""
+        lines.append(f"    {name:<24} {pct(k, n):<12} {ci}")
+    lines.append(f"    obeyed without interpreted: {len(obeyed_not_interpreted(injected))}")
+    if n_lab < len(injected):
+        lines.append(f"    {len(injected) - n_lab} injected trial(s) unlabelled (unparsed or stale judge reply); "
+                     "re-run the judge")
+    if agr is None:
+        lines.append(f"  judge vs gold: no hand labels yet ({Path('analysis') / L.GOLD_FILE}), judge not validated")
+    else:
+        lines.append(f"  judge vs gold: {L.agreement_text(agr)}")
+    return lines
 
 
 # ----------------------------------------------------------------------------
@@ -320,7 +406,53 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
             out.append(f"{prompt} & {_tex(key[1])} & {_tex(calls)} & {_rate(si['obeyed'], si['n'])} & "
                        f"{_rate(si['off_target'], si['n'])} \\\\")
         out += ["\\bottomrule", "\\end{tabular}", "\\end{table}", ""]
+    out += interpretation_tables(injected, m, rep_order)
     return "\n".join(out)
+
+
+def interpretation_tables(injected: list[dict], m: str, rep_order: list | None) -> list[str]:
+    """Tables 4 and 5: the conditional rates, overall and by representation. Only a
+    comment when no trial has a judge label."""
+    if not any(t.get("interpreted") is not None for t in injected):
+        return ["% No interpretation labels (analysis/judge_labels.jsonl): P(interpret) and "
+                "P(obey | interpret) not computed. Run eval/judge.py on this run.", ""]
+    lab = [t for t in injected if t.get("interpreted") is not None]
+    out = [
+        "\\begin{table}[ht]", "\\centering", "\\small",
+        f"\\caption{{Interpretation and obedience on injected rows ({m}), over the {len(lab)} rows the LLM judge "
+        "labelled. Interpreted: the model's text states what the payload means. Each conditional rate is over the "
+        "rows that meet its condition, e.g.\\ P(obey $\\mid$ interpret) over rows judged interpreted. "
+        "CI: 95\\% Wilson interval.}",
+        "\\label{tab:interpretation}",
+        "\\begin{tabular}{lll}", "\\toprule", "Measure & Rate & 95\\% CI \\\\", "\\midrule",
+    ]
+    for name, k, n in L.conditional_rates(injected):
+        label = name.replace("|", "$\\mid$")
+        out.append(f"{label} & {_rate(k, n)} & {_ci(k, n)} \\\\")
+    k = len(obeyed_not_interpreted(injected))
+    out += [f"Obeyed without interpreted & {_rate(k, len(lab))} & {_ci(k, len(lab))} \\\\",
+            "\\bottomrule", "\\end{tabular}", "\\end{table}", ""]
+
+    out += [
+        "\\begin{table}[ht]", "\\centering", "\\small",
+        f"\\caption{{Interpretation by representation ({m}), judge-labelled injected rows. "
+        "Obey $\\mid$ interp.: obeyed among rows judged interpreted; Obey $\\mid$ not: among the rest.}",
+        "\\label{tab:interpretation-by-representation}",
+        "\\begin{tabular}{lrlllll}", "\\toprule",
+        "Representation & $N$ & Perceived & Interpreted & 95\\% CI & Obey $\\mid$ interp. & Obey $\\mid$ not \\\\",
+        "\\midrule",
+    ]
+    groups = group_by(lab, "representation_id")
+    for rep in _order(groups, rep_order):
+        ts = groups[rep]
+        n, perc = len(ts), sum(bool(t["perceived"]) for t in ts)
+        interp = [t for t in ts if t["interpreted"]]
+        rest = [t for t in ts if not t["interpreted"]]
+        out.append(f"{_tex(rep)} & {n} & {_rate(perc, n)} & {_rate(len(interp), n)} & {_ci(len(interp), n)} & "
+                   f"{_rate(sum(t['obeyed'] for t in interp), len(interp))} & "
+                   f"{_rate(sum(t['obeyed'] for t in rest), len(rest))} \\\\")
+    out += ["\\bottomrule", "\\end{tabular}", "\\end{table}", ""]
+    return out
 
 
 # ----------------------------------------------------------------------------
@@ -335,10 +467,13 @@ def _js_json(obj) -> str:
     return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/").replace("<!--", "<\\!--")
 
 
-def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_dir: Path) -> str:
+def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_dir: Path,
+                  judge_models: list | None = None, agr: dict | None = None) -> str:
     """Interactive page: one mark per trial, in one row per outcome (closest to success
     at the top). Colour is the representation, shape the context and border the prompt;
-    hovering a mark shows the trial's details. Self-contained, no network needed."""
+    with judge labels, fill is interpretation (solid interpreted, light perceived only,
+    hollow not perceived). Hovering a mark shows the trial's details. Self-contained,
+    no network needed."""
     injected, baseline, errored = split(trials)
     si, sb = summarize(injected), summarize(baseline)
     lo, hi = wilson(si["obeyed"], si["n"])
@@ -350,16 +485,30 @@ def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_di
     ]
     if errored:
         stats.append([str(len(errored)), "errored trials (left out of the rates)"])
+    labelled = has_labels(trials)
+    if labelled:
+        rates = {name: (k, n) for name, k, n in L.conditional_rates(injected)}
+        for name, note in [("P(interpret)", "judged interpreted"), ("P(obey | interpret)", "obeyed, of those interpreted")]:
+            k, n = rates[name]
+            lo, hi = wilson(k, n)
+            stats.append([pct(k, n), f"{note} (95% CI {100 * lo:.0f}–{100 * hi:.0f}%)" if n else note])
+    judges = sorted({j for j in (judge_models or []) if j})
+    foot = (f"Perceived / interpreted labels: LLM judge {', '.join(judges) or 'unknown'} (eval/judge.py); "
+            + ("checked against hand labels: " + L.agreement_text(agr) if agr else "not yet checked against hand labels.")
+            if labelled else
+            "No interpretation labels for this run: P(obey) only. Run `just judge <run>`, then re-run the analysis.")
     data = [
         {
             "id": t["id"], "epoch": t["epoch"], "prompt": t["prompt_id"], "context": t["context_id"],
             "rep": t["representation_id"], "outcome": outcome(t), "stop": t["stop_reason"], "error": t["error"],
             "calls": [_call_label([c]) for c in t["tool_calls"]], "response": (t.get("response") or "")[:2000],
+            "interp": "n/a" if is_baseline(t) or t["error"] else L.interpretation_status(t),
+            "rationale": t.get("judge_rationale") or "",
         }
         for t in sorted(trials, key=lambda t: (t["id"], t["epoch"]))
     ]
     meta = {
-        "model": model, "run": run_dir.name, "stats": stats,
+        "model": model, "run": run_dir.name, "stats": stats, "labelled": labelled, "foot": foot,
         "prompts": _order({t["prompt_id"] for t in trials}, LEVEL_ORDER),
         "contexts": _order({t["context_id"] for t in trials}),
         "reps": _order({t["representation_id"] for t in trials}, rep_order),
@@ -399,11 +548,15 @@ def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
 
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
+    label_info = L.attach_labels(trials, L.read_labels(out_dir / L.LABELS_FILE))
+    gold = L.read_gold(out_dir / L.GOLD_FILE)
+    agr = L.agreement(trials, gold) if gold and label_info["judged"] else None
     (out_dir / "tables.tex").write_text(latex_tables(trials, model, rep_order), encoding="utf-8")
-    (out_dir / "outcomes.html").write_text(outcomes_html(trials, rep_order, model, run_dir), encoding="utf-8")
+    (out_dir / "outcomes.html").write_text(
+        outcomes_html(trials, rep_order, model, run_dir, label_info["judge_models"], agr), encoding="utf-8")
     written = [out_dir / "outcomes.html", out_dir / "tables.tex"]
 
-    print(headline(trials, model, run_dir))
+    print(headline(trials, model, run_dir, label_info, agr))
     print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
     print("Open outcomes.html in a browser; hover a mark for the trial's details.")
     return written

@@ -102,14 +102,15 @@
     <div class="legend" id="legend-rep"><span class="title">Representation (colour)</span></div>
     <div class="legend" id="legend-context"><span class="title">Context (shape)</span></div>
     <div class="legend" id="legend-prompt"><span class="title">Prompt (border)</span></div>
+    <div class="legend" id="legend-interp" hidden><span class="title">Interpretation (fill)</span></div>
   </div>
   <p class="hint">One mark per trial. Hover a mark for its details; click legend items to show or hide them.</p>
   <div class="chart" id="chart"></div>
   <details>
     <summary>Table of every trial</summary>
-    <table id="table"><thead><tr><th>Trial</th><th>Outcome</th><th>Bought</th><th>Reply</th></tr></thead><tbody></tbody></table>
+    <table id="table"><thead><tr><th>Trial</th><th>Outcome</th><th>Interpretation</th><th>Bought</th><th>Reply</th></tr></thead><tbody></tbody></table>
   </details>
-  <p class="foot">Measures P(obey) only: nothing yet labels whether the model interpreted the payload.</p>
+  <p class="foot" id="foot"></p>
 </main>
 <div id="tip" role="tooltip"></div>
 <script>
@@ -127,6 +128,16 @@ const OUTCOMES = [
 // share one plot area); hover, legend filtering and the table carry identity too.
 // The baseline is neutral grey.
 const PALETTE = ["#2a78d6", "#1baf7a", "#008300", "#eda100", "#e87ba4", "#6250d6", "#eb6834", "#e34948"];
+// Interpretation (judge labels) is the fill: solid, light or hollow.
+const INTERP = [
+  { key: "interpreted", label: "interpreted", fill: "solid", note: "stated what the payload means" },
+  { key: "perceived", label: "perceived only", fill: "light", note: "saw the payload, did not state its meaning" },
+  { key: "not_perceived", label: "not perceived", fill: "hollow", note: "no sign it saw the payload" },
+  { key: "not_judged", label: "not judged", fill: "solid", note: "no usable judge label" },
+  { key: "n/a", label: "no payload / errored", fill: "solid", note: "baseline or errored, not judged" },
+];
+const interpOf = (k) => INTERP.find((x) => x.key === k) || INTERP[3];
+const fillStyle = (k) => (META.labelled ? interpOf(k).fill : "solid");
 const SHAPES = ["circle", "square", "triangle", "diamond", "triangleDown", "hexagon"];
 const BORDERS = [null, { dash: null }, { dash: "2.5 2" }, { dash: "1 2" }];  // none, solid, dashed, dotted
 const NS = "http://www.w3.org/2000/svg";
@@ -140,7 +151,8 @@ const fill = (rep) => colorOf[rep] || css("--neutral");
 const shapeOf = Object.fromEntries(contexts.map((c, i) => [c, SHAPES[i % SHAPES.length]]));
 const borderOf = Object.fromEntries(prompts.map((p, i) => [p, BORDERS[i % BORDERS.length]]));
 const pretty = (s) => (s === "none" ? "none (baseline)" : String(s).replaceAll("_", " "));
-const active = { rep: new Set(reps), context: new Set(contexts), prompt: new Set(prompts) };
+const interps = INTERP.map((x) => x.key).filter((k) => DATA.some((d) => d.interp === k));
+const active = { rep: new Set(reps), context: new Set(contexts), prompt: new Set(prompts), interp: new Set(interps) };
 
 function el(tag, attrs = {}, parent) {
   const e = document.createElementNS(NS, tag);
@@ -150,12 +162,15 @@ function el(tag, attrs = {}, parent) {
 }
 
 // Draw one mark. `border` null = no border (a thin surface-coloured gap only).
-function shape(kind, x, y, r, color, border, parent) {
+// `style` solid | light | hollow: light and hollow fade the fill, and without a border
+// they get a ring in the mark's own colour so the shape stays visible.
+function shape(kind, x, y, r, color, border, parent, style = "solid") {
   const pts = (list) => list.map(([a, b]) => `${x + a * r},${y + b * r}`).join(" ");
   const stroke = border
     ? { stroke: css("--text"), "stroke-width": 2, "stroke-dasharray": border.dash, "stroke-linejoin": "round" }
-    : { stroke: css("--surface"), "stroke-width": 1.5 };
-  const attrs = { fill: color, ...stroke };
+    : style === "solid" ? { stroke: css("--surface"), "stroke-width": 1.5 }
+    : { stroke: color, "stroke-width": 1.75, "stroke-linejoin": "round" };
+  const attrs = { fill: color, "fill-opacity": { solid: 1, light: 0.4, hollow: 0.06 }[style], ...stroke };
   switch (kind) {
     case "circle": return el("circle", { cx: x, cy: y, r, ...attrs }, parent);
     case "square": return el("rect", { x: x - r * 0.88, y: y - r * 0.88, width: r * 1.76, height: r * 1.76, rx: 2, ...attrs }, parent);
@@ -170,9 +185,9 @@ function shape(kind, x, y, r, color, border, parent) {
   }
 }
 
-function swatch(kind, color, border) {
+function swatch(kind, color, border, style) {
   const s = el("svg", { width: 20, height: 20, viewBox: "0 0 20 20", "aria-hidden": "true" });
-  shape(kind, 10, 10, 6.5, color, border, s);
+  shape(kind, 10, 10, 6.5, color, border, s, style);
   return s;
 }
 
@@ -184,7 +199,7 @@ function buildLegends() {
       const b = document.createElement("button");
       b.type = "button";
       b.setAttribute("aria-pressed", active[group].has(k) ? "true" : "false");
-      b.append(sw(k), document.createTextNode(pretty(k)));
+      b.append(sw(k), document.createTextNode(group === "interp" ? interpOf(k).label : pretty(k)));
       b.addEventListener("click", () => {
         const set = active[group];
         if (set.has(k)) set.delete(k); else set.add(k);
@@ -198,11 +213,16 @@ function buildLegends() {
   add("legend-rep", "rep", reps, (r) => swatch("circle", fill(r), null));
   add("legend-context", "context", contexts, (c) => swatch(shapeOf[c], grey, null));
   add("legend-prompt", "prompt", prompts, (p) => swatch("circle", grey, borderOf[p]));
+  if (META.labelled) {
+    document.getElementById("legend-interp").hidden = false;
+    add("legend-interp", "interp", interps, (k) => swatch("circle", k === "n/a" ? grey : PALETTE[0], null, fillStyle(k)));
+  }
 }
 
 function applyFilter() {
   document.querySelectorAll(".mark").forEach((m) => {
-    const on = active.rep.has(m.dataset.rep) && active.context.has(m.dataset.context) && active.prompt.has(m.dataset.prompt);
+    const on = active.rep.has(m.dataset.rep) && active.context.has(m.dataset.context) && active.prompt.has(m.dataset.prompt)
+      && (!META.labelled || active.interp.has(m.dataset.interp));
     m.classList.toggle("dim", !on);
   });
 }
@@ -215,12 +235,15 @@ function showTip(d, evt) {
   const o = OUTCOMES.find((x) => x.key === d.outcome);
   add("div", "outcome", `${o.label}: ${o.note}`);
   const dl = document.createElement("dl");
-  for (const [k, v] of [["Representation", pretty(d.rep)], ["Context", pretty(d.context)], ["Prompt", d.prompt], ["Bought", d.calls.length ? d.calls.join("; ") : "nothing"], ["Stop reason", d.stop || "n/a"]]) {
+  const rows = [["Representation", pretty(d.rep)], ["Context", pretty(d.context)], ["Prompt", d.prompt], ["Bought", d.calls.length ? d.calls.join("; ") : "nothing"], ["Stop reason", d.stop || "n/a"]];
+  rows.push(["Interpretation", interpLabel(d)]);
+  for (const [k, v] of rows) {
     const dt = document.createElement("dt"); dt.textContent = k;
     const dd = document.createElement("dd"); dd.textContent = v;
     dl.append(dt, dd);
   }
   tip.appendChild(dl);
+  if (META.labelled && d.rationale) add("div", "reply", "Judge: " + d.rationale);
   if (d.error) add("div", "reply", "Error: " + d.error);
   else if (d.response) add("div", "reply", d.response.length > 320 ? d.response.slice(0, 320) + "…" : d.response);
   tip.style.display = "block";
@@ -234,6 +257,11 @@ function moveTip(evt) {
   tip.style.left = x + "px"; tip.style.top = y + "px";
 }
 const hideTip = () => { tip.style.display = "none"; };
+function interpLabel(d) {
+  if (!META.labelled) return "not judged (no labels for this run)";
+  const x = interpOf(d.interp);
+  return `${x.label}: ${x.note}`;
+}
 
 function draw() {
   const chart = document.getElementById("chart");
@@ -252,7 +280,8 @@ function draw() {
   const bandH = bands.map((b) => Math.max(64, Math.ceil((cells[b.key] || []).length / perRow) * step + 30));
   const H = bandH.reduce((a, b) => a + b, 0) + 4;
   const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img",
-    "aria-label": "Outcome of every trial; colour is representation, shape is context, border is prompt" }, chart);
+    "aria-label": "Outcome of every trial; colour is representation, shape is context, border is prompt"
+      + (META.labelled ? ", fill is interpretation" : "") }, chart);
 
   let y = 0;
   bands.forEach((b, i) => {
@@ -266,8 +295,8 @@ function draw() {
       const row = Math.floor(k / perRow), col = k % perRow;
       const cx = left + 52 + col * step + step / 2;
       const cy = y + h / 2 + (row - (rows - 1) / 2) * step;
-      const g = el("g", { class: "mark", tabindex: 0, "data-rep": d.rep, "data-context": d.context, "data-prompt": d.prompt }, svg);
-      shape(shapeOf[d.context], cx, cy, r, fill(d.rep), borderOf[d.prompt], g);
+      const g = el("g", { class: "mark", tabindex: 0, "data-rep": d.rep, "data-context": d.context, "data-prompt": d.prompt, "data-interp": d.interp }, svg);
+      shape(shapeOf[d.context], cx, cy, r, fill(d.rep), borderOf[d.prompt], g, fillStyle(d.interp));
       const hit = el("circle", { cx, cy, r: step / 2, class: "hit" }, g);
       hit.addEventListener("mouseenter", (e) => showTip(d, e));
       hit.addEventListener("mousemove", moveTip);
@@ -285,7 +314,8 @@ function buildTable() {
   for (const d of DATA) {
     const tr = document.createElement("tr");
     const o = OUTCOMES.find((x) => x.key === d.outcome);
-    for (const [v, cls] of [[d.id, "mono"], [o.label, ""], [d.calls.join("; ") || "nothing", ""], [(d.error ? "Error: " + d.error : d.response).slice(0, 200), ""]]) {
+    const it = META.labelled ? interpOf(d.interp).label : "not judged";
+    for (const [v, cls] of [[d.id, "mono"], [o.label, ""], [it, ""], [d.calls.join("; ") || "nothing", ""], [(d.error ? "Error: " + d.error : d.response).slice(0, 200), ""]]) {
       const td = document.createElement("td"); td.textContent = v; if (cls) td.className = cls; tr.appendChild(td);
     }
     tb.appendChild(tr);
@@ -301,6 +331,7 @@ function buildHeader() {
     const sp = document.createElement("span"); sp.textContent = small;
     d.append(b, sp); s.appendChild(d);
   }
+  document.getElementById("foot").textContent = META.foot;
 }
 
 buildHeader();

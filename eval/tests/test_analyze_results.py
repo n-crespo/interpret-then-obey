@@ -180,6 +180,11 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path):
     by_id = {t["id"]: t for t in trials}
     assert len(trials) == 3
     assert by_id["buy.info_board.buy_bear.english"]["obeyed"] is True
+    # the transcript the interpretation judge reads: request, tool call, tool result, reply
+    assert by_id["buy.info_board.buy_bear.english"]["transcript_parts"] == [
+        "USER: buy prompt", "MODEL: tool call for tool buy",  # mockllm's text beside the call
+        'MODEL (tool call): buy({"item": "teddy bear"})', "TOOL RESULT: Bought teddy bear.",
+        "MODEL: Done."]
     pict = by_id["buy.product_info.buy_bear.pictograms"]
     assert pict["obeyed"] is False and pict["tool_calls"] == [] and pict["script"] is None
     base = by_id["buy.product_info.buy_bear.none"]

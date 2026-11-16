@@ -35,3 +35,8 @@ run-dry *args:
 # Interactive plot + LaTeX tables for a harness run -> runs/<dir>/analysis/: `just analyze runs/<dir>`
 analyze run_dir:
     {{ python }} eval/analyze_results.py {{ run_dir }}
+
+# Label each trial perceived / interpreted with an LLM judge -> runs/<dir>/analysis/judge_labels.jsonl:
+# `just judge runs/<dir> [--judge-model ollama/<model>] [--gold-template] [--agreement]`
+judge run_dir *args:
+    {{ python }} eval/judge.py {{ run_dir }} {{ args }}
