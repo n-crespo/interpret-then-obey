@@ -69,6 +69,6 @@ so a result can be traced back to exactly what produced it.
 - Stimulus renders are byte-identical across OSes as long as the vendored fonts
   (`stimuli/fonts/`) and the pinned Pillow are used. `just test` checks this
   (the check is skipped, not failed, on a different Pillow version).
-- If you change the stimuli, run `just build-stimuli` and commit the new images _and_ manifest together.
+- If you change the stimuli, run `just build-stimuli` and commit the new `stimuli/manifest.jsonl` (the images are gitignored; their hashes are in the manifest).
 - `just test` regenerates gitignored fixture files in `harness/fixtures/`, and `run`/`run-dry`
   write to `runs/`. Don't commit those by accident.
