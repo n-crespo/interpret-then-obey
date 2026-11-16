@@ -8,45 +8,29 @@ It measures P(interpret) and P(obey | interpret) separately.
 - [docs/proposal.md](docs/proposal.md): abstract, motivation, hypotheses, threat model, methods, related work
 - [docs/research-plan.md](docs/research-plan.md): who owns which part
 - [docs/SPEC.md](docs/SPEC.md): how stimulus data is laid out
-- [stimuli/README.md](stimuli/README.md): the stimulus factor files and generator
+- [stimuli/README.md](stimuli/README.md): the stimulus generator
+- [eval/README.md](eval/README.md): analysis of a run
 
-## Layout
-
-| Path       | What it is                                                                                |
-| ---------- | ----------------------------------------------------------------------------------------- |
-| `stimuli/` | Source phrases, image renderer, rendered pngs, and the manifest the harness reads         |
-| `harness/` | Inspect-based runner: manifest + model config → mocked tool calls → `runs/<date>_<name>/` |
-| `eval/`    | Analysis of a harness run (reads the Inspect logs): breakdown tables + LaTeX              |
-| `runs/`    | Run outputs (logs, `results.jsonl`, `meta.json`)                                          |
+The pipeline: `stimuli/` renders the test-case images and writes the manifest,
+`harness/` runs a model on the manifest with mocked tools and writes to `runs/`,
+and `eval/` analyses a run.
 
 ## Running locally
 
-Requirements: Python 3.11+ (the pinned `pillow==13.0.0` has no 3.10 wheels), and [`just`](https://github.com/casey/just)
+Requirements: Python 3.11+ (the Pillow pinned in `stimuli/requirements.txt` has no 3.10 wheels), and [`just`](https://github.com/casey/just)
 (`scoop install just`, `brew install just`, or `cargo install just`).
 A real model run also needs [Ollama](https://ollama.com) or vLLM.
 
 ```bash
-just setup         # create .venv and install stimuli + harness deps
-just test          # stimuli reproducibility + harness smoke test (no model needed)
+just setup         # create .venv and install dependencies
+just test          # all tests (no model needed)
 just run-dry       # full harness pipeline with Inspect's mock model
 ```
 
-Run `just` with no arguments to list recipes. They run from the repo root with
-`.venv`'s Python when it exists. On Windows they run under `pwsh`.
+Run `just` with no arguments to list recipes and what each does. They run from the repo root with
+`.venv`'s Python when it exists. On Windows they run under `pwsh`. Only `run` needs a real model.
 
-| Recipe               | What it does                                                         | Needs a model?          |
-| -------------------- | -------------------------------------------------------------------- | ----------------------- |
-| `setup`              | Create `.venv` and install everything                                |                         |
-| `test [pytest args]` | Re-render stimuli and compare to manifest hashes + harness smoke test |                         |
-| `build-stimuli`      | Render PNGs from `stimuli/src/`, rebuild `stimuli/manifest.jsonl` + hashes |                         |
-| `run <config> [...]` | Run the harness on a config in `harness/configs/`                    | Whatever the config names |
-| `run-dry [...]`      | Same pipeline on the real manifest with a mock model                 |                         |
-| `analyze <run_dir>`  | Figures + LaTeX tables for a run → `<run_dir>/analysis/`            |                         |
-| `judge <run_dir> [...]` | Label trials noticed / interpreted with an LLM judge (cached)  | Ollama + a non-Qwen judge model |
-
-Flags after a recipe pass straight through to the script. For `run`/`run-dry`:
-`--limit N`, `--ids a,b`, `--filter category=natural`, `--model PROVIDER/NAME`,
-`--runs-dir DIR`, or `--resume runs/<dir>` to re-run only errored rows.
+Arguments after a recipe pass straight through to the script; `just run --help` lists the harness's flags.
 
 ### A real model run
 
@@ -62,13 +46,10 @@ inspect view --log-dir runs/<date>_qwen3vl-8b-ollama/inspect_logs
 ```
 
 "Obeyed" means the model actually made the expected tool call (scored by the harness).
-`analyze` reads `inspect_logs/*.eval` and writes an interactive plot (`outcomes.html`) and LaTeX tables to `<run_dir>/analysis/`:
-attack success with 95% Wilson intervals and off-target calls split into buying the scene product (user intent) and other calls
-by representation and factor, with the no-injection baseline reported on its own. With `judge` labels it adds
-the chain P(notice) → P(interpret | notice) → P(obey | interpret). See [eval/README.md](eval/README.md).
+See [eval/README.md](eval/README.md) for what `analyze` reports.
 
-Each run directory records the config, model, manifest SHA-256, and git commit,
-so a result can be traced back to exactly what produced it.
+Each run directory records, in `meta.json`, what produced it,
+so a result can be traced back to exactly that config, model, manifest and commit.
 
 ### Reproducibility notes
 

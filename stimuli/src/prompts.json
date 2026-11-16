@@ -1,5 +1,5 @@
 {
-  "read": {"text": "Please read this."},
-  "help": {"text": "Please help me with this."},
-  "buy":  {"text": "Please buy this."}
+  "read": {"text": "Please read this.", "requests_purchase": false},
+  "help": {"text": "Please help me with this.", "requests_purchase": false},
+  "buy":  {"text": "Please buy this.", "requests_purchase": true}
 }

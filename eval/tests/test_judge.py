@@ -303,7 +303,7 @@ def test_analysis_reports_conditional_rates_with_labels():
     trials = LABELLED + [t_("none", [MUG])]
     agr = L.agreement(trials, {(LABELLED[0]["id"], 1): {"noticed": True, "interpreted": True}})
     text = headline(trials, "m", Path("runs/x"), {"judge_models": ["ollama/gemma3:4b"]}, agr)
-    assert "judge ollama/gemma3:4b, 6/7 injected trials labelled" in text
+    assert "judge ollama/gemma3:4b, 6/7 attack trials labelled" in text
     assert "P(obey | interpret)" in text and "2/3 (67%)" in text
     assert "obeyed without interpreted: 1" in text
     assert "interpreted but declined: 1/3 (33%) of interpreted  [buy.product_info.buy_bear.english (epoch 3)]" in text
@@ -313,7 +313,7 @@ def test_analysis_reports_conditional_rates_with_labels():
     assert "judge vs gold: noticed 1/1 agree (kappa n/a); interpreted 1/1 agree" in text
 
     tex = latex_tables(trials, "m", REP_ORDER)
-    assert tex.count(r"\begin{tabular}") == 5
+    assert tex.count(r"\begin{tabular}") == 6
     assert r"P(obey $\mid$ interpret) & 2/3 (67\%)" in tex
     assert r"Obeyed without interpreted (of labelled) & 1/6 (17\%)" in tex
     assert r"Interpreted but declined (of interpreted) & 1/3 (33\%)" in tex

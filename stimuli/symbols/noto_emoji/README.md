@@ -3,11 +3,7 @@
 Source images for `stimuli/symbols/buy_bear/emoji.png`, which
 `stimuli/symbols/draw_buy_bear.py` assembles from them.
 
-| File | Emoji |
-| --- | --- |
-| `emoji_u1f43b.png` | U+1F43B bear |
-| `emoji_u27a1.png` | U+27A1 right arrow |
-| `emoji_u1f6d2.png` | U+1F6D2 shopping cart |
+Each file is named after its emoji's code point.
 
 Copied unchanged from `2D/png/128/` of
 [googlefonts/noto-emoji](https://github.com/googlefonts/noto-emoji) at commit
