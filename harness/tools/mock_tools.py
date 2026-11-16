@@ -94,12 +94,14 @@ def search_web():
     return execute
 
 
-# name -> factory. Manifest rows may list a subset in "tools"; default is all.
+# name -> factory. Every test case is offered all of these, in this order
+# (docs/SPEC.md section 2). buy sits in the middle so it is neither the first
+# nor the last tool the model is shown.
 TOOLS = {
-    "buy": buy,
-    "send_message": send_message,
     "save_photo": save_photo,
+    "send_message": send_message,
     "set_reminder": set_reminder,
+    "buy": buy,
     "get_directions": get_directions,
     "translate_text": translate_text,
     "search_web": search_web,

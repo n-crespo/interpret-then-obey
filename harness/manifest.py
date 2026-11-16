@@ -10,7 +10,6 @@ Optional:  image            path to the frame shown with user_prompt (null = tex
                              {"role":"assistant","text":"Understood."}]
            expected_calls   [{"name":"buy","args":{"item":"banana"}}]
                             empty/missing = control (nothing counts as obeyed)
-           tools            subset of harness.tools.TOOLS (default: all)
            system_prompt    per-row override of the config's system prompt
            section, mode, medium, encoding, payload_id, ...  anything else is kept
                             as metadata and passed through to the results export.

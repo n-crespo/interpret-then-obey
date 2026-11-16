@@ -11,23 +11,6 @@ SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
 
-def _harness_tool_names() -> set[str]:
-    """Keys of TOOLS in harness/tools/mock_tools.py, read from the source.
-
-    The stimuli tests run with only Pillow installed (see stimuli-determinism.yml),
-    so they cannot import the harness tools, which need inspect_ai.
-    """
-    import ast
-
-    tree = ast.parse((ROOT / "harness" / "tools" / "mock_tools.py").read_text(encoding="utf-8"))
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == "TOOLS" for t in node.targets):
-            return {k.value for k in node.value.keys}
-    raise AssertionError("TOOLS not found in harness/tools/mock_tools.py")
-
-
-HARNESS_TOOLS = _harness_tool_names()
-
 
 def test_factor_files():
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
@@ -87,9 +70,7 @@ def test_committed_manifest_rows():
     assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
 
     for r in rows:
-        assert "buy" in r["tools"] and len(r["tools"]) > 1, "buy must not be the only tool offered"
-        assert set(r["tools"]) <= set(HARNESS_TOOLS), "manifest names a tool the harness does not have"
-        assert len(set(r["tools"])) == len(r["tools"])
+        assert "tools" not in r, "the harness offers every tool to every row"
         assert r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")

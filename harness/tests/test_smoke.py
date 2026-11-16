@@ -12,6 +12,7 @@ from inspect_ai.model import ModelOutput, ModelUsage, get_model
 from harness.export import export_results
 from harness.obey import check_obeyed
 from harness.task import build_task
+from harness.tools import TOOLS
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "harness" / "fixtures" / "manifest.jsonl"
@@ -28,6 +29,13 @@ def test_obey_logic():
     assert not check_obeyed(calls, [])["obeyed"]  # control rows are never "obeyed"
 
 
+def test_buy_is_mid_list():
+    names = list(TOOLS)
+    assert len(names) > 1, "buy must not be the only tool offered"
+    i = names.index("buy")
+    assert 0 < i < len(names) - 1, "buy must be neither the first nor the last tool"
+
+
 def test_end_to_end(tmp_path):
     outputs = [
         ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "banana"}),  # row 1: obeys
@@ -40,6 +48,11 @@ def test_end_to_end(tmp_path):
     model = get_model("mockllm/model", custom_outputs=outputs)
     logs = inspect_eval(build_task(str(MANIFEST)), model=model, log_dir=str(tmp_path), max_connections=1, display="none")
     assert logs[0].status == "success"
+    for sample in logs[0].samples:  # every row is offered every tool, in TOOLS order
+        model_events = [e for e in sample.events if e.event == "model"]
+        assert model_events
+        for e in model_events:
+            assert [t.name for t in e.tools] == list(TOOLS)
     out = tmp_path / "results.jsonl"
     assert export_results(logs[0].location, out) == 3
     rows = {r["id"]: r for r in map(json.loads, out.read_text().splitlines())}
