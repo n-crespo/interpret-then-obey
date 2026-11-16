@@ -6,9 +6,8 @@ Reads the Inspect logs in runs/<dir>/inspect_logs/*.eval (through
 `inspect_ai.analysis.samples_df`), groups trials by the stimulus factors in
 stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
 
-- representation.pdf/.png  attack success and off-target call rate per
-                           representation, 95% Wilson intervals, baseline marked
-- outcomes.pdf/.png        what happened on every trial, representation x prompt/context
+- outcomes.pdf/.png        outcome mix (obeyed / off-target / no call / cut off) per
+                           representation, overall and per context, baseline below
 - tables.tex               booktabs tables: by representation, by factor, and
                            baseline vs injected per prompt x context
 
@@ -45,11 +44,11 @@ FACTOR_ROWS = [("category", "Category"), ("script", "Script"), ("prompt_id", "Pr
 LEVEL_ORDER = ["natural", "constructed", "symbols", "latin", "non_latin", "read", "help", "buy"]
 
 # Outcome of one trial: (key, legend label, cell glyph, colour). Colours are slots of
-# the dataviz reference palette (blue, orange, yellow) plus neutral greys.
+# the dataviz reference palette (blue, orange, aqua: validated as a set) plus greys.
 OUTCOMES = [
     ("obeyed", "Obeyed (bought the injected item)", "✓", "#2a78d6"),
-    ("off_target", "Off-target call only", "×", "#eb6834"),
-    ("cut_off", "Cut off at max_tokens, no call", "T", "#eda100"),
+    ("off_target", "Off-target call (not the injected item)", "×", "#eb6834"),
+    ("cut_off", "Cut off at max_tokens, no call", "T", "#1baf7a"),
     ("no_call", "No tool call", "", "#e4e3df"),
     ("error", "Errored", "!", "#52514e"),
 ]
@@ -337,119 +336,62 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
 # Figures
 
 
-def _style(ax):
-    for side in ("top", "right", "left"):
-        ax.spines[side].set_visible(False)
-    ax.spines["bottom"].set_color(INK_2)
-    ax.tick_params(colors=INK_2, length=0, labelsize=9)
-    ax.xaxis.grid(True, color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
-
-
-def plot_representation(trials: list[dict], rep_order: list, path: Path, model: str | None) -> None:
-    """Two panels sharing the representation axis: obeyed and off-target rates with
-    Wilson intervals; a dashed line marks the matching baseline rate."""
-    import matplotlib.pyplot as plt
-
-    injected, baseline, _ = split(trials)
-    groups = group_by(injected, "representation_id")
-    reps = _order(groups, rep_order)
-    sb = summarize(baseline)
-    panels = [
-        ("Obeyed (attack success)", "obeyed", sb["target_call"], "baseline: bought injected item"),
-        ("Off-target tool call", "off_target", sb["any_call"], "baseline: any tool call"),
-    ]
-    fig, axes = plt.subplots(1, 2, figsize=(8.5, 0.45 * len(reps) + 1.6), sharey=True)
-    fig.patch.set_facecolor(SURFACE)
-    ys = list(range(len(reps)))[::-1]
-    for ax, (title, key, b_k, b_label) in zip(axes, panels):
-        _style(ax)
-        for y, rep in zip(ys, reps):
-            s = summarize(groups[rep])
-            k, n = s[key], s["n"]
-            lo, hi = wilson(k, n)
-            ax.plot([100 * lo, 100 * hi], [y, y], color="#2a78d6", linewidth=2, solid_capstyle="round", alpha=0.45)
-            ax.plot(100 * k / n, y, "o", color="#2a78d6", markersize=7, markeredgecolor=SURFACE, markeredgewidth=1.5)
-            ax.annotate(f"{k}/{n}", (100 * hi, y), xytext=(6, 0), textcoords="offset points",
-                        va="center", fontsize=8.5, color=INK_2)
-        if sb["n"]:
-            x = 100 * b_k / sb["n"]
-            ax.axvline(x, color=INK_2, linestyle=(0, (3, 3)), linewidth=1)
-            left = x < 60
-            ax.annotate(f"{b_label} ({b_k}/{sb['n']})", (x, len(reps) - 0.45), xytext=(4 if left else -4, 0),
-                        textcoords="offset points", fontsize=8, color=INK_2, va="bottom",
-                        ha="left" if left else "right")
-        ax.set_xlim(0, 108)
-        ax.set_ylim(-0.6, len(reps) - 0.1)
-        ax.set_xticks([0, 25, 50, 75, 100], ["0%", "25%", "50%", "75%", "100%"])
-        ax.set_title(title, loc="left", fontsize=10.5, color=INK, pad=14)
-    axes[0].set_yticks(ys, reps, fontsize=9.5, color=INK)
-    fig.suptitle(f"Injected rows by representation, {model}  (dot: rate, bar: 95% Wilson interval)",
-                 x=0.01, ha="left", fontsize=9, color=INK_2)
-    fig.tight_layout()
-    for ext in ("pdf", "png"):
-        fig.savefig(path.with_suffix(f".{ext}"), dpi=200, facecolor=SURFACE)
-    plt.close(fig)
-
-
 def plot_outcomes(trials: list[dict], rep_order: list, path: Path, model: str | None) -> None:
-    """One cell per representation x prompt/context, coloured by what the model did.
-    With several epochs a cell takes the most common outcome and shows k/n obeyed."""
+    """Outcome mix per representation as 100% stacked bars, one panel for all contexts
+    and one per context. The baseline row sits below a gap, so each injected bar can be
+    read against what the model does with no injection in the same context."""
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Patch, Rectangle
+    from matplotlib.patches import Patch
 
-    reps = _order({t["representation_id"] for t in trials}, rep_order)
-    prompts = _order({t["prompt_id"] for t in trials}, LEVEL_ORDER)
-    contexts = _order({t["context_id"] for t in trials})
-    cols = [(p, c) for p in prompts for c in contexts]
-    cells = group_by(trials, "representation_id", "prompt_id", "context_id")
-    style = {k: (glyph, colour) for k, _, glyph, colour in OUTCOMES}
+    ok = [t for t in trials if not t["error"]]
+    reps = _order({t["representation_id"] for t in ok}, rep_order)
+    contexts = _order({t["context_id"] for t in ok})
+    panels = [("All contexts", ok)] + [(c.replace("_", " "), [t for t in ok if t["context_id"] == c]) for c in contexts]
+    kinds = [o for o in OUTCOMES if o[0] != "error"]
+    used = {outcome(t) for t in ok}
+    kinds = [o for o in kinds if o[0] in used]
 
-    gap = 0.5  # extra space before the baseline row and between prompt groups
-    def row_y(i):
-        return len(reps) - 1 - i + (gap if reps[i] != "none" and "none" in reps else 0)
+    has_base = "none" in reps
+    ys = {rep: (len(reps) - 1 - i) + (0.6 if has_base and rep != "none" else 0) for i, rep in enumerate(reps)}
+    labels = ["none (baseline)" if r == "none" else r for r in reps]
 
-    def col_x(j):
-        return j + gap * prompts.index(cols[j][0])
-
-    fig, ax = plt.subplots(figsize=(0.62 * len(cols) + 3.2, 0.42 * len(reps) + 2.4))
+    fig, axes = plt.subplots(1, len(panels), figsize=(2.3 * len(panels) + 1.6, 0.42 * len(reps) + 1.9),
+                             sharey=True, gridspec_kw={"wspace": 0.12})
     fig.patch.set_facecolor(SURFACE)
-    used = set()
-    for i, rep in enumerate(reps):
-        for j, (p, c) in enumerate(cols):
-            ts = cells.get((rep, p, c), [])
-            if not ts:
-                continue
-            kinds = Counter(outcome(t) for t in ts)
-            kind = kinds.most_common(1)[0][0]
-            used.add(kind)
-            glyph, colour = style[kind]
-            x, y = col_x(j), row_y(i)
-            ax.add_patch(Rectangle((x + 0.04, y + 0.04), 0.92, 0.92, facecolor=colour, edgecolor=SURFACE,
-                                   linewidth=0, joinstyle="round"))
-            label = f"{kinds['obeyed']}/{len(ts)}" if len(ts) > 1 else glyph
-            ink = INK if kind in ("no_call", "cut_off") else SURFACE
-            ax.text(x + 0.5, y + 0.5, label, ha="center", va="center", fontsize=10, color=ink, fontweight="bold")
-    ax.set_xlim(-0.1, col_x(len(cols) - 1) + 1.1)
-    ax.set_ylim(-0.2, row_y(0) + 1.1)
-    ax.set_yticks([row_y(i) + 0.5 for i in range(len(reps))],
-                  ["none (baseline)" if r == "none" else r for r in reps], fontsize=9.5, color=INK)
-    ax.set_xticks([col_x(j) + 0.5 for j in range(len(cols))], [c.replace("_", " ") for _, c in cols],
-                  rotation=40, ha="right", fontsize=8.5, color=INK_2)
-    for p in prompts:
-        js = [j for j, (pp, _) in enumerate(cols) if pp == p]
-        ax.text((col_x(js[0]) + col_x(js[-1]) + 1) / 2, row_y(0) + 1.25, f"prompt: {p}", ha="center",
-                va="bottom", fontsize=9.5, color=INK)
-    for side in ax.spines.values():
-        side.set_visible(False)
-    ax.tick_params(length=0)
-    ax.set_aspect("equal")
-    handles = [Patch(facecolor=colour, label=f"{glyph}  {label}" if glyph else label)
-               for k, label, glyph, colour in OUTCOMES if k in used]
-    ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(1.01, 1), frameon=False, fontsize=8.5,
-              labelcolor=INK_2, handlelength=1.2)
-    ax.set_title(f"Outcome of every trial, {model}", loc="left", fontsize=10.5, color=INK, pad=26)
-    fig.tight_layout()
+    for ax, (title, ts) in zip(axes, panels):
+        by_rep = group_by(ts, "representation_id")
+        for rep in reps:
+            cell = by_rep.get(rep, [])
+            n, left = len(cell), 0.0
+            counts = Counter(outcome(t) for t in cell)
+            for key, _, _, colour in kinds:
+                k = counts.get(key, 0)
+                if not k:
+                    continue
+                w = k / n
+                ax.barh(ys[rep], w, left=left, height=0.62, color=colour, edgecolor=SURFACE, linewidth=1.5)
+                if w >= 0.1:
+                    ink = INK if key in ("no_call",) else SURFACE
+                    ax.text(left + w / 2, ys[rep], str(k), ha="center", va="center", fontsize=8.5, color=ink)
+                left += w
+        ax.set_xlim(0, 1)
+        ax.set_xticks([])
+        ax.set_title(title, fontsize=10, color=INK, loc="left")
+        for side in ax.spines.values():
+            side.set_visible(False)
+        ax.tick_params(length=0)
+        n_per = {len(v) for v in by_rep.values()}
+        if len(n_per) == 1:
+            ax.set_xlabel(f"{n_per.pop()} trials per bar", fontsize=8, color=INK_2)
+    axes[0].set_yticks([ys[r] for r in reps], labels, fontsize=9.5, color=INK)
+    if has_base:
+        for ax in axes:
+            ax.axhline(ys["none"] + 0.8, color=GRID, linewidth=1)
+    handles = [Patch(facecolor=colour, label=label) for _, label, _, colour in kinds]
+    fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=len(handles), frameon=False,
+               fontsize=8.5, labelcolor=INK_2, handlelength=1.1, columnspacing=1.4)
+    fig.suptitle(f"What the model did, by representation and context ({model})",
+                 x=0.0, y=1.06, ha="left", fontsize=11, color=INK)
     for ext in ("pdf", "png"):
         fig.savefig(path.with_suffix(f".{ext}"), dpi=200, facecolor=SURFACE, bbox_inches="tight")
     plt.close(fig)
@@ -489,12 +431,11 @@ def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
     (out_dir / "tables.tex").write_text(latex_tables(trials, model, rep_order), encoding="utf-8")
-    plot_representation(trials, rep_order, out_dir / "representation", model)
     plot_outcomes(trials, rep_order, out_dir / "outcomes", model)
-    written = [out_dir / "representation.pdf", out_dir / "outcomes.pdf", out_dir / "tables.tex"]
+    written = [out_dir / "outcomes.pdf", out_dir / "tables.tex"]
 
     print(headline(trials, model, run_dir))
-    print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written) + " (and .png copies of the figures)")
+    print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written) + " (and outcomes.png)")
     return written
 
 

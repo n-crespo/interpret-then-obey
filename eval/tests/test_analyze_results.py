@@ -189,7 +189,7 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path):
     manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
-    assert set(written) == {out / "representation.pdf", out / "outcomes.pdf", out / "tables.tex"}
-    for name in ("representation.pdf", "representation.png", "outcomes.pdf", "outcomes.png"):
+    assert set(written) == {out / "outcomes.pdf", out / "tables.tex"}
+    for name in ("outcomes.pdf", "outcomes.png"):
         assert (out / name).stat().st_size > 1000
     assert r"All injected & & & 2 & 1/2 (50\%)" in (out / "tables.tex").read_text(encoding="utf-8")
