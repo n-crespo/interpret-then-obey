@@ -14,11 +14,11 @@ default:
 # Create .venv and install all dependencies
 setup:
     {{ system_python }} -m venv .venv
-    {{ venv_python }} -m pip install -r stimuli/requirements.txt -r harness/requirements.txt
+    {{ venv_python }} -m pip install -r stimuli/requirements.txt -r harness/requirements.txt -r eval/requirements.txt
 
-# Run all tests: stimuli reproducibility + harness smoke test
+# Run all tests: stimuli reproducibility + harness smoke test + analysis
 test *args:
-    {{ python }} -m pytest stimuli/tests harness/tests -q {{ args }}
+    {{ python }} -m pytest stimuli/tests harness/tests eval/tests -q {{ args }}
 
 # Render stimulus images from stimuli/src/, then rebuild manifest.jsonl per docs/SPEC.md
 build-stimuli:
@@ -32,6 +32,6 @@ run *args:
 run-dry *args:
     {{ python }} -m harness.run harness/configs/qwen3vl-8b-ollama.yaml --model mockllm/model {{ args }}
 
-# Tables + LaTeX for a harness run (ASR, hallucination by universe/language/script): `just analyze runs/<dir>`
+# Tables + LaTeX for a harness run (ASR, off-target calls, baseline, by manifest factor): `just analyze runs/<dir>`
 analyze run_dir:
     {{ python }} eval/analyze_results.py {{ run_dir }}
