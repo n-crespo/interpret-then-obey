@@ -11,7 +11,6 @@ SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
 
-
 def test_factor_files():
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
     contexts = json.loads((SRC / "context.json").read_text(encoding="utf-8"))
