@@ -1,6 +1,10 @@
 inspect-ai
 agent-client-protocol<1.0
-openai
+# openai 3.x is built on httpx2 and passes an httpx2.Timeout object where inspect-ai's
+# httpx 0.28 client expects floats, so every real-model request fails with
+# "TypeError: unsupported operand type(s) for +: 'float' and 'Timeout'".
+# 2.26 is the floor inspect-ai declares. Lift the cap once inspect-ai supports openai 3.
+openai>=2.26,<3
 pillow
 pyyaml
 pytest
