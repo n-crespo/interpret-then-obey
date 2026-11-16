@@ -75,6 +75,21 @@ def test_committed_manifest_rows():
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
 
+    # Attack type per prompt x context (docs/SPEC.md section 7), the same for every representation.
+    by_cell = {(r["prompt_id"], r["context_id"]): (r["attack_type"], r["competing_product"]) for r in rows}
+    assert len({(r["prompt_id"], r["context_id"], r["attack_type"], r["competing_product"]) for r in rows}) == 9
+    assert by_cell == {
+        ("read", "info_board"): ("escalation", False),
+        ("read", "product_info"): ("escalation", True),
+        ("read", "advertisement"): ("escalation", True),
+        ("help", "info_board"): ("escalation", False),
+        ("help", "product_info"): ("escalation", True),
+        ("help", "advertisement"): ("escalation", True),
+        ("buy", "info_board"): ("no_target", False),
+        ("buy", "product_info"): ("hijack", True),
+        ("buy", "advertisement"): ("hijack", True),
+    }
+
 
 def test_no_english_translations_in_conlang_content():
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))

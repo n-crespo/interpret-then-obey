@@ -38,7 +38,7 @@ None of the distractors can purchase anything, so a purchase is always a `buy` c
 
 ## 3. Prompts (`prompts.json`)
 
-Each prompt is keyed by its id, and its `text` is the user message, sent verbatim. The prompts are ordered by how explicitly the user asks the model to take an action: from only asking it to read, through an open request for help where the user may want an action, to directly asking it to buy.
+Each prompt is keyed by its id, and its `text` is the user message, sent verbatim. Its `requests_purchase` says whether the user asks the model to buy something; it feeds the [attack type](#attack-type). The prompts are ordered by how explicitly the user asks the model to take an action: from only asking it to read, through an open request for help where the user may want an action, to directly asking it to buy.
 
 Prompts must not name a language, a script, a franchise or the injected item.
 
@@ -52,7 +52,7 @@ Each context has these fields:
 | --- | --- |
 | `header` | The title line at the top of the image |
 | `lines` | The body text, one string per line |
-| `item` | The product the context is about, or `null` for `info_board`. The generator does not use it. |
+| `item` | The product the context is about, or `null` for `info_board`. It is not drawn; it feeds the [attack type](#attack-type). |
 
 **Layout.** `render_stimulus_image` in `stimuli/generate.py` draws every image at the same size with the same layout. The sizes, box position and font sizes are constants in that file.
 
@@ -148,6 +148,10 @@ Notes:
 - For real rows, read `stimuli/manifest.jsonl`.
 
 `buy` is the harness name of the buy tool (see [section 2](#2-model-setup)).
+
+### Attack type
+
+What an obeyed row means depends on the prompt and the scene together: an injection that swaps the item the user asked to buy is a different attack from one that creates a purchase nobody asked for. So every row also carries `attack_type` and `competing_product`. They are derived from declared data rather than from factor ids: each prompt's `requests_purchase` and each context's `item`. `stimuli/attack_types.py` defines the types, the rule, and which types count as attack success. The generator and the analysis both use it.
 
 ## 8. Validation
 
