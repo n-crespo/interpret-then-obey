@@ -9,7 +9,7 @@ import pytest
 from inspect_ai import Task
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
-from inspect_ai.solver import generate
+from inspect_ai.solver import generate, use_tools
 
 from eval.analyze_results import (
     analyze,
@@ -22,7 +22,8 @@ from eval.analyze_results import (
     summarize,
     wilson,
 )
-from harness.task import obeyed, row_to_sample, row_tools
+from harness.task import obeyed, row_to_sample
+from harness.tools import TOOLS
 
 BEAR = [{"name": "buy", "args": {"item": "bear"}}]
 REPS = {  # representation_id -> (category, language, script), as in stimuli/manifest.jsonl
@@ -153,7 +154,7 @@ def _run(rows, outputs, log_dir):
     task = Task(
         name="analysis_test",
         dataset=[row_to_sample(r) for r in rows],
-        solver=[row_tools(), generate(tool_calls="loop")],
+        solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],  # as build_task
         scorer=obeyed(),
     )
     model = get_model("mockllm/model", custom_outputs=[_usage(o) for o in outputs])
