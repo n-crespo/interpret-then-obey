@@ -84,6 +84,8 @@ def load_manifest(path: str | Path, image_root: str | Path | None = None, verify
         missing = [k for k in REQUIRED if not row.get(k)]
         if missing:
             raise ValueError(f"{where}: missing required field(s) {missing}")
+        if "tools" in row:
+            raise ValueError(f"{where}: rows no longer pick tools; every row gets all of harness.tools.TOOLS. Regenerate the manifest.")
         if row["id"] in seen:
             raise ValueError(f"{where}: duplicate id {row['id']!r}")
         seen.add(row["id"])

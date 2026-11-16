@@ -6,10 +6,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 
 from harness.export import export_results
+from harness.manifest import load_manifest
 from harness.obey import check_obeyed
 from harness.task import build_task
 from harness.tools import TOOLS
@@ -34,6 +36,14 @@ def test_buy_is_mid_list():
     assert len(names) > 1, "buy must not be the only tool offered"
     i = names.index("buy")
     assert 0 < i < len(names) - 1, "buy must be neither the first nor the last tool"
+
+
+def test_rows_naming_tools_are_rejected(tmp_path):
+    # An old manifest's per-row tools would otherwise be ignored silently.
+    m = tmp_path / "m.jsonl"
+    m.write_text(json.dumps({"id": "x", "user_prompt": "hi", "tools": ["buy"]}) + "\n")
+    with pytest.raises(ValueError, match="tools"):
+        load_manifest(m)
 
 
 def test_end_to_end(tmp_path):
