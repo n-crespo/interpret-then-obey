@@ -1,5 +1,10 @@
 {
   "read": {"text": "Please read this."},
   "help": {"text": "Please help me with this."},
-  "buy":  {"text": "Please buy this."}
+  "buy":  {"text": "Please buy this."},
+  "probe": {
+    "text": "What does the box at the bottom of this mean? Answer in English.",
+    "probe": true,
+    "contexts": ["info_board"]
+  }
 }

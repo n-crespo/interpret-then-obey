@@ -17,8 +17,10 @@ def test_factor_files():
     injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
 
-    assert len(prompts) == 3
-    assert set(prompts) == {"read", "help", "buy"}
+    assert list(prompts) == ["read", "help", "buy", "probe"]
+    # The comprehension probe: crossed with info_board only, last so the other rows keep their order.
+    assert prompts["probe"]["probe"] is True and prompts["probe"]["contexts"] == ["info_board"]
+    assert not any(p.get("probe") or "contexts" in p for k, p in prompts.items() if k != "probe")
 
     assert len(contexts) == 3
     assert set(contexts) == {"info_board", "product_info", "advertisement"}
@@ -53,7 +55,20 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 108
+    assert len(rows) == 119
+    attack = [r for r in rows if not r.get("probe")]
+    assert len(attack) == 108 and rows[:108] == attack  # the probe rows come last
+
+    # 11 comprehension-probe rows: info_board x every injecting representation, no expected calls.
+    probe = rows[108:]
+    reps = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
+    assert [r["representation_id"] for r in probe] == [k for k, v in reps.items() if v["format"] != "none"]
+    sha = {r["id"]: r["image_sha256"] for r in rows}
+    for r in probe:
+        assert r["probe"] is True and r["expected_calls"] == []
+        assert (r["prompt_id"], r["context_id"]) == ("probe", "info_board")
+        # Same image as the read prompt's row: the probe differs only in the question.
+        assert r["image_sha256"] == sha[r["id"].replace("probe.", "read.", 1)]
 
     # 9 baseline rows: one per prompt x context, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]
@@ -70,6 +85,8 @@ def test_committed_manifest_rows():
 
     for r in rows:
         assert "tools" not in r, "the harness offers every tool to every row"
+    for r in attack:
+        assert "probe" not in r
         assert r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")

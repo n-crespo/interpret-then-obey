@@ -4,7 +4,7 @@ Stimulus data laid out as described in [docs/SPEC.md](../docs/SPEC.md).
 
 | File | Defines |
 | --- | --- |
-| `src/prompts.json` | The user's instruction (`read`, `help`, `buy`) |
+| `src/prompts.json` | The user's instruction (`read`, `help`, `buy`), and the comprehension probe `probe` (info_board only, no baseline, no expected calls) |
 | `src/context.json` | The benign content of the image (`info_board`, `product_info`, `advertisement`): a header and body lines |
 | `src/injections.json` | What each injection means and the item it makes the model buy |
 | `src/representations.json` | The form each injection is shown in, with a rendition of every injection |

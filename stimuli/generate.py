@@ -50,6 +50,10 @@ SCRIPT_FONT_SIZE = 44
 
 FORMATS = ("text", "image", "none")
 CATEGORIES = ("natural", "constructed", "symbols", "opaque", "baseline")
+# A prompt is {"text": ...}, optionally with "contexts" (a list of context ids: cross the
+# prompt with only these) and "probe" (true: a comprehension probe, crossed with the
+# injecting representations only, with no expected calls). docs/SPEC.md section 3.
+PROMPT_KEYS = ("text", "contexts", "probe")
 
 
 def sha256_file(path: Path) -> str:
@@ -124,6 +128,26 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         for fid in factor:
             if not fid or "." in fid:
                 raise ValueError(f"{fname}: id {fid!r} must be non-empty and must not contain '.'")
+
+    for prompt_id, prompt in prompts.items():
+        if not isinstance(prompt, dict):
+            raise ValueError(f"Prompt {prompt_id} must be an object")
+        unknown = sorted(set(prompt) - set(PROMPT_KEYS))
+        if unknown:
+            raise ValueError(f"Prompt {prompt_id} has unknown key(s) {unknown}; allowed: {list(PROMPT_KEYS)}")
+        if not isinstance(prompt.get("text"), str) or not prompt["text"].strip():
+            raise ValueError(f"Prompt {prompt_id} requires a non-empty 'text'")
+        if "probe" in prompt and not isinstance(prompt["probe"], bool):
+            raise ValueError(f"Prompt {prompt_id}: 'probe' must be true or false")
+        if "contexts" in prompt:
+            ctx = prompt["contexts"]
+            if not isinstance(ctx, list) or not ctx:
+                raise ValueError(f"Prompt {prompt_id}: 'contexts' must be a non-empty list of context ids")
+            if len(set(ctx)) != len(ctx):
+                raise ValueError(f"Prompt {prompt_id}: 'contexts' lists a context twice")
+            missing = [c for c in ctx if c not in contexts]
+            if missing:
+                raise ValueError(f"Prompt {prompt_id}: unknown context id(s) {missing} in 'contexts'")
 
     rep_keys = list(representations.keys())
     if rep_keys[0] != "english":
@@ -295,13 +319,23 @@ def render_stimulus_image(
 def build_rows(
     prompts: dict, contexts: dict, injections: dict, representations: dict, images_rel: str
 ) -> list[tuple[dict, tuple]]:
-    """Every row in memory (image_sha256 filled in after rendering), each with its render arguments."""
+    """Every row in memory (image_sha256 filled in after rendering), each with its render arguments.
+
+    A prompt with `contexts` is crossed with only those contexts. A probe prompt is crossed
+    with the injecting representations only (the baseline's empty box has nothing to ask
+    about); its rows have no expected calls and carry `"probe": true`.
+    """
     out = []
     seen_ids = set()
     for prompt_id, prompt_data in prompts.items():
+        probe = prompt_data.get("probe", False)
         for context_id, context_data in contexts.items():
+            if "contexts" in prompt_data and context_id not in prompt_data["contexts"]:
+                continue
             for injection_id, injection_data in injections.items():
                 for rep_id, rep_data in representations.items():
+                    if probe and rep_data["format"] == "none":
+                        continue
                     sample_id = f"{prompt_id}.{context_id}.{injection_id}.{rep_id}"
                     if sample_id in seen_ids:
                         raise ValueError(f"Duplicate sample id: {sample_id}")
@@ -322,6 +356,9 @@ def build_rows(
                         "language": rep_data.get("language"),
                         "script": rep_data.get("script"),
                     }
+                    if probe:
+                        row["expected_calls"] = []
+                        row["probe"] = True
                     rendition = rep_data["injections"][injection_id] if rep_data["format"] != "none" else None
                     out.append((row, (context_id, context_data, rep_data, rendition)))
     return out
@@ -350,13 +387,14 @@ def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[d
 
     validate_factors(prompts, contexts, injections, representations)
 
-    total_combinations = len(prompts) * len(contexts) * len(injections) * len(representations)
-    print(f"Expanding factorial grid: {len(prompts)} prompts × {len(contexts)} contexts × {len(injections)} injections × {len(representations)} representations = {total_combinations} test cases")
-
     # Image paths in the manifest are relative to stimuli_dir's parent (the repo root).
     images_rel = f"{stimuli_dir.name}/images"
     built = build_rows(prompts, contexts, injections, representations, images_rel)
     rows = [row for row, _ in built]
+    n_probe = sum(bool(r.get("probe")) for r in rows)
+    print(f"Expanding factorial grid: {len(prompts)} prompts × {len(contexts)} contexts × {len(injections)} injections × "
+          f"{len(representations)} representations, with per-prompt restrictions = {len(rows)} test cases "
+          f"({n_probe} comprehension probe)")
 
     # Render and write under `staging`, which mirrors the layout of
     # stimuli_dir's parent, so the staged manifest's paths resolve to the

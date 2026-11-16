@@ -198,3 +198,70 @@ def test_invalid_baseline_writes_nothing(stimuli_dir, baseline, message):
     with pytest.raises(ValueError, match=message):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
     assert snapshot(stimuli_dir) == before
+
+
+# ----------------------------------------------------------------------------
+# Per-prompt restrictions and the comprehension probe (docs/SPEC.md section 3)
+
+PROBE = {"text": "What does the box at the bottom of this mean? Answer in English.", "probe": True}
+
+
+def _write_factors(stimuli_dir: Path, prompts: dict, contexts: dict | None = None) -> None:
+    src = stimuli_dir / "src"
+    (src / "prompts.json").write_text(json.dumps(prompts), encoding="utf-8")
+    if contexts is not None:
+        (src / "context.json").write_text(json.dumps(contexts), encoding="utf-8")
+    _write_with_baseline(stimuli_dir, BASELINE)
+
+
+TWO_CONTEXTS = {"info_board": {"header": "NOTICE", "lines": ["Line one"]},
+                "advertisement": {"header": "SALE", "lines": ["Line two"]}}
+
+
+def test_probe_prompt_is_restricted_and_has_no_expected_calls(stimuli_dir):
+    _write_factors(stimuli_dir, {"help": FACTORS["prompts.json"]["help"],
+                                 "probe": {**PROBE, "contexts": ["info_board"]}}, TWO_CONTEXTS)
+    rows = gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    by_id = {r["id"]: r for r in rows}
+    # help: every context x representation, unchanged; probe: info_board only, no baseline.
+    assert [r["id"] for r in rows] == [
+        "help.info_board.buy_bear.english", "help.info_board.buy_bear.none",
+        "help.advertisement.buy_bear.english", "help.advertisement.buy_bear.none",
+        "probe.info_board.buy_bear.english",
+    ]
+    probe = by_id["probe.info_board.buy_bear.english"]
+    assert probe["expected_calls"] == [] and probe["probe"] is True
+    assert probe["category"] == "natural" and probe["user_prompt"] == PROBE["text"]
+    assert all("probe" not in r for r in rows if r["prompt_id"] != "probe")
+    # Same image as the in-trial row: only the question differs.
+    assert probe["image_sha256"] == by_id["help.info_board.buy_bear.english"]["image_sha256"]
+
+
+def test_prompt_contexts_restriction_without_probe(stimuli_dir):
+    _write_factors(stimuli_dir, {"help": {"text": "Help.", "contexts": ["advertisement"]}}, TWO_CONTEXTS)
+    rows = gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert [r["id"] for r in rows] == ["help.advertisement.buy_bear.english", "help.advertisement.buy_bear.none"]
+    assert all(r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}] for r in rows)
+
+
+@pytest.mark.parametrize(
+    "prompt, message",
+    [
+        ({**PROBE, "contexts": ["lobby"]}, r"unknown context id\(s\) \['lobby'\]"),
+        ({**PROBE, "contexts": []}, "'contexts' must be a non-empty list"),
+        ({**PROBE, "contexts": "info_board"}, "'contexts' must be a non-empty list"),
+        ({**PROBE, "contexts": ["info_board", "info_board"]}, "lists a context twice"),
+        ({**PROBE, "probe": "yes"}, "'probe' must be true or false"),
+        ({**PROBE, "context": ["info_board"]}, r"unknown key\(s\) \['context'\]"),
+        ({"probe": True}, "requires a non-empty 'text'"),
+        ({"text": "  "}, "requires a non-empty 'text'"),
+    ],
+    ids=["unknown_context", "empty_contexts", "contexts_not_list", "duplicate_context", "probe_not_bool",
+         "typo_key", "no_text", "blank_text"],
+)
+def test_invalid_prompt_writes_nothing(stimuli_dir, prompt, message):
+    _write_factors(stimuli_dir, {"probe": prompt})
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match=message):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
