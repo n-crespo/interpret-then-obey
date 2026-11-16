@@ -125,6 +125,14 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             if not fid or "." in fid:
                 raise ValueError(f"{fname}: id {fid!r} must be non-empty and must not contain '.'")
 
+    # Each prompt says whether it asks for a purchase; each context names its product, or null.
+    for prompt_id, prompt in prompts.items():
+        if not isinstance(prompt.get("requests_purchase"), bool):
+            raise ValueError(f"Prompt {prompt_id} must have 'requests_purchase': true or false")
+    for context_id, context in contexts.items():
+        if "item" not in context or not (context["item"] is None or (isinstance(context["item"], str) and context["item"])):
+            raise ValueError(f"Context {context_id} must have 'item': a non-empty string or null")
+
     rep_keys = list(representations.keys())
     if rep_keys[0] != "english":
         raise ValueError(f"docs/SPEC.md Rule 1: 'english' must be the first representation, got {rep_keys[0]!r}")
