@@ -1,0 +1,16 @@
+{
+  "name": "qwen3vl-8b-ollama",
+  "model": "ollama/qwen3-vl:8b",
+  "base_url": null,
+  "manifest": "stimuli/manifest.jsonl",
+  "manifest_sha256": "677561f1ac97170c681e6d2fa5cbecb5b825443c2007b6543478fc2663d02409",
+  "ids": null,
+  "filter": {},
+  "limit": null,
+  "git_commit": "a675171682d6a8f16cf58ffb58a6574bc4c180e2",
+  "started": "2026-11-15T16:38:30.640573",
+  "argv": [
+    "C:\\Users\\nicol\\dev\\interpret-then-obey\\harness\\run.py",
+    "harness/configs/qwen3vl-8b-ollama.yaml"
+  ]
+}
