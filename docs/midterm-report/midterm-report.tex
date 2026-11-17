@@ -212,8 +212,8 @@ Qwen3-VL-8B \cite{qwen3vl} runs locally on an NVIDIA RTX 4000 Ada. A
 model call matches an expected call if the tool name is equal and each
 expected argument value is contained in the actual argument, ignoring
 case. A case is obeyed if every expected call is matched, and calls
-that match nothing are kept as off-target, so no judge model is
-needed. Each run saves its config, manifest hash, git commit and logs,
+that match nothing are kept as off-target, and no judge model is
+used as of now. Each run saves its config, manifest hash, git commit and logs,
 so every result can be traced back to what produced it.
 
 \textit{3) Evaluation:} The analysis reports attack success with 95\%
@@ -246,10 +246,6 @@ as the encoding gets harder to interpret
   no-injection baseline.
 \end{itemize}
 \item Separate perception failures from language knowledge
-\begin{itemize}
-\item A gap between Klingon in Latin letters and in pIqaD isolates the
-  effect of an unfamiliar script.
-\end{itemize}
 \end{enumerate}
 
 \section{Timeline}
@@ -336,7 +332,7 @@ The pilot runs show that a VLM with tools acts on injected
 instructions in a scene, including instructions written only in
 symbols, and that the scene matters more than the encoding. They also
 show that a tool call alone cannot tell interpreting from obeying,
-which the interpretation check will address in the final report.
+which the interpretation check will address in future work and the final report.
 
 \begingroup
 \hbadness=10000 % Silences Underfull \hbox warnings
