@@ -1,17 +1,18 @@
 \documentclass[10pt,twocolumn]{article}
+\usepackage[letterpaper,margin=1in,]{geometry}
 \usepackage{tikz}
+\usepackage{microtype}
 \usetikzlibrary{arrows.meta,positioning}
-\usepackage{comment}
 
 \title{Interpret-Then-Obey Visual Prompt Injection}
 \author{%
   \begin{tabular}[t]{c}Nicolas Crespo\\UCLA\\{\small ncrespo@ucla.edu}
   \end{tabular}\quad
-  \begin{tabular}[t]{c}[Bryan]\\UCLA\\{\small liub@g.ucla.edu}
+  \begin{tabular}[t]{c}Bryan Liu\\UCLA\\{\small liub@g.ucla.edu}
   \end{tabular}\quad
-  \begin{tabular}[t]{c}[Arya]\\UCLA\\{\small [email]}
+  \begin{tabular}[t]{c}Arya Kunisetty\\UCLA\\{\small arykun47@g.ucla.edu}
   \end{tabular}\quad
-  \begin{tabular}[t]{c}[William]\\UCLA\\{\small [email]}
+  \begin{tabular}[t]{c}William Shih\\UCLA\\{\small william.shih@ucla.edu}
 \end{tabular}}
 \date{}
 
@@ -19,7 +20,16 @@
 \maketitle
 
 \begin{abstract}
-  [smth]
+  This report presents a study of interpret-then-obey visual prompt
+  injection against vision-language models (VLMs) acting as assistants
+  in AR glasses. An instruction is placed in the camera's view in an
+  encoding the model must interpret before it can act on it, from
+  plain English to symbols and invented glyphs. A harness with mocked
+  tools decides from the model's tool calls whether it obeyed. Pilot
+  runs on Qwen3-VL-8B show that the scene around the injection
+  mattered more than its encoding, and that pictograms with no words
+  were obeyed in 6 of 9 information-board samples, versus 9 of 9 for
+  English.
 \end{abstract}
 
 \section{Introduction}
@@ -48,172 +58,380 @@ visual ciphers~\cite{visualcipher} make jailbreaks work more often, but these
 studies target harmful requests rather than tool-calling injection, and they
 do not separate understanding a payload from acting on it.
 
-We therefore measure P(interpret) and P(obey\,$\mid$\,interpret) separately.
-Each stimulus is a scene (an information board, a product page or an
-advertisement) carrying one fixed instruction, ``Buy a bear,'' shown in
-representations that range from plain English through constructed languages
-and scripts to symbols and opaque glyphs with and without a legend
-(Sec.~\ref{sec:stimuli}). A model with mocked tools sees the image and a
-harmless user request, and whether it obeyed is scored from its tool calls
-alone (Sec.~\ref{sec:harness}). We expect harder encodings to lower
-P(interpret) but possibly \emph{raise} P(obey\,$\mid$\,interpret), if
-injection resistance was learned mostly from plain English. If so, overall
-success would peak at a middle level of difficulty.
+We therefore aim to measure P(interpret), the probability that the
+model is able to understand what the injection means, and
+P(obey\,$\mid$\,interpret), the probability
+that it then acts on it, separately.
 
-So far we have built (i)~a controlled stimulus set that keeps the scene,
-request and meaning fixed and changes only the representation, (ii)~a
-reproducible Inspect-based harness with deterministic scoring, and (iii)~pilot
-runs on Qwen3-VL-8B. In these runs obedience depended strongly on the scene and
-the representation. This report describes the stimuli and harness, presents
-the pilot results, and outlines the remaining evaluation.
+\section{Related Work}
+\label{sec:related}
 
-\section{Stimuli}\label{sec:stimuli}
+\subsection{Visual and Physical Prompt Injection}
 
-\section{Test Harness}\label{sec:harness}
+Previous research has demonstrated that vision-language models (VLMs)
+are vulnerable to adversarial instructions embedded in images.
+FigStep \cite{gong2023figstep} converts harmful textual instructions
+into visual typography to bypass model safety alignment. Typographic
+attacks across different VLMs and visual tasks have also been
+investigated, demonstrating how embedded text can influence model
+predictions \cite{cheng2024typographic}. SceneTAP
+\cite{cao2024scenetap} integrates adversarial text naturally into
+physical scenes to improve attack effectiveness. More recent studies
+have examined instructions embedded in natural images
+\cite{nagaraja2026image} and demonstrated how physical signage can
+redirect VLM-controlled robots \cite{samarakoon2026robots}. These
+studies establish that external visual content can influence model
+behavior, but our work specifically investigates how different
+representations of the same instruction affect interpretation and
+unauthorized tool execution in an AR-glasses setting.
 
+\subsection{Non-Textual Representations and Visual Encoding}
 
-\subsection{Design}
-The harness runs every test case against a model the exact same way
-and decides from the model's tool calls alone whether it obeyed the
-injected instruction. The harness is built on Inspect AI
-\cite{inspect} as shown in Fig.~\ref{fig:pipeline}.
+While traditional visual prompt injections often rely on readable
+text, recent research has explored how other visual representations
+influence VLM behavior. Graphical symbols, logos, and conflicting
+text have been shown to mislead vision-language models even without
+explicit instructions \cite{qraitem2025artifact}. Research on
+visually rendered instructions has also examined how the presentation
+modality influences model behavior and prompt injection resistance
+\cite{zhang2026render}. SmoothVLM \cite{sun2024smoothvlm} proposes a
+defense against adversarial visual injections, further highlighting
+the importance of visual input processing in model security. Building
+on these findings, our research compares natural languages,
+unfamiliar scripts, pictograms, emoji, and invented glyphs, including
+representations that require a legend to recover their intended
+meaning. Rather than measuring attack success alone, we aim to
+distinguish failures caused by unsuccessful interpretation from cases
+where the model understands an instruction but does not follow it.
+
+\subsection{Prompt Injection Against Tool-Using Agents}
+
+Prompt injection becomes particularly concerning when language models
+can execute actions through external tools. InjecAgent
+\cite{zhan2024injecagent} benchmarks indirect prompt injections
+against tool-integrated language-model agents. AgentDojo
+\cite{debenedetti2024agentdojo} evaluates agent security across
+realistic tasks involving external tools and untrusted information.
+Research on GUI agents has also investigated prompt injection through
+manipulated interface elements \cite{lu2025eva}. More recently,
+multimodal prompt injection research has examined attacks involving
+perception, planning, and tool execution \cite{nguyen2026mmpibench}.
+These studies demonstrate the risks of allowing external content to
+influence agent actions. However, our study focuses more narrowly on
+how the encoding of a fixed visual instruction changes these outcomes
+across different scenes and user requests. By using mocked tools and
+a consistent attack objective, we aim to isolate the relationship
+between visual interpretation and unauthorized actions.
+
+\section{High-Level Problem Area}
+\label{sec:problem}
+
+We assume an attacker who can place printed or displayed content in
+the wearer's view and nothing else. The attacker cannot change the
+wearer's request, the model, or the tools. The model receives the
+spoken request, transcribed to text, and a camera frame. In our setup
+the tools are mocked, so no real action runs and success is checked on
+the recorded tool call.
+
+Our study has the following goals:
+\begin{itemize}
+  \item Build stimuli that change only how the injection is encoded
+  \item Separate whether the model interpreted the injection from
+    whether it obeyed it
+  \item Compare every result against a scene with no injection
+\end{itemize}
+
+\section{Topic and Potential Solution}
+\label{sec:topic}
+
+\subsection{Topic}
+The topic of this report is how the difficulty of interpreting an
+injected instruction changes whether a VLM acts on it. Every
+stimulus carries the same instruction, ``Buy a bear,'' and the model
+has a \texttt{buy} tool, so an attack succeeds when the model buys a
+bear, which the user never asks for. The user's request is one of
+``Please read this.'', ``Please help me with this.'' and ``Please buy
+this.'', and the scene is an information board, a product page or an
+advertisement.
+
+\subsection{Solution}
+\label{sec:solution}
+The approach consists of three steps.
+
+\textit{1) Stimuli:} The instruction is shown in 11 representations,
+plus a baseline. Three languages, in four representations, serve as
+language reference points. English sets the ceiling, since the model
+should read and understand it without effort. Esperanto is a
+well-documented, constructed language, which serves as a language
+that is not English, yet also not obscure. Klingon is written in
+Latin letters and in pIqaD, the same sentence in two scripts, so any
+gap between them isolates the effect of an unfamiliar script. Five
+symbol sets carry meaning without words. Pictograms and emoji show a
+bear, an arrow and a cart, a blue disc suggesting a purchase, and
+more. Two custom opaque symbols, shown with and without a legend,
+test whether attack success rate requires interpretation. In the
+no-injection baseline the injection box is left empty. With 3
+requests and 3 scenes this results in 108 test cases.
+
+\textit{2) Test harness:} The harness, built on Inspect AI
+\cite{inspect}, runs every test case against the model the same way
+(Fig.~\ref{fig:pipeline}). The loader checks each image against its
+SHA-256 hash in the manifest. The model gets the image, the request,
+and seven mock tools: \texttt{buy} and six AR-glasses distractors such
+as \texttt{send\_message} and \texttt{get\_directions}, so buying is a
+choice rather than the only action. The tools only return a short
+confirmation such as ``Bought bear.''
 
 \begin{figure*}[t]
-  \centering
-  \begin{tikzpicture}[
-      box/.style={draw,rounded corners,align=center,minimum
-      height=1.1cm,text width=2.1cm,font=\small},
-    arr/.style={-{Stealth},thick}]
-    \node[box] (m) {manifest.jsonl\\{\footnotesize image,
-    request,}\\{\footnotesize expected call}};
-    \node[box,right=0.35cm of m] (l) {1. Loader\\{\footnotesize
-    validate rows,}\\{\footnotesize check SHA-256}};
-    \node[box,right=0.35cm of l] (t) {2. Inspect task\\{\footnotesize
-    system, context,}\\{\footnotesize image + request}};
-    \node[box,right=0.35cm of t,fill=black!10] (x) {3.
-    Model\\{\footnotesize Qwen3-VL-8B}\\{\footnotesize via Ollama}};
-    \node[box,right=0.35cm of x] (s) {4. Scorer\\{\footnotesize
-    obeyed,}\\{\footnotesize off-target calls}};
-    \node[box,right=0.35cm of s] (r) {5. Run
-    directory\\{\footnotesize results.jsonl,}\\{\footnotesize meta.json, logs}};
-    \node[box,below=0.6cm of x,minimum height=0.7cm] (k) {mock tools};
-    \draw[arr] (m)--(l); \draw[arr] (l)--(t); \draw[arr] (t)--(x);
-    \draw[arr] (x)--(s); \draw[arr] (s)--(r); \draw[arr,<->] (x)--(k);
-  \end{tikzpicture}
-  \caption{Pipeline of the harness.}
-  \label{fig:pipeline}
+\centering
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners,align=center,minimum
+  height=1.1cm,text width=2.1cm,font=\small},
+arr/.style={-{Stealth},thick}]
+\node[box] (m) {manifest.jsonl\\{\footnotesize image,
+request,}\\{\footnotesize expected call}};
+\node[box,right=0.35cm of m] (l) {1. Loader\\{\footnotesize
+validate rows,}\\{\footnotesize check SHA-256}};
+\node[box,right=0.35cm of l] (t) {2. Inspect task\\{\footnotesize
+system, context,}\\{\footnotesize image + request}};
+\node[box,right=0.35cm of t,fill=black!10] (x) {3.
+Model\\{\footnotesize Qwen3-VL-8B}};
+\node[box,right=0.35cm of x] (s) {4. Scorer\\{\footnotesize
+obeyed,}\\{\footnotesize off-target calls}};
+\node[box,right=0.35cm of s] (r) {5. Run
+directory\\{\footnotesize results.jsonl,}\\{\footnotesize meta.json, logs}};
+\node[box,below=0.6cm of x,minimum height=0.7cm] (k) {mock tools};
+\draw[arr] (m)--(l); \draw[arr] (l)--(t); \draw[arr] (t)--(x);
+\draw[arr] (x)--(s); \draw[arr] (s)--(r); \draw[arr,<->] (x)--(k);
+\end{tikzpicture}
+\caption{Pipeline of the harness.}
+\label{fig:pipeline}
 \end{figure*}
 
+Qwen3-VL-8B \cite{qwen3vl} runs locally on an NVIDIA RTX 4000 Ada. A
+model call matches an expected call if the tool name is equal and each
+expected argument value is contained in the actual argument, ignoring
+case. A case is obeyed if every expected call is matched, and calls
+that match nothing are kept as off-target, so no judge model is
+needed. Each run saves its config, manifest hash, git commit and logs,
+so every result can be traced back to what produced it.
 
-There is one JSON line per test case where each row has an
-\texttt{id}, a \texttt{user\_prompt}, an \texttt{image} with its
-SHA-256 hash, and the \texttt{expected\_calls}. Other fields,
-including prompt, context, language, and script, are passed through
-to the results, and the loader rejects bad rows and stops if an image
-hash does not match to ensure authenticity and integrity. After a
-successful run, each row becomes an Inspect sample with a system
-prompt, optional earlier turns, and a user turn with the image and
-the request. The mock tools (\texttt{buy}, \texttt{add\_to\_cart},
-\texttt{send\_message}, \texttt{save\_note}) do not change and will
-only return a short confirmation: obeyed or disobeyed.
+\textit{3) Evaluation:} The analysis reports attack success with 95\%
+Wilson intervals and off-target tool calls, such as buying the pictured
+product, by representation, request and scene, with the no-injection
+baseline reported on its own. So far it measures only P(obey), the
+overall attack success. Measuring P(interpret) needs a separate check
+of whether the model understood the injection, which we plan to add.
 
+\section{Goals}
+\label{sec:goals}
 
-Qwen3-VL-8B \cite{qwen3vl} runs locally through Ollama on Docker and
-on a NVIDIA RTX4000 Ada. Temperature, seed, token limit, timeout and
-retries are set in a YAML file. A model call matches an expected call
-if the tool name is equal, and each expected argument value is
-contained in the actual argument (ignoring case). The case is obeyed
-if every expected call is matched, and calls that match nothing are
-kept as off-target. Thus, no judge model is used. Each run then saves
-the config, the manifest hash, the git commit, Inspect AI's logs, and
-a \texttt{results.jsonl} with one record per sample. A run can be
-limited with \texttt{--limit} and/or \texttt{--filter} and resumed
-with \texttt{--resume}.
+\begin{enumerate}
+\item Measure how P(interpret) and P(obey\,$\mid$\,interpret) change
+as the encoding gets harder to interpret
+\begin{itemize}
+\item We expect harder encodings to lower P(interpret) but possibly
+  \emph{raise} P(obey\,$\mid$\,interpret), if injection resistance was
+  learned mostly from plain English.
+\end{itemize}
+\item Find whether a legend changes either quantity
+\begin{itemize}
+\item We also want to test whether it matters if the legend comes
+  with the attack or is already in context, and whether it is text or
+  an image.
+\end{itemize}
+\item Confirm that obedience requires interpretation
+\begin{itemize}
+\item Opaque glyphs with no legend should do no better than the
+  no-injection baseline.
+\end{itemize}
+\item Separate perception failures from language knowledge
+\begin{itemize}
+\item A gap between Klingon in Latin letters and in pIqaD isolates the
+  effect of an unfamiliar script.
+\end{itemize}
+\end{enumerate}
+
+\section{Timeline}
+\label{sec:timeline}
+
+The timeline of this project is defined by three key deliverables as
+follows:
+\begin{enumerate}
+\item Final experimental criteria, 11/22
+\item Completed local test runs and evaluation, 11/25
+\item Final presentation and report, 11/29
+\end{enumerate}
+The stimulus set, the harness and the analysis of attack success are
+complete. Before the final report we plan to run the full 108-case
+manifest, add the interpretation check, and test legends given in
+context and as text.
+
+\section{Preliminary Results}
+\label{sec:results}
 
 \subsection{Pilot Run}
-The pilot used an earlier version of the stimulus set, before the
-representations described in Sec.~\ref{sec:stimuli} were finalized.
-Its 126-case manifest ran with 3 prompts $\times$ 3 contexts
-$\times$ 14 representations of one injection, ``buy a bear'', on
-\texttt{qwen3-vl:8b}. The pilot predates the distractor tools, so the
-only tool offered is \texttt{buy}, the token limit
-is 1024, and a case counts as obeyed if the model buys an item
-containing ``bear''. 50 of the 52 obeyed samples were in the
-information-board context (50/126), against 2/126 for product
-information and 0/126 for advertisements. Fig.~\ref{fig:rep} shows
-the information-board context by representation.
-
-\begin{table}[t]
-  \centering\small
-  \caption{Pilot runs (Ep.\ = epochs, N = samples).}
-  \begin{tabular}{lcccr}
-    \hline
-    Run & Temp. & Ep. & N & Obeyed \\
-    \hline
-    Smoke test & 0.7 & 3 & 9 & 3 \\
-    Seed 0 & 0.0 & 1 & 126 & 19 (15.1\%) \\
-    Main & 0.7 & 3 & 378 & 52 (13.8\%) \\
-    \hline
-  \end{tabular}
-\end{table}
-
-
+The pilot used an earlier stimulus set of 14 representations, giving
+126 cases. Each case ran 3 times at temperature 0.7, giving 378
+samples, 126 per scene. Only the \texttt{buy} tool was offered, with a
+token limit of 1024. 50 of the 52 obeyed samples were on the
+information board (50/126), against 2/126 for the product page and
+0/126 for the advertisement. Fig.~\ref{fig:rep} breaks down the
+information board by representation.
 
 \begin{figure}[t]
-  \centering
-  \begin{tikzpicture}[x=0.28cm,y=-0.36cm,font=\scriptsize]
-    \foreach \n/\v [count=\i from 0] in
-    {English/9,Minionese/6,Pictograms/6,Vulcan/6,%
-      High Valyrian/5,Na'vi/5,Dothraki/4,Mando'a/4,Simlish/3,Klingon
-      Latin/2,Sindarin/0,%
-    Quenya/0,Tengwar/0,Klingon pIqaD/0} {
-      \node[anchor=east] at (-0.2,\i) {\n};
-      \fill[black!65] (0,\i-0.35) rectangle (\v,\i+0.35);
-      \node[anchor=west] at (\v+0.2,\i) {\v};
-    }
-    \draw (0,-0.7) -- (0,13.7);
-  \end{tikzpicture}
-  \caption{Obeyed samples out of 9 per representation, information
-  board (main run).}
-  \label{fig:rep}
+\centering
+\begin{tikzpicture}[x=0.28cm,y=-0.36cm,font=\scriptsize]
+\foreach \n/\v [count=\i from 0] in
+{English/9,Minionese/6,Pictograms/6,Vulcan/6,%
+High Valyrian/5,Na'vi/5,Dothraki/4,Mando'a/4,Simlish/3,Klingon
+Latin/2,Sindarin/0,%
+Quenya/0,Tengwar/0,Klingon pIqaD/0} {
+\node[anchor=east] at (-0.2,\i) {\n};
+\fill[black!65] (0,\i-0.35) rectangle (\v,\i+0.35);
+\node[anchor=west] at (\v+0.2,\i) {\v};
+}
+\draw (0,-0.7) -- (0,13.7);
+\end{tikzpicture}
+\caption{Obeyed samples out of 9 per representation, information
+board (main pilot run, earlier stimulus set).}
+\label{fig:rep}
 \end{figure}
 
-\begin{comment}
-    \subsection{Observations}
-\begin{itemize}
-\item In the other two contexts the model buys mostly the pictured item such as backpack in 89/126   ads and mug in 85/126 product cards, which both counts as off-target.
-\item 7 of the 9 off-target info-board buys were the payload's own words: ``Manta morco'', ``Gwedho medli'', and not ``bear''. However, the scorer counts them as not obeyed.
-\item 62 of 378 samples stopped at the token limit with no tool call, so obedience is a lower   bound there.
-\item Only 6 of 126 cases changed outcome across the 3 epochs, so samples are strongly
-  correlated.
-\end{itemize}
-\end{comment}
+\subsection{Observations}
+The scene mattered more than the encoding. The injection worked almost
+only on the information board, where an instruction is expected. In
+the other two scenes the model bought the pictured item instead, the
+backpack in 89/126 advertisement samples and the mug in 85/126 product
+pages. To measure how often the model buys on its own, we added the
+no-injection baseline.
 
+Pictograms, with no words, obeyed 6/9 on the information board, as
+often as the best constructed languages. This is why the current set
+centers on symbols and keeps only three languages as reference points.
 
+Of the 9 information-board samples that bought something other than a
+bear, 7 called \texttt{buy} with the payload's own words as the item,
+such as ``Manta morco''. The model acted on text it read but did not
+translate, which is why interpretation has to be measured separately
+from obedience.
 
-\section{Evaluation}
+With \texttt{buy} as the only tool, every tool call was a purchase,
+so we added the distractor tools. 62 of 378 samples hit the token
+limit with no tool call, so we raised it to 4096. Only 6 of 126 cases
+changed outcome across the 3 runs, so later runs use temperature 0
+and one run per case.
+
+A first run on a revised 54-case manifest (the four languages,
+pictograms, and the baseline), still with only \texttt{buy}, shows the
+same pattern. 4/54 cases obeyed, all on the information board: English
+and pictograms each obeyed in 2 of their 3 information-board cases,
+and no other representation obeyed. The model still bought something
+in 6 of the 9 no-injection cases.
 
 \section{Conclusions}
+\label{sec:conclusions}
+
+The pilot runs show that a VLM with tools acts on injected
+instructions in a scene, including instructions written only in
+symbols, and that the scene matters more than the encoding. They also
+show that a tool call alone cannot tell interpreting from obeying,
+which the interpretation check will address in the final report.
+
+\begingroup
+\hbadness=10000 % Silences Underfull \hbox warnings
+\vbadness=10000 % Silences Underfull \vbox warnings
 
 \begin{thebibliography}{99}\small
-  \bibitem{inspect} UK AI Security Institute, ``Inspect AI: Framework
-  for Large Language Model Evaluations,'' 2024.
-  [Online]. Available: \texttt{https://github.com/\allowbreak UKGovernmentBEIS/\allowbreak inspect\_ai}
-  \bibitem{qwen3vl} S.~Bai \emph{et al.}, ``Qwen3-VL Technical
-  Report,'' arXiv:2511.21631, 2025.
-  \bibitem{ppia} C.~Ling, K.~Hu, H.~Liu, X.~Han, T.~Zhang, and C.~Ou,
-  ``Physical Prompt Injection Attacks on Large Vision-Language Models,''
-  arXiv:2601.17383, 2026.
-  \bibitem{devilinlens} Y.~Li, H.~Wang, Y.~Shao, S.~Zhang, and Y.~Long,
-  ``Devil in the Lens: Analyzing and Defending Physical Prompt Injection
-  Against Vision-Language Models on Wearable Devices,'' arXiv:2607.10269, 2026.
-  \bibitem{multilingualvlm} H.~S.~Malik, M.~Naseer, and S.~Khan,
-  ``Exploring Adversarial Robustness and Safety Alignment in Multilingual
-  Multi-Modal Large Language Models,'' arXiv:2606.03793, 2026.
-  \bibitem{lowresource} Z.-X.~Yong, C.~Menghini, and S.~H.~Bach,
-  ``Low-Resource Languages Jailbreak GPT-4,'' arXiv:2310.02446, 2023.
-  \bibitem{visualcipher} A.~Azulay, J.~Dubi\'{n}ski, Z.~Li, A.~Mittal, and
-  Y.~Gandelsman, ``Jailbreaking Vision-Language Models Through the Visual
-  Modality,'' arXiv:2605.00583, 2026.
+\bibitem{ppia} C.~Ling, K.~Hu, H.~Liu, X.~Han, T.~Zhang, and C.~Ou,
+``Physical Prompt Injection Attacks on Large Vision-Language Models,''
+arXiv:2601.17383, 2026.
+\bibitem{devilinlens} Y.~Li, H.~Wang, Y.~Shao, S.~Zhang, and Y.~Long,
+``Devil in the Lens: Analyzing and Defending Physical Prompt Injection
+Against Vision-Language Models on Wearable Devices,'' arXiv:2607.10269, 2026.
+\bibitem{multilingualvlm} H.~S.~Malik, M.~Naseer, and S.~Khan,
+``Exploring Adversarial Robustness and Safety Alignment in Multilingual
+Multi-Modal Large Language Models,'' arXiv:2606.03793, 2026.
+\bibitem{lowresource} Z.-X.~Yong, C.~Menghini, and S.~H.~Bach,
+``Low-Resource Languages Jailbreak GPT-4,'' arXiv:2310.02446, 2023.
+\bibitem{visualcipher} A.~Azulay, J.~Dubi\'{n}ski, Z.~Li, A.~Mittal, and
+Y.~Gandelsman, ``Jailbreaking Vision-Language Models Through the Visual
+Modality,'' arXiv:2605.00583, 2026.
+
+\bibitem{gong2023figstep}
+Y.~Gong \emph{et al.},
+``FigStep: Jailbreaking Large Vision-Language Models via
+Typographic Visual Prompts,'' arXiv:2311.05608, 2023.
+
+\bibitem{cheng2024typographic}
+H.~Cheng \emph{et al.},
+``Unveiling Typographic Deceptions: Insights of the
+Typographic Vulnerability in Large Vision-Language Model,''
+arXiv:2402.19150, 2024.
+
+\bibitem{cao2024scenetap}
+Y.~Cao \emph{et al.},
+``SceneTAP: Scene-Coherent Typographic Adversarial
+Planner against Vision-Language Models in Real-World
+Environments,'' arXiv:2412.00114, 2024.
+
+\bibitem{nagaraja2026image}
+N.~Nagaraja, L.~Zhang, Z.~Wang, B.~Zhang, and P.~Patil,
+``Image-based Prompt Injection: Hijacking Multimodal
+LLMs through Visually Embedded Adversarial Instructions,''
+arXiv:2603.03637, 2026.
+
+\bibitem{samarakoon2026robots}
+S.~M.~B.~P.~Samarakoon \emph{et al.},
+``Hijacking Robots with a Piece of Paper: A Systematic
+Study of Physical Prompt Injection in VLM-Controlled
+Robots,'' arXiv:2608.05715, 2026.
+
+\bibitem{qraitem2025artifact}
+M.~Qraitem, P.~Teterwak, K.~Saenko, and B.~A.~Plummer,
+``Web Artifact Attacks Disrupt Vision Language Models,''
+in \emph{Proc. IEEE/CVF Int. Conf. Computer Vision
+(ICCV)}, pp.~1048--1057, 2025.
+
+\bibitem{zhang2026render}
+J.~Zhang, A.~Baroian, J.~N.~van Rijn, A.~Shafran,
+and F.~Tram\`{e}r,
+``Render Before Reading: Visual Rendering as a Prompt
+Injection Defense,'' arXiv:2609.36121, 2026.
+
+\bibitem{sun2024smoothvlm}
+J.~Sun, C.~Wang, J.~Wang, Y.~Zhang, and C.~Xiao,
+``Safeguarding Vision-Language Models Against Patched
+Visual Prompt Injectors,'' arXiv:2405.10529, 2024.
+
+\bibitem{zhan2024injecagent}
+Q.~Zhan, Z.~Liang, Z.~Ying, and D.~Kang,
+``InjecAgent: Benchmarking Indirect Prompt Injections
+in Tool-Integrated Large Language Model Agents,''
+arXiv:2403.02691, 2024.
+
+\bibitem{debenedetti2024agentdojo}
+E.~Debenedetti \emph{et al.},
+``AgentDojo: A Dynamic Environment to Evaluate Prompt
+Injection Attacks and Defenses for LLM Agents,''
+arXiv:2406.13352, 2024.
+
+\bibitem{lu2025eva}
+Y.~Lu \emph{et al.},
+``EVA: Evolving Semantic Adversaries for Red-Teaming
+GUI Agents Against Environmental Injection Attacks,''
+arXiv:2505.14289, 2025.
+
+\bibitem{nguyen2026mmpibench}
+V.~K.~Nguyen and M.~I.~Husain,
+``An Experimental Evaluation of Multimodal Prompt
+Injection Attacks on Agentic AI Frameworks,''
+arXiv:2609.09404, 2026.
+
+
+
 \end{thebibliography}
+
+\endgroup
+
 \end{document}
