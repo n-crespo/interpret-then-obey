@@ -40,6 +40,7 @@ just run harness/configs/qwen3vl-8b-ollama.yaml --limit 5   # try a few rows fir
 just run harness/configs/qwen3vl-8b-ollama.yaml             # full manifest
 just run --resume runs/<date>_qwen3vl-8b-ollama             # if some rows errored
 just analyze runs/<date>_qwen3vl-8b-ollama                  # interactive plot + LaTeX tables
+just report runs/<date>_qwen3vl-8b-ollama                   # figures + README.md for GitHub (commit with the run)
 inspect view --log-dir runs/<date>_qwen3vl-8b-ollama/inspect_logs
 ```
 

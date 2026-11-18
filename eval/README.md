@@ -22,4 +22,19 @@ Only P(obey) is measured. P(interpret) and P(obey | interpret) need a per-trial
 label of whether the model understood the payload (`docs/proposal.md`), and nothing
 produces one yet.
 
+## Run summary for GitHub
+
+```bash
+just report runs/<date>_<name>      # = python eval/run_report.py runs/<date>_<name>
+```
+
+`run_report.py` reads the run's `results.jsonl`, `meta.json` and `config.yaml` and writes
+`figures/` (outcome of every sample, obey rate by representation, tool calls) and the
+generated block of the run's `README.md`, between the `run_report` markers. A missing
+README is created from a template. The takeaways, caveats and changes planned because of
+the run are written by hand below the block; rerunning the script keeps them.
+
+Every run committed under `runs/` gets this README, in the same PR as the run, so the run
+can be read without opening Inspect. Commit `figures/` and `README.md` with the run.
+
 Tests: `python -m pytest eval/tests -q` (part of `just test`).

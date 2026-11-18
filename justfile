@@ -35,3 +35,7 @@ run-dry *args:
 # Interactive plot + LaTeX tables for a harness run -> runs/<dir>/analysis/: `just analyze runs/<dir>`
 analyze run_dir:
     {{ python }} eval/analyze_results.py {{ run_dir }}
+
+# Figures + the generated part of runs/<dir>/README.md, for reading a run on GitHub: `just report runs/<dir>`
+report +run_dirs:
+    {{ python }} eval/run_report.py {{ run_dirs }}
