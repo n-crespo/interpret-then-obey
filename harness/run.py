@@ -129,6 +129,7 @@ def main(argv=None):
     n = export_results(_logs(run_dir), run_dir / "results.jsonl")
     print(f"\n{n} rows -> {run_dir}/results.jsonl")
     print(f"view logs: inspect view --log-dir {run_dir}/inspect_logs")
+    print(f"before committing the run: just report {run_dir}, then write the takeaways in {run_dir}/README.md")
 
 
 if __name__ == "__main__":
