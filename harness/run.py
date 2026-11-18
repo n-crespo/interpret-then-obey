@@ -129,7 +129,19 @@ def main(argv=None):
     n = export_results(_logs(run_dir), run_dir / "results.jsonl")
     print(f"\n{n} rows -> {run_dir}/results.jsonl")
     print(f"view logs: inspect view --log-dir {run_dir}/inspect_logs")
-    print(f"before committing the run: just report {run_dir}, then write the takeaways in {run_dir}/README.md")
+    _report(run_dir)
+
+
+def _report(run_dir: Path) -> None:
+    """Write the run's figures and the generated part of its README (eval/run_report.py).
+    A failure here only warns: the run itself is already saved."""
+    try:
+        from eval.run_report import report
+
+        report(run_dir)
+        print(f"before committing the run: write the takeaways in {run_dir}/README.md")
+    except Exception as e:  # e.g. matplotlib missing (eval/requirements.txt)
+        print(f"warning: no run report ({type(e).__name__}: {e}); run `just report {run_dir}` once it is fixed")
 
 
 if __name__ == "__main__":

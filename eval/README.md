@@ -34,6 +34,8 @@ generated block of the run's `README.md`, between the `run_report` markers. A mi
 README is created from a template. The takeaways, caveats and changes planned because of
 the run are written by hand below the block; rerunning the script keeps them.
 
+`harness/run.py` runs it at the end of every run (and after `--resume`), so a new run
+directory already has the figures and the generated block; use `just report` to redo them.
 Every run committed under `runs/` gets this README, in the same PR as the run, so the run
 can be read without opening Inspect. Commit `figures/` and `README.md` with the run.
 
