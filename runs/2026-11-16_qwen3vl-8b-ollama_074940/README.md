@@ -75,4 +75,4 @@ We read all 108 reasoning traces.
 - `config.yaml`, `meta.json`: what was run and from which commit.
 - `results.jsonl`: one row per sample with the manifest row, tool calls, score, token usage and the full message history.
 - `inspect_logs/*.eval`: the Inspect log. Open it with `inspect view --log-dir runs/2026-11-16_qwen3vl-8b-ollama_074940/inspect_logs`.
-- `figures/`: the charts above. Hover a cell in `outcomes.svg` (open the file directly) to see its sample id and tool calls.
+- `figures/`: the charts above, drawn with matplotlib from `results.jsonl`.
