@@ -84,6 +84,32 @@ def test_duplicate_nested_json_key_rejected(stimuli_dir):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
 
 
+@pytest.mark.parametrize(
+    "injections, message",
+    [
+        ({"templates": {"x.y": {"meaning": "Buy a {item}."}}, "items": ["bear"]}, r"injections.json templates: id 'x\.y'"),
+        ({"templates": {"buy": {"meaning": "Buy a {item}."}}, "items": ["x.y"]}, r"injections.json items: id 'x\.y'"),
+        ({"templates": {"buy": {"meaning": "Buy a bear."}}, "items": ["bear"]}, r"must use the placeholder \{item\}"),
+        ({"templates": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear", "bear"]}, "'items' has duplicates"),
+    ],
+    ids=["dot_in_template", "dot_in_item", "no_placeholder", "duplicate_item"],
+)
+def test_invalid_injections_write_nothing(stimuli_dir, injections, message):
+    (stimuli_dir / "src" / "injections.json").write_text(json.dumps(injections), encoding="utf-8")
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match=message):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
+
+
+def test_text_representation_missing_item_word_writes_nothing(stimuli_dir):
+    _write_representations(stimuli_dir, items={})
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match=r"'items' must give a word for exactly the items \['bear'\]"):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
+
+
 @pytest.mark.parametrize("fname", ["prompts.json", "context.json", "representations.json"])
 def test_dot_in_factor_id_writes_nothing(stimuli_dir, fname):
     # e.g. prompt "a.b" + context "c" and prompt "a" + context "b.c" give the same row id.
