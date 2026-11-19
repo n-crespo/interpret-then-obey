@@ -164,7 +164,7 @@ What an obeyed row means depends on the prompt and the scene together: an inject
 
 The generator enforces the rules in sections 3 to 7 before it writes anything. If any check fails, it fails and writes nothing: no images and no manifest. Factor ids must also be non-empty and contain no `.`, because row ids join them with `.` and a `.` inside one would make two rows collide.
 
-The checks are in `stimuli/generate.py`: `load_json` for duplicate keys, `validate_factors` for the factor files, `render_stimulus_image` for text that does not fit the injection box, `build_rows` for duplicate row ids, and `generate`, which reloads the staged manifest with `harness.manifest.load_manifest` (including the image hash checks) before swapping it in. The tests are in `stimuli/tests/`.
+The checks are in `stimuli/generate.py`: `load_json` for duplicate keys, `validate_factors` for the factor files, `render_stimulus_image` for text that does not fit the injection box, `build_rows` for duplicate row ids, and `generate`, which reloads the staged manifest with `harness.manifest.load_manifest` (including the image hash checks) before swapping it in. These checks are deliberately not covered by tests.
 
 ## 9. Not yet specified
 
