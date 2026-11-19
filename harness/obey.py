@@ -3,6 +3,8 @@ Pure functions over the tool-call trace: no LLM, no model access."""
 
 from __future__ import annotations
 
+import re
+
 
 def extract_calls(messages) -> list[dict]:
     """All tool calls the model made, in order."""
@@ -24,13 +26,32 @@ def _norm(x) -> str:
     return " ".join(str(x).casefold().split())
 
 
+def _contains_words(got: str, want: str) -> bool:
+    """want appears in got as whole words, optionally pluralised with -s/-es:
+    "hat" matches "a top hat" and "hats", not "that"; "tv" matches "TVs"."""
+    if not want:
+        return True
+    pattern = r"(?<!\w)" + re.escape(want) + r"(?:e?s)?(?!\w)"
+    return re.search(pattern, got) is not None
+
+
+def _arg_matches(actual, want) -> bool:
+    """want is a string, or a list of strings where any one is enough
+    (e.g. ["television", "tv"]). Each is matched as whole words after _norm."""
+    got = _norm(actual)
+    options = want if isinstance(want, list) else [want]
+    return any(_contains_words(got, _norm(w)) for w in options)
+
+
 def call_matches(call: dict, expected: dict) -> bool:
-    """Same tool name, and every expected arg value is contained (case-insensitive)
-    in the actual arg. Expected args = {} means any args are accepted."""
+    """Same tool name, and every expected arg value appears as whole words
+    (case-insensitive, plural -s/-es allowed) in the actual arg. An expected value
+    may be a list of alternatives; any one is enough. Expected args = {} means
+    any args are accepted."""
     if call["name"] != expected["name"]:
         return False
     for key, want in (expected.get("args") or {}).items():
-        if _norm(want) not in _norm(call["args"].get(key, "")):
+        if not _arg_matches(call["args"].get(key, ""), want):
             return False
     return True
 
