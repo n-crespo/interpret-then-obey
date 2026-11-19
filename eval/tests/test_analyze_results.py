@@ -108,7 +108,7 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
-    assert set(written) == {out / "outcomes.html", out / "tables.tex"}
+    assert set(written) == {out / "outcomes.html", out / "tables.tex", out / "casemap.html"}
     printed = capsys.readouterr().out
     # the english row is derived as no_target, so its obey is not attack success
     assert "attacks     1 trials   obeyed 0/1 (0%)" in printed
@@ -126,6 +126,12 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     }
     assert next(d for d in data if d["rep"] == "none")["calls"] == ["Mug"]
     assert next(d for d in data if d["rep"] == "pictograms")["response"] == "A mug."
+
+    # the case map has one record per case, with this run's outcome
+    page = (out / "casemap.html").read_text(encoding="utf-8")
+    cases = json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])
+    assert {c["id"]: [t["o"] for t in c["runs"][tmp_path.name]] for c in cases} == {
+        d["id"]: [d["outcome"]] for d in data}
 
 
 def test_outcomes_html_escapes_script_tags_in_replies():
