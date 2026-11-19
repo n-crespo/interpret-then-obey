@@ -6,11 +6,12 @@ name: stimuli determinism
 on:
   push:
     branches: [main]
-  pull_request:
-    paths:
+    paths: &stimuli-paths
       - "stimuli/**"
       - "harness/manifest.py"
       - ".github/workflows/stimuli-determinism.yml"
+  pull_request:
+    paths: *stimuli-paths
 
 permissions:
   contents: read

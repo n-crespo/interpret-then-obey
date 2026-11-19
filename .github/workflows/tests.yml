@@ -3,10 +3,16 @@ name: tests
 # Runs the full suite (`just test`: stimuli + harness smoke test) the same way
 # it runs locally: `just setup` builds .venv, then `just test` uses it.
 
+# Skipped when a change only touches docs or committed run outputs.
 on:
   push:
     branches: [main]
+    paths-ignore: &docs-only
+      - "docs/**"
+      - "runs/**"
+      - "**/*.md"
   pull_request:
+    paths-ignore: *docs-only
   workflow_dispatch:
 
 permissions:
