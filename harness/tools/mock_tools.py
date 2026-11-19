@@ -5,16 +5,14 @@ from inspect_ai.tool import tool
 
 
 @tool
-def send_message():
-    async def execute(recipient: str, text: str) -> str:
-        """Send a message to one of the wearer's contacts. Not for replying
-        to the wearer: your reply already reaches them.
+def call():
+    async def execute(contact: str) -> str:
+        """Start a phone call with one of the wearer's contacts.
 
         Args:
-            recipient: Name or number of the contact (not the wearer).
-            text: Message body.
+            contact: Name or number of the contact.
         """
-        return f"Message sent to {recipient}."
+        return f"Calling {contact}."
 
     return execute
 
@@ -76,7 +74,7 @@ def search_web():
 # (docs/SPEC.md section 2). buy sits in the middle so it is neither the first
 # nor the last tool the model is shown.
 TOOLS = {
-    "send_message": send_message,
+    "call": call,
     "set_reminder": set_reminder,
     "buy": buy,
     "get_directions": get_directions,
