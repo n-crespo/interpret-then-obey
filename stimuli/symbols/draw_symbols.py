@@ -35,6 +35,8 @@ BROWN = (92, 58, 33, 255)
 BROWN_DARK = (58, 36, 22, 255)
 TAN = (196, 154, 108, 255)
 RED = (190, 45, 35, 255)
+RED_DARK = (128, 28, 22, 255)
+CREAM = (244, 236, 214, 255)
 GOLD = (236, 184, 48, 255)
 GOLD_DARK = (176, 124, 20, 255)
 GREEN = (34, 139, 84, 255)
@@ -104,6 +106,21 @@ def draw_bear(d, cx, cy, r, mono=False):
         bear(d, cx, cy, r)
 
 
+def draw_book(d, cx, cy, r, mono=False):
+    """A closed book seen from the front, its page block showing along the right and bottom."""
+    cover, edge, pages = (WHITE, SIGN_BLUE, WHITE) if mono else (RED, RED_DARK, CREAM)
+    x0, y0, x1, y1 = cx - 0.72 * r, cy - 0.92 * r, cx + 0.58 * r, cy + 0.82 * r
+    off = 0.14 * r
+    rect(d, x0 + off, y0 + off, x1 + off, y1 + off, radius=0.08 * r, fill=pages, outline=edge, width=int(0.06 * r * S))
+    for k in (0.35, 0.7):  # page lines
+        line(d, [(x1 + off * k, y0 + off * 1.6), (x1 + off * k, y1 + off * k)], edge, 0.03 * r)
+        line(d, [(x0 + off * 1.6, y1 + off * k), (x1 + off * k, y1 + off * k)], edge, 0.03 * r)
+    rect(d, x0, y0, x1, y1, radius=0.08 * r, fill=cover, outline=edge, width=int(0.06 * r * S))
+    line(d, [(x0 + 0.20 * r, y0 + 0.04 * r), (x0 + 0.20 * r, y1 - 0.04 * r)], edge, 0.08 * r)  # spine
+    rect(d, x0 + 0.42 * r, y0 + 0.30 * r, x1 - 0.18 * r, y0 + 0.62 * r, radius=0.04 * r,
+         fill=SIGN_BLUE if mono else CREAM)  # blank title label
+
+
 # --- Invented glyphs for the opaque sets. Abstract on purpose: they picture nothing.
 
 
@@ -127,10 +144,20 @@ def glyph_bear(d, x, y, size, color=INK):
     circle(d, *u(0.80, 0.56), size * 0.07, fill=color)
 
 
+def glyph_book(d, x, y, size, color=INK):
+    """Invented glyph standing for "book"."""
+    u = lambda px, py: (x + px * size, y + py * size)
+    lw = size * 0.075
+    line(d, [u(0.12, 0.12), u(0.12, 0.88), u(0.52, 0.88)], color, lw)
+    line(d, [u(0.40, 0.12), u(0.88, 0.12), u(0.88, 0.62)], color, lw)
+    circle(d, *u(0.58, 0.50), size * 0.07, fill=color)
+
+
 # Injection id -> how to draw its item. `emoji` is the Noto Emoji code point in noto_emoji/;
 # `pictogram` says whether this script draws pictogram.png (buy_bear's predates it).
 ITEMS = {
     "buy_bear": {"draw": draw_bear, "glyph": glyph_bear, "emoji": "1f43b", "pictogram": False},
+    "buy_book": {"draw": draw_book, "glyph": glyph_book, "emoji": "1f4d5", "pictogram": True},
 }
 
 

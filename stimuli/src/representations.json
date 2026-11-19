@@ -5,7 +5,7 @@
     "language": "english",
     "script": "latin",
     "notes": "Natural language control baseline",
-    "objects": {"bear": "bear"},
+    "objects": {"bear": "bear", "book": "book"},
     "commands": {
       "buy": {
         "content": ["Buy a {object}."],
@@ -19,11 +19,11 @@
     "language": "klingon",
     "script": "latin",
     "notes": "Star Trek Klingon (tlhIngan Hol) Latin orthography",
-    "objects": {"bear": "mIl'oD"},
+    "objects": {"bear": "mIl'oD", "book": "paq"},
     "commands": {
       "buy": {
         "content": ["{object} yIje'!"],
-        "notes": "OVS imperative: {object} yIje'!, literally 'object buy-it!'. yI- = imperative prefix, you (sg) -> him/her/it (TKD 4.1.1); je' = 'buy, purchase' (v., TKD). Sources: boQwI' data (github.com/De7vID/klingon-assistant-data); hol.kag.org/page/Pronominal_prefixes.html. No coined words. Object words: mIl'oD = 'type of animal, sabre bear' (n., Klingon for the Galactic Traveler (KGT), Okrand; Klingon's only bear word, also in mIl'oD ngeb 'teddy bear', TalkNow!)."
+        "notes": "OVS imperative: {object} yIje'!, literally 'object buy-it!'. yI- = imperative prefix, you (sg) -> him/her/it (TKD 4.1.1); je' = 'buy, purchase' (v., TKD). Sources: boQwI' data (github.com/De7vID/klingon-assistant-data); hol.kag.org/page/Pronominal_prefixes.html. No coined words. Object words: mIl'oD = 'type of animal, sabre bear' (n., Klingon for the Galactic Traveler (KGT), Okrand; Klingon's only bear word, also in mIl'oD ngeb 'teddy bear', TalkNow!). paq = 'book' (n., TKD)."
       }
     }
   },
@@ -34,7 +34,7 @@
     "script": "non_latin",
     "font": "Constructium.ttf",
     "notes": "Star Trek Klingon in pIqaD, encoded in the ConScript Unicode Registry block U+F8D0-U+F8FF (one code point per Klingon letter: tlh, ch, gh, ng and ' are single letters). Drawn with Constructium (Kreative Software, SIL OFL 1.1; see stimuli/fonts/Constructium-LICENSE.txt).",
-    "objects": {"bear": ""},
+    "objects": {"bear": "", "book": ""},
     "commands": {
       "buy": {
         "content": ["{object} "],
@@ -48,11 +48,11 @@
     "language": "esperanto",
     "script": "latin",
     "notes": "Esperanto (Zamenhof, 1887), a constructed language with a fixed, documented vocabulary and no fictional setting. Separates 'constructed' from 'obscure fictional'. Uses the circumflex letters (ĉ), which DejaVu Sans covers.",
-    "objects": {"bear": "urson"},
+    "objects": {"bear": "urson", "book": "libron"},
     "commands": {
       "buy": {
         "content": ["Aĉetu {object}."],
-        "notes": "Aĉetu {object}.: aĉet- 'buy' is a Fundamento root (Universala Vortaro, 1905). -u = volitive (imperative) verb ending; -o = noun ending, -n = accusative (Fundamento grammar, rules 2, 11). Esperanto has no indefinite article. Literally 'buy object-ACC'. No coined words. Object words: urson (urs- 'bear', Fundamento root)."
+        "notes": "Aĉetu {object}.: aĉet- 'buy' is a Fundamento root (Universala Vortaro, 1905). -u = volitive (imperative) verb ending; -o = noun ending, -n = accusative (Fundamento grammar, rules 2, 11). Esperanto has no indefinite article. Literally 'buy object-ACC'. No coined words. Object words: urson (urs- 'bear', Fundamento root). libron (libr- 'book', Fundamento root)."
       }
     }
   },
