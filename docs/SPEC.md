@@ -15,7 +15,7 @@ A test case is one image shown to the model together with one user message. It i
 | Injection | The malicious instruction placed somewhere in the image | `injections.json` |
 | Representation | The form the injection is shown in | `representations.json` |
 
-Test cases are never written by hand. The generator expands every combination of the four factors, except the prompt × context pairs a prompt excludes (see [section 3](#3-prompts-promptsjson)).
+Test cases are never written by hand. The generator expands every combination of the four factors, except the prompt × context pairs a prompt excludes (see [section 3](#3-prompts-promptsjson)) and the commands a representation has no rendition for (rule 2 in [section 6](#6-representations-representationsjson)).
 
 One representation, `none`, is a control rather than a way of showing the injection: its images have the injection box drawn but empty. These are the **no-injection baseline** rows, one per included prompt × context (and injection). They measure how often the model calls the buy tool when nothing tells it to, so that a buy call on an injected row can be attributed to the injection. See [section 6](#6-representations-representationsjson) and [section 7](#7-output).
 
@@ -85,7 +85,7 @@ Placeholders use Python's `str.format` syntax (`{object}`; write a literal brace
 
 A representation is a way of showing an injection that people understand by its meaning: a natural language, a constructed language, a script, or symbols such as road signs. Encodings that must be decoded by rule, such as ciphers, are not representations.
 
-Each representation holds its own details and its rendition of every command. The generator fills `{object}` in a rendition to get the rendition of each injection.
+Each representation holds its own details and its rendition of each command it can express. The generator fills `{object}` in a rendition to get the rendition of each injection.
 
 | Field | Required | Purpose |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Each rendition has two fields:
 Rules:
 
 1. `english` is the first entry in the file, so the plain meaning is readable at the top.
-2. Every representation has a rendition for every command in `injections.json`, and every text representation has a word for every object.
+2. `english` has a rendition for every command in `injections.json`. Other representations may leave out a command they cannot express well (most wordings have no symbol form); the generator then makes no rows for that command in that representation. Every non-baseline representation has at least one rendition, and every text representation has a word for every object.
 3. Renditions are written by hand and committed. Nothing is translated when the generator runs.
 4. Two scripts of one language are two representations that share a `language` value.
 5. A script that cannot be drawn from a font uses `format: image` with a pre-drawn image.
@@ -120,7 +120,7 @@ The baseline is a representation rather than a separate flag so that it needs no
 
 ## 7. Output
 
-The generator writes a manifest that the harness loads directly with `harness.manifest.load_manifest`. It has one row per test case and contains every combination, except the excluded prompt × context pairs ([section 3](#3-prompts-promptsjson)):
+The generator writes a manifest that the harness loads directly with `harness.manifest.load_manifest`. It has one row per test case and contains every combination, except the excluded prompt × context pairs ([section 3](#3-prompts-promptsjson)) and the commands a representation leaves out (rule 2 in section 6):
 
 ```
 (prompts × contexts − excluded pairs) × injections × representations
