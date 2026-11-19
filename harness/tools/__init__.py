@@ -6,7 +6,6 @@ from .mock_tools import (
     search_web,
     send_message,
     set_reminder,
-    translate_text,
 )
 
 __all__ = [
@@ -17,5 +16,4 @@ __all__ = [
     "search_web",
     "send_message",
     "set_reminder",
-    "translate_text",
 ]
