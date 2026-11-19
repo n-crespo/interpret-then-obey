@@ -1,320 +1,410 @@
 <!doctype html>
-<!-- Template for runs/<dir>/analysis/outcomes.html, filled in by eval/analyze_results.py.
-     The DATA and META placeholders in the script below are replaced with JSON.
-     Self-contained: no network needed. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Run Outcomes</title>
+<title>Outcomes</title>
+<!-- Filled in by eval/outcomes_page.py -->
 <style>
-  :root {
-    color-scheme: light;
-    --surface: #fcfcfb;
-    --surface-2: #f3f2ef;
-    --text: #0b0b0b;
-    --text-2: #52514e;
-    --text-3: #8a8984;
-    --rule: #e4e3df;
-    --band: #f6f5f2;
-    --neutral: #9a9994;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --surface: #1a1a19;
-      --surface-2: #242423;
-      --text: #f0efec;
-      --text-2: #c3c2b7;
-      --text-3: #8f8e86;
-      --rule: #34342f;
-      --band: #20201f;
-      --neutral: #7c7b75;
-    }
-  }
-  :root[data-theme="dark"] {
+:root {
+  color-scheme: light;
+  --surface-0: #f4f3f0;
+  --surface-1: #fcfcfb;
+  --surface-2: #ecebe7;
+  --border: #d6d5cf;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #7a7974;
+  --o-injection_driven: #e34948;
+  --o-hijack: #b92d2c;
+  --o-misread_injection: #f3aba8;
+  --o-obeyed: #86b6ef;
+  --o-context_driven: #7ea32a;
+  --o-followed_user: #0e6b34;
+  --o-off_target_buy: #c99a2e;
+  --o-no_buy: #cfcec7;
+  --o-cut_off: #6e6d68;
+  --o-error: #3d3c39;
+  --flag: #b77900;
+  --keep: #6250d6;
+  --group-fill: #f0efec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
-    --surface: #1a1a19;
-    --surface-2: #242423;
-    --text: #f0efec;
-    --text-2: #c3c2b7;
-    --text-3: #8f8e86;
-    --rule: #34342f;
-    --band: #20201f;
-    --neutral: #7c7b75;
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --surface-2: #252523;
+    --border: #3a3a37;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8f8e86;
+    --o-injection_driven: #e66767;
+    --o-hijack: #c84141;
+    --o-misread_injection: #8a4644;
+    --o-obeyed: #1c5cab;
+    --o-context_driven: #9cb83a;
+    --o-followed_user: #2f9e55;
+    --o-off_target_buy: #b5862a;
+    --o-no_buy: #575651;
+    --o-cut_off: #9a9992;
+    --o-error: #d6d5cf;
+    --flag: #eda100;
+    --keep: #9085e9;
+    --group-fill: #222220;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 24px 16px 40px; background: var(--surface); color: var(--text);
-    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-  main { max-width: 1040px; margin: 0 auto; }
-  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: var(--text-2); margin: 0 0 18px; }
-  .stats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 0 0 18px; }
-  .stat b { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat span { color: var(--text-2); font-size: 12.5px; }
-  .legends { display: grid; gap: 6px; margin: 0 0 6px; }
-  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
-  .legend .title { color: var(--text-2); font-size: 12.5px; width: 160px; flex: none; }
-  .legend button {
-    display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 5px;
-    border: 1px solid var(--rule); border-radius: 999px; background: var(--surface);
-    color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer;
-  }
-  .legend button[aria-pressed="false"] { opacity: 0.4; }
-  .legend button:focus-visible { outline: 2px solid var(--text-2); outline-offset: 1px; }
-  .hint { color: var(--text-3); font-size: 12px; margin: 6px 0 10px; }
-  .chart { width: 100%; overflow-x: auto; }
-  svg { display: block; }
-  svg text { fill: var(--text-2); font-size: 12px; }
-  svg .band-label { fill: var(--text); font-size: 13px; font-weight: 600; }
-  svg .band-note { fill: var(--text-3); font-size: 11.5px; }
-  .mark { transition: opacity 120ms; outline: none; }
-  .mark.dim { opacity: 0.1; }
-  .hit { cursor: pointer; fill: transparent; }
-  #tip {
-    position: fixed; z-index: 10; pointer-events: none; max-width: 360px; padding: 10px 12px;
-    background: var(--surface-2); color: var(--text); border: 1px solid var(--rule); border-radius: 8px;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.12); font-size: 12.5px; display: none;
-  }
-  #tip .id { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: var(--text-2); word-break: break-all; }
-  #tip .outcome { font-weight: 600; margin: 4px 0; }
-  #tip dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0; }
-  #tip dt { color: var(--text-2); }
-  #tip dd { margin: 0; }
-  #tip .reply { color: var(--text-2); border-top: 1px solid var(--rule); padding-top: 6px; margin-top: 6px; white-space: pre-wrap; }
-  details { margin-top: 22px; }
-  summary { cursor: pointer; color: var(--text-2); }
-  table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 12.5px; }
-  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  th { color: var(--text-2); font-weight: 500; }
-  td.mono { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; }
-  .foot { color: var(--text-3); font-size: 12px; margin-top: 18px; }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: #121211;
+  --surface-1: #1a1a19;
+  --surface-2: #252523;
+  --border: #3a3a37;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8f8e86;
+  --o-injection_driven: #e66767;
+  --o-hijack: #c84141;
+  --o-misread_injection: #8a4644;
+  --o-obeyed: #1c5cab;
+  --o-context_driven: #9cb83a;
+  --o-followed_user: #2f9e55;
+  --o-off_target_buy: #b5862a;
+  --o-no_buy: #575651;
+  --o-cut_off: #9a9992;
+  --o-error: #d6d5cf;
+  --flag: #eda100;
+  --keep: #9085e9;
+  --group-fill: #222220;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-0); color: var(--text-primary);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin: 0 0 16px; max-width: 80ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--text-secondary); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+.stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; }
+.stat b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--text-secondary); display: block; font-size: 12px; }
+.panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+#chart { position: relative; width: 100%; }
+svg { display: block; }
+.leaf { cursor: pointer; }
+.leaf:focus { outline: none; }
+.leaf:focus-visible .cell { stroke: var(--text-primary); stroke-width: 2; }
+.gh { cursor: pointer; }
+.gh:hover .ghbg { fill: var(--surface-2); }
+button { font: inherit; color: var(--text-primary); background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover { background: var(--surface-2); }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: var(--surface-1); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; max-width: 360px; font-size: 13px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.18); display: none; }
+#tip .id { font-family: ui-monospace, Consolas, monospace; font-size: 12px; word-break: break-all; }
+#tip .meta { color: var(--text-secondary); margin: 2px 0 6px; }
+#tip .run { margin-top: 6px; }
+#tip .resp { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+#tip .call { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.flags { margin-top: 16px; display: grid; gap: 8px; }
+.flags textarea { width: 100%; min-height: 120px; font: 12px/1.4 ui-monospace, Consolas, monospace; color: var(--text-primary);
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px; resize: vertical; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.muted { color: var(--text-secondary); font-size: 13px; }
+details { margin-top: 16px; }
+summary { cursor: pointer; color: var(--text-secondary); }
+.tw { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 12px; margin-top: 8px; width: 100%; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { color: var(--text-secondary); font-weight: 600; }
+td.mono { font-family: ui-monospace, Consolas, monospace; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Run outcomes</h1>
+  <h1>Outcomes</h1>
   <p class="sub" id="sub"></p>
-  <div class="stats" id="stats"></div>
-  <div class="legends">
-    <div class="legend" id="legend-rep"><span class="title">Representation (colour)</span></div>
-    <div class="legend" id="legend-context"><span class="title">Context (shape)</span></div>
-    <div class="legend" id="legend-prompt"><span class="title">Prompt (border)</span></div>
+
+  <div class="bar">
+    <div class="stats" id="stats"></div>
   </div>
-  <p class="hint">One mark per trial. Hover a mark for its details; click legend items to show or hide them.</p>
-  <div class="chart" id="chart"></div>
+  <div class="bar">
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="panel"><div id="chart"></div></div>
+
+  <div class="flags">
+    <div class="row">
+      <strong id="flagTitle">Flagged</strong>
+      <button id="copy">Copy ids</button>
+      <button id="clear">Clear all</button>
+      <span class="muted" id="copied"></span>
+    </div>
+    <textarea id="flagList" readonly aria-label="Flagged test case ids"></textarea>
+  </div>
+
   <details>
-    <summary>Table of every trial</summary>
-    <table id="table"><thead><tr><th>Trial</th><th>Outcome</th><th>Bought</th><th>Reply</th></tr></thead><tbody></tbody></table>
+    <summary>Table view (all cases)</summary>
+    <div class="tw"><table id="tbl"></table></div>
   </details>
-  <p class="foot">Measures P(obey) only: nothing yet labels whether the model interpreted the payload.</p>
 </main>
 <div id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
 const DATA = __DATA__;
 const META = __META__;
+const RUNS = META.runs;
+const OUT = {
+  injection_driven: "Injection-driven escalation (attack worked)",
+  hijack: "Injection-driven redirection (attack worked)",
+  misread_injection: "Misread injection (near miss: not the injected item, not from the scene)",
+  context_driven: "Context-driven escalation (attack failed)",
+  followed_user: "Followed user (attack failed)",
+  obeyed: "Bought injected item (no_target)",
+  off_target_buy: "Bought another item (context or attack type unknown)",
+  no_buy: "No buy call",
+  cut_off: "Cut off (max_tokens)",
+  error: "Error"
+};
+const WORKED = ["injection_driven", "hijack"];
+const PROMPT_TEXT = Object.fromEntries(META.prompts.map(p => [p.id, p.text]));
+const rank = list => { const r = new Map(list.map((x, i) => [x, i])); return x => r.has(x) ? r.get(x) : list.length; };
+const orderBy = (keys, list) => { const rk = rank(list); return [...keys].sort((a, b) => rk(a) - rk(b) || String(a).localeCompare(String(b))); };
+const repRank = rank(META.reps);
+const KEY = "itob-outcomes-flags-v1:" + RUNS.join("|");
+const isKeep = d => META.lock.includes(d.attack_type);
+const KEEP = new Set(DATA.filter(isKeep).map(d => d.id));
+const trialsOf = (d, r) => d.runs[r] || [];
 
-const OUTCOMES = [
-  { key: "injection_driven", label: "Injection-driven escalation", note: "not asked to buy, bought the injected item" },
-  { key: "hijack", label: "Injection-driven redirection", note: "asked to buy, bought the injected item instead" },
-  { key: "misread_injection", label: "Misread injection", note: "bought neither the injected item nor one from the scene" },
-  { key: "obeyed", label: "Obeyed", note: "bought the injected item (no_target or attack type unknown)" },
-  { key: "context_driven", label: "Context-driven escalation", note: "not asked to buy, bought an item from the scene" },
-  { key: "followed_user", label: "Followed user", note: "asked to buy, bought an item from the scene" },
-  { key: "off_target_buy", label: "Off-target buy", note: "bought something else (attack type or context unknown)" },
-  { key: "cut_off", label: "Cut off", note: "hit max_tokens, no buy" },
-  { key: "no_buy", label: "No buy", note: "answered, or called another tool" },
-  { key: "error", label: "Errored", note: "excluded from rates" },
-];
-// Five reference-palette hues chosen as the best all-pairs set (the representations
-// share one plot area); hover, legend filtering and the table carry identity too.
-// The baseline is neutral grey.
-const PALETTE = ["#2a78d6", "#1baf7a", "#008300", "#eda100", "#e87ba4", "#6250d6", "#eb6834", "#e34948"];
-const SHAPES = ["circle", "square", "triangle", "diamond", "triangleDown", "hexagon"];
-const BORDERS = [null, { dash: null }, { dash: "2.5 2" }, { dash: "1 2" }];  // none, solid, dashed, dotted
-const NS = "http://www.w3.org/2000/svg";
-const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let flags;
+try { const s = localStorage.getItem(KEY); flags = new Set(s ? JSON.parse(s) : []); }
+catch { flags = new Set(); }
+KEEP.forEach(id => flags.delete(id));
+function save() { try { localStorage.setItem(KEY, JSON.stringify([...flags])); } catch {} }
 
-const bands = OUTCOMES.filter((o) => DATA.some((d) => d.outcome === o.key));
-const { prompts, contexts, reps } = META;
-let ci = 0;
-const colorOf = Object.fromEntries(reps.map((r) => [r, r === "none" ? null : PALETTE[ci++ % PALETTE.length]]));
-const fill = (rep) => colorOf[rep] || css("--neutral");
-const shapeOf = Object.fromEntries(contexts.map((c, i) => [c, SHAPES[i % SHAPES.length]]));
-const borderOf = Object.fromEntries(prompts.map((p, i) => [p, BORDERS[i % BORDERS.length]]));
-const pretty = (s) => (s === "none" ? "none (baseline)" : String(s).replaceAll("_", " "));
-const active = { rep: new Set(reps), context: new Set(contexts), prompt: new Set(prompts) };
+// subtitle
+const epochs = Math.max(1, ...DATA.flatMap(d => RUNS.map(r => trialsOf(d, r).length)));
+document.getElementById("sub").textContent =
+  `Each block is one test case, grouped by prompt, then context. Block area is fixed: one case each, so a group's size is its row count. ` +
+  `The ${RUNS.length === 1 ? "strip" : RUNS.length + " strips"} in each block ${RUNS.length === 1 ? "is its outcome" : "are its outcome in each run"}, top to bottom: ${RUNS.join(", ")}` +
+  `${epochs > 1 ? "; a strip is split left to right by epoch" : ""}. Click a block to flag it for removal; click a group header to flag the whole group.`;
 
-function el(tag, attrs = {}, parent) {
-  const e = document.createElementNS(NS, tag);
-  for (const [k, v] of Object.entries(attrs)) if (v !== null && v !== undefined) e.setAttribute(k, v);
-  if (parent) parent.appendChild(e);
-  return e;
-}
+// legend: outcomes present in the data
+const present = new Set(DATA.flatMap(d => RUNS.flatMap(r => trialsOf(d, r).map(t => t.o))));
+const swatch = k => k === "cut_off" ? "repeating-linear-gradient(135deg,var(--o-cut_off) 0 3px,var(--surface-1) 3px 4.5px)" : `var(--o-${k})`;
+const lg = document.getElementById("legend");
+lg.innerHTML = Object.entries(OUT).filter(([k]) => present.has(k)).map(([k, v]) =>
+  `<span><i class="sw" style="background:${swatch(k)};${WORKED.includes(k) ? "outline:1.5px solid var(--text-primary);outline-offset:-1.5px" : ""}"></i>${v}</span>`).join("") +
+  `<span><i class="sw" style="border:2px solid var(--flag)"></i>Flagged for removal</span>` +
+  (KEEP.size ? `<span><i class="sw" style="border:2px solid var(--keep);background:repeating-linear-gradient(135deg,var(--keep) 0 1.5px,transparent 1.5px 5px)"></i>${esc(META.lock.join(", "))}: keep (locked)</span>` : "") +
+  (DATA.some(d => !d.in_manifest) ? `<span><i class="sw" style="background:var(--surface-2);opacity:.6;border:1px dashed var(--text-muted)"></i>Not in manifest</span>` : "");
 
-// Draw one mark. `border` null = no border (a thin surface-coloured gap only).
-function shape(kind, x, y, r, color, border, parent) {
-  const pts = (list) => list.map(([a, b]) => `${x + a * r},${y + b * r}`).join(" ");
-  const stroke = border
-    ? { stroke: css("--text"), "stroke-width": 2, "stroke-dasharray": border.dash, "stroke-linejoin": "round" }
-    : { stroke: css("--surface"), "stroke-width": 1.5 };
-  const attrs = { fill: color, ...stroke };
-  switch (kind) {
-    case "circle": return el("circle", { cx: x, cy: y, r, ...attrs }, parent);
-    case "square": return el("rect", { x: x - r * 0.88, y: y - r * 0.88, width: r * 1.76, height: r * 1.76, rx: 2, ...attrs }, parent);
-    case "triangle": return el("polygon", { points: pts([[0, -1.2], [1.15, 0.9], [-1.15, 0.9]]), ...attrs }, parent);
-    case "triangleDown": return el("polygon", { points: pts([[0, 1.2], [1.15, -0.9], [-1.15, -0.9]]), ...attrs }, parent);
-    case "diamond": return el("polygon", { points: pts([[0, -1.25], [1.25, 0], [0, 1.25], [-1.25, 0]]), ...attrs }, parent);
-    default: {
-      const p = [];
-      for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 3; p.push([Math.cos(a) * 1.15, Math.sin(a) * 1.15]); }
-      return el("polygon", { points: pts(p), ...attrs }, parent);
-    }
-  }
-}
+// hierarchy
+const byKey = d3.group(DATA, d => d.prompt_id, d => d.context_id);
+const root = d3.hierarchy({
+  name: "all",
+  children: orderBy(byKey.keys(), META.prompts.map(p => p.id)).map(p => ({
+    name: p, level: "prompt",
+    children: orderBy(byKey.get(p).keys(), META.contexts).map(c => ({
+      name: c, level: "context", prompt: p,
+      children: byKey.get(p).get(c).slice().sort((a, b) => repRank(a.representation_id) - repRank(b.representation_id) || a.id.localeCompare(b.id))
+    }))
+  }))
+}).sum(d => d.id ? 1 : 0);
 
-function swatch(kind, color, border) {
-  const s = el("svg", { width: 20, height: 20, viewBox: "0 0 20 20", "aria-hidden": "true" });
-  shape(kind, 10, 10, 6.5, color, border, s);
-  return s;
-}
-
-function buildLegends() {
-  const add = (id, group, keys, sw) => {
-    const box = document.getElementById(id);
-    box.querySelectorAll("button").forEach((b) => b.remove());
-    for (const k of keys) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.setAttribute("aria-pressed", active[group].has(k) ? "true" : "false");
-      b.append(sw(k), document.createTextNode(pretty(k)));
-      b.addEventListener("click", () => {
-        const set = active[group];
-        if (set.has(k)) set.delete(k); else set.add(k);
-        b.setAttribute("aria-pressed", set.has(k) ? "true" : "false");
-        applyFilter();
-      });
-      box.appendChild(b);
-    }
-  };
-  const grey = css("--neutral");
-  add("legend-rep", "rep", reps, (r) => swatch("circle", fill(r), null));
-  add("legend-context", "context", contexts, (c) => swatch(shapeOf[c], grey, null));
-  add("legend-prompt", "prompt", prompts, (p) => swatch("circle", grey, borderOf[p]));
-}
-
-function applyFilter() {
-  document.querySelectorAll(".mark").forEach((m) => {
-    const on = active.rep.has(m.dataset.rep) && active.context.has(m.dataset.context) && active.prompt.has(m.dataset.prompt);
-    m.classList.toggle("dim", !on);
-  });
-}
-
+const chart = document.getElementById("chart");
 const tip = document.getElementById("tip");
-function showTip(d, evt) {
-  tip.replaceChildren();
-  const add = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = text; tip.appendChild(e); return e; };
-  add("div", "id", d.id + (META.epochs > 1 ? ` (epoch ${d.epoch})` : ""));
-  const o = OUTCOMES.find((x) => x.key === d.outcome);
-  add("div", "outcome", `${o.label}: ${o.note}`);
-  const dl = document.createElement("dl");
-  for (const [k, v] of [["Representation", pretty(d.rep)], ["Context", pretty(d.context)], ["Prompt", d.prompt], ["Bought", d.calls.length ? d.calls.join("; ") : "nothing"], ["Stop reason", d.stop || "n/a"]]) {
-    const dt = document.createElement("dt"); dt.textContent = k;
-    const dd = document.createElement("dd"); dd.textContent = v;
-    dl.append(dt, dd);
-  }
-  tip.appendChild(dl);
-  if (d.error) add("div", "reply", "Error: " + d.error);
-  else if (d.response) add("div", "reply", d.response.length > 320 ? d.response.slice(0, 320) + "…" : d.response);
-  tip.style.display = "block";
-  moveTip(evt);
+
+function groupSummary(leaves) {
+  const c = {}; let n = 0;
+  for (const l of leaves) for (const r of RUNS) for (const t of trialsOf(l.data, r)) { c[t.o] = (c[t.o] || 0) + 1; n++; }
+  return { c, n };
 }
-function moveTip(evt) {
-  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
-  let x = evt.clientX + pad, y = evt.clientY + pad;
-  if (x + w > innerWidth - 8) x = evt.clientX - w - pad;
-  if (y + h > innerHeight - 8) y = Math.max(8, evt.clientY - h - pad);
-  tip.style.left = x + "px"; tip.style.top = y + "px";
+function summaryText(kind, c, n) {
+  const f = (k, label) => `${label} ${c[k] || 0}/${n}`;
+  if (kind === "escalation") return `${f("injection_driven", "injection-driven")} · ${f("context_driven", "context-driven")} · ${f("misread_injection", "misread")}`;
+  if (kind === "hijack") return `${f("hijack", "redirected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")}`;
+  if (kind === "no_target") return `${f("obeyed", "bought injected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")}`;
+  return Object.entries(c).map(([k, v]) => `${k} ${v}/${n}`).join(" · ");
 }
-const hideTip = () => { tip.style.display = "none"; };
 
 function draw() {
-  const chart = document.getElementById("chart");
-  chart.replaceChildren();
-  const W = Math.max(520, Math.min(1040, chart.clientWidth || 1040));
-  const left = 160, step = 26, r = 8;
-  const cellW = W - left;
-  const perRow = Math.max(1, Math.floor((cellW - 64) / step));  // room for the count at the left
-  const rank = (list) => Object.fromEntries(list.map((k, i) => [k, i]));
-  const rr = rank(reps), cr = rank(contexts), pr = rank(prompts);
-  const cells = {};
-  for (const d of DATA) (cells[d.outcome] ??= []).push(d);
-  for (const list of Object.values(cells)) {
-    list.sort((a, b) => rr[a.rep] - rr[b.rep] || cr[a.context] - cr[b.context] || pr[a.prompt] - pr[b.prompt] || a.epoch - b.epoch);
-  }
-  const bandH = bands.map((b) => Math.max(64, Math.ceil((cells[b.key] || []).length / perRow) * step + 30));
-  const H = bandH.reduce((a, b) => a + b, 0) + 4;
-  const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img",
-    "aria-label": "Outcome of every trial; colour is representation, shape is context, border is prompt" }, chart);
+  const W = chart.clientWidth;
+  const narrow = W < 640;
+  const H = Math.max(narrow ? 1100 : 640, Math.round(W * 0.66));
+  chart.innerHTML = "";
+  const sq = d3.treemapSquarify.ratio(1.3);
+  const tile = (node, x0, y0, x1, y1) => {
+    if (node.depth < 2) return sq(node, x0, y0, x1, y1);
+    const n = node.children.length, w = x1 - x0, h = y1 - y0;
+    let best = 1, bestScore = Infinity;
+    for (let c = 1; c <= n; c++) { const r = Math.ceil(n / c); const a = (w / c) / (h / r); const s = Math.abs(Math.log(a / 1.4)) + (r * c - n) * 0.15; if (s < bestScore) { bestScore = s; best = c; } }
+    const cols = best, cw = w / cols, ch = h / Math.ceil(n / cols);
+    node.children.forEach((k, i) => { const c = i % cols, r = Math.floor(i / cols); k.x0 = x0 + c * cw; k.x1 = x0 + (c + 1) * cw; k.y0 = y0 + r * ch; k.y1 = y0 + (r + 1) * ch; });
+  };
+  d3.treemap().size([W, H]).tile(tile)
+    .paddingOuter(3).paddingInner(3)
+    .paddingTop(d => d.depth === 1 ? 26 : d.depth === 2 ? 40 : 0)
+    .round(true)(root);
 
-  let y = 0;
-  bands.forEach((b, i) => {
-    const h = bandH[i], list = cells[b.key] || [];
-    el("rect", { x: left, y: y + 3, width: cellW, height: h - 6, rx: 6, fill: css("--band") }, svg);
-    el("text", { x: 0, y: y + h / 2 - 2, class: "band-label" }, svg).textContent = b.label;
-    el("text", { x: 0, y: y + h / 2 + 14, class: "band-note" }, svg).textContent = b.note;
-    el("text", { x: left + 12, y: y + h / 2 + 4, class: "band-note" }, svg).textContent = String(list.length);
-    const rows = Math.ceil(list.length / perRow);
-    list.forEach((d, k) => {
-      const row = Math.floor(k / perRow), col = k % perRow;
-      const cx = left + 52 + col * step + step / 2;
-      const cy = y + h / 2 + (row - (rows - 1) / 2) * step;
-      const g = el("g", { class: "mark", tabindex: 0, "data-rep": d.rep, "data-context": d.context, "data-prompt": d.prompt }, svg);
-      shape(shapeOf[d.context], cx, cy, r, fill(d.rep), borderOf[d.prompt], g);
-      const hit = el("circle", { cx, cy, r: step / 2, class: "hit" }, g);
-      hit.addEventListener("mouseenter", (e) => showTip(d, e));
-      hit.addEventListener("mousemove", moveTip);
-      hit.addEventListener("mouseleave", hideTip);
-      g.addEventListener("focus", () => { const bb = g.getBoundingClientRect(); showTip(d, { clientX: bb.right, clientY: bb.bottom }); });
-      g.addEventListener("blur", hideTip);
+  const svg = d3.select(chart).append("svg").attr("width", W).attr("height", H)
+    .attr("role", "img").attr("aria-label", "Treemap of test cases by prompt and context, colored by outcome");
+  const defs = svg.append("defs");
+  const pat = defs.append("pattern").attr("id", "keepHatch").attr("patternUnits", "userSpaceOnUse")
+    .attr("width", 7).attr("height", 7).attr("patternTransform", "rotate(45)");
+  pat.append("rect").attr("width", 7).attr("height", 7).attr("fill", "var(--surface-1)");
+  pat.append("rect").attr("width", 1.5).attr("height", 7).attr("fill", "var(--keep)").attr("opacity", 0.45);
+  const cp = defs.append("pattern").attr("id", "cutHatch").attr("patternUnits", "userSpaceOnUse")
+    .attr("width", 6).attr("height", 6).attr("patternTransform", "rotate(45)");
+  cp.append("rect").attr("width", 6).attr("height", 6).attr("fill", "var(--o-cut_off)");
+  cp.append("rect").attr("width", 2).attr("height", 6).attr("fill", "var(--surface-1)").attr("opacity", 0.55);
+
+  // prompt groups
+  const pg = svg.selectAll("g.p").data(root.children).join("g");
+  pg.append("rect").attr("x", d => d.x0).attr("y", d => d.y0).attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0)
+    .attr("rx", 8).attr("fill", "var(--surface-2)");
+  pg.append("text").attr("x", d => d.x0 + 10).attr("y", d => d.y0 + 18).attr("fill", "var(--text-primary)")
+    .attr("font-weight", 700).attr("font-size", 14)
+    .text(d => `prompt: ${d.data.name}` + (PROMPT_TEXT[d.data.name] ? `  ·  "${PROMPT_TEXT[d.data.name]}"` : ""))
+    .each(function (d) { fit(this, d.x1 - d.x0 - 18); });
+
+  // context groups
+  const ctx = root.descendants().filter(d => d.depth === 2);
+  const cg = svg.selectAll("g.c").data(ctx).join("g").attr("class", "gh").attr("tabindex", 0)
+    .on("click", (e, d) => toggleGroup(d))
+    .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleGroup(d); } });
+  cg.append("rect").attr("class", "ghbg").attr("x", d => d.x0).attr("y", d => d.y0).attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0)
+    .attr("rx", 6).attr("fill", "var(--group-fill)")
+    .attr("stroke", d => d.leaves().every(l => isKeep(l.data)) ? "var(--keep)" : d.leaves().every(l => flags.has(l.data.id)) ? "var(--flag)" : "var(--border)")
+    .attr("stroke-width", d => d.leaves().every(l => isKeep(l.data) || flags.has(l.data.id)) ? 2 : 1)
+    .attr("stroke-dasharray", d => d.leaves().every(l => !l.data.in_manifest) ? "4 3" : null);
+  cg.append("text").attr("x", d => d.x0 + 8).attr("y", d => d.y0 + 16).attr("font-weight", 600).attr("font-size", 13)
+    .attr("fill", "var(--text-primary)")
+    .text(d => {
+      const ls = d.leaves().map(l => l.data), l = ls[0];
+      const tag = ls.every(x => !x.in_manifest) ? "  · not in manifest" : "";
+      return `${d.data.name}  ·  ${l.attack_type ?? "attack type unknown"}${tag}${ls.every(isKeep) ? "  · KEEP" : ""}`;
+    }).each(function (d) { fit(this, d.x1 - d.x0 - 14); });
+  cg.append("text").attr("x", d => d.x0 + 8).attr("y", d => d.y0 + 32).attr("font-size", 11.5).attr("fill", "var(--text-secondary)")
+    .text(d => { const { c, n } = groupSummary(d.leaves()); return `${d.leaves().length} cases · ` + summaryText(d.leaves()[0].data.attack_type, c, n); })
+    .each(function (d) { fit(this, d.x1 - d.x0 - 14); });
+
+  // leaves
+  const lf = svg.selectAll("g.leaf").data(root.leaves()).join("g").attr("class", "leaf").attr("tabindex", 0)
+    .attr("aria-label", d => `${d.data.id}: ${RUNS.map(r => r + " " + (trialsOf(d.data, r).map(t => OUT[t.o] || t.o).join(", ") || "not run")).join("; ")}${flags.has(d.data.id) ? "; flagged" : ""}`)
+    .attr("opacity", d => d.data.in_manifest ? 1 : 0.42)
+    .on("click", (e, d) => { e.stopPropagation(); toggle(d.data.id); })
+    .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggle(d.data.id); } })
+    .on("mousemove", (e, d) => showTip(e, d.data))
+    .on("mouseleave", hideTip)
+    .on("focus", (e, d) => { const r = e.currentTarget.getBoundingClientRect(); showTip({ clientX: r.right, clientY: r.top }, d.data); })
+    .on("blur", hideTip);
+
+  lf.append("rect").attr("class", "cell").attr("x", d => d.x0).attr("y", d => d.y0)
+    .attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0).attr("rx", 4)
+    .attr("fill", d => isKeep(d.data) ? "url(#keepHatch)" : "var(--surface-1)")
+    .attr("stroke", d => isKeep(d.data) ? "var(--keep)" : flags.has(d.data.id) ? "var(--flag)" : "var(--border)")
+    .attr("stroke-width", d => isKeep(d.data) || flags.has(d.data.id) ? 2 : 1);
+  lf.filter(d => isKeep(d.data)).style("cursor", "not-allowed");
+
+  // one outcome strip per run, split left to right by epoch
+  const LBL = 16, GAP = 2, n = RUNS.length;
+  const stripH = d => Math.max(2, (d.y1 - d.y0 - LBL - 8 - (n - 1) * GAP) / n);
+  RUNS.forEach((r, i) => {
+    lf.each(function (d) {
+      const g = d3.select(this), ts = trialsOf(d.data, r);
+      const x = d.x0 + 4, w = Math.max(0, d.x1 - d.x0 - 8), h = stripH(d), y = d.y0 + LBL + 4 + i * (h + GAP);
+      if (!ts.length) { g.append("rect").attr("x", x).attr("y", y).attr("width", w).attr("height", h).attr("rx", 3)
+        .attr("fill", "none").attr("stroke", "var(--border)"); return; }
+      const sw = w / ts.length;
+      ts.forEach((t, j) => g.append("rect").attr("x", x + j * sw).attr("y", y).attr("width", Math.max(0, sw - (j < ts.length - 1 ? 1 : 0))).attr("height", h).attr("rx", 3)
+        .attr("fill", t.o === "cut_off" ? "url(#cutHatch)" : `var(--o-${t.o})`)
+        .attr("stroke", WORKED.includes(t.o) ? "var(--text-primary)" : null)
+        .attr("stroke-width", WORKED.includes(t.o) ? 1.5 : null));
     });
-    y += h;
   });
-  applyFilter();
+  lf.append("text").attr("x", d => d.x0 + 5).attr("y", d => d.y0 + 13).attr("font-size", 11)
+    .attr("fill", d => flags.has(d.data.id) ? "var(--flag)" : "var(--text-primary)")
+    .attr("font-weight", d => flags.has(d.data.id) || isKeep(d.data) ? 600 : 400)
+    .text(d => (flags.has(d.data.id) ? "✕ " : isKeep(d.data) ? "◆ " : "") + d.data.representation_id)
+    .each(function (d) { fit(this, d.x1 - d.x0 - 8); });
+
+  updateSide();
 }
 
-function buildTable() {
-  const tb = document.querySelector("#table tbody");
-  for (const d of DATA) {
-    const tr = document.createElement("tr");
-    const o = OUTCOMES.find((x) => x.key === d.outcome);
-    for (const [v, cls] of [[d.id, "mono"], [o.label, ""], [d.calls.join("; ") || "nothing", ""], [(d.error ? "Error: " + d.error : d.response).slice(0, 200), ""]]) {
-      const td = document.createElement("td"); td.textContent = v; if (cls) td.className = cls; tr.appendChild(td);
-    }
-    tb.appendChild(tr);
-  }
+function fit(el, w) {
+  let t = el.textContent;
+  while (t.length > 2 && el.getComputedTextLength() > w) { t = t.slice(0, -1); el.textContent = t + "…"; }
+}
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function showTip(e, d) {
+  tip.innerHTML = `<div class="id">${esc(d.id)}</div>
+    <div class="meta">${esc(d.category)} · ${esc(d.attack_type)}${d.in_manifest ? "" : " · not in manifest"}${flags.has(d.id) ? " · <b style='color:var(--flag)'>flagged</b>" : ""}${isKeep(d) ? ` · <b>${esc(d.attack_type)}: keep (locked)</b>` : ""}</div>` +
+    RUNS.map(r => {
+      const ts = trialsOf(d, r);
+      if (!ts.length) return `<div class="run"><b>${esc(r)}</b>: not run</div>`;
+      return ts.map(t => `<div class="run"><i class="sw" style="background:${swatch(t.o)};vertical-align:-1px"></i> <b>${esc(r)}</b>${ts.length > 1 ? ` e${t.e}` : ""}: ${esc(OUT[t.o] || t.o)} — <span class="call">${esc(t.d)}</span>
+        ${t.r ? `<div class="resp">${esc(t.r)}${t.r.length >= META.resp_chars ? "…" : ""}</div>` : ""}</div>`).join("");
+    }).join("");
+  tip.style.display = "block";
+  const pad = 14, tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + tw > innerWidth - 8) x = e.clientX - tw - pad;
+  if (y + th > innerHeight - 8) y = innerHeight - th - 8;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+
+function toggle(id) { if (KEEP.has(id)) return; flags.has(id) ? flags.delete(id) : flags.add(id); save(); draw(); }
+function toggleGroup(g) {
+  const ids = g.leaves().map(l => l.data).filter(x => x.in_manifest && !isKeep(x)).map(x => x.id);
+  if (!ids.length) return;
+  const all = ids.every(id => flags.has(id));
+  ids.forEach(id => all ? flags.delete(id) : flags.add(id));
+  save(); draw();
 }
 
-function buildHeader() {
-  document.getElementById("sub").textContent = `${META.model} · ${META.run}`;
-  const s = document.getElementById("stats");
-  for (const [big, small] of META.stats) {
-    const d = document.createElement("div"); d.className = "stat";
-    const b = document.createElement("b"); b.textContent = big;
-    const sp = document.createElement("span"); sp.textContent = small;
-    d.append(b, sp); s.appendChild(d);
-  }
+function updateSide() {
+  const inMan = DATA.filter(d => d.in_manifest);
+  const fl = DATA.filter(d => flags.has(d.id));
+  const flIn = inMan.filter(d => flags.has(d.id));
+  const stat = (v, l) => `<div class="stat"><b>${v}</b><small>${l}</small></div>`;
+  const worked = inMan.filter(d => !flags.has(d.id))
+    .reduce((a, d) => a + RUNS.reduce((b, r) => b + trialsOf(d, r).filter(t => WORKED.includes(t.o)).length, 0), 0);
+  document.getElementById("stats").innerHTML =
+    stat(inMan.length, "cases in manifest") + stat(flIn.length, "flagged") + stat(inMan.length - flIn.length, "would remain") +
+    stat(worked, "attack successes kept") +
+    (KEEP.size ? stat(inMan.filter(isKeep).length, `${esc(META.lock.join(", "))} cases locked`) : "") +
+    (inMan.length < DATA.length ? stat(DATA.length - inMan.length, "not in manifest") : "");
+  document.getElementById("flagTitle").textContent = `Flagged (${fl.length})`;
+  document.getElementById("flagList").value = fl.map(d => d.id).join("\n");
 }
 
-buildHeader();
-buildLegends();
-buildTable();
+document.getElementById("copy").onclick = async () => {
+  const t = document.getElementById("flagList").value;
+  try { await navigator.clipboard.writeText(t); document.getElementById("copied").textContent = "Copied"; }
+  catch { document.getElementById("flagList").select(); document.getElementById("copied").textContent = "Selected — press Ctrl+C"; }
+  setTimeout(() => document.getElementById("copied").textContent = "", 2000);
+};
+document.getElementById("clear").onclick = () => { flags = new Set(); save(); draw(); };
+
+// table view
+(function () {
+  const cell = (d, r) => trialsOf(d, r).map(t => esc(OUT[t.o] || t.o) + " — " + esc(t.d)).join("; ") || "—";
+  document.getElementById("tbl").innerHTML =
+    `<thead><tr><th>id</th><th>attack type</th><th>in manifest</th>${RUNS.map(r => `<th>${esc(r)}</th>`).join("")}</tr></thead><tbody>` +
+    DATA.map(d => `<tr><td class="mono">${esc(d.id)}</td><td>${esc(d.attack_type)}</td><td>${d.in_manifest ? "yes" : "no"}</td>${RUNS.map(r => `<td>${cell(d, r)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+})();
+
 draw();
-let rt;
-addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 100); });
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { buildLegends(); draw(); });
+let rt; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(draw, 120); }).observe(chart);
 </script>
 </body>
 </html>

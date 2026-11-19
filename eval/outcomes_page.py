@@ -1,6 +1,6 @@
 """
-Test case map: one interactive treemap over one or more harness runs, written by
-`analyze` in eval/analyze_results.py (casemap.html).
+Outcomes page: one interactive treemap over one or more harness runs, written by
+`analyze` in eval/analyze_results.py (outcomes.html).
 
 Each test case is one block, nested prompt -> context -> representation, with one
 outcome strip per run (split by epoch when a run has several). Outcomes come from
@@ -15,13 +15,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from eval.analyze_results import _js_json
 from eval.outcomes import call_label, manifest_order, outcome
 from stimuli.attack_types import SRC_DIR
 
-TEMPLATE = Path(__file__).with_name("casemap_template.html")
+TEMPLATE = Path(__file__).with_name("outcomes_template.html")
 CASE_FIELDS = ("id", "prompt_id", "context_id", "representation_id", "category", "attack_type")
 RESPONSE_CHARS = 280
+
+
+def _js_json(obj) -> str:
+    """JSON safe to inline in a <script> block (model replies can contain '</script>')."""
+    return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/").replace("<!--", "<\\!--")
 
 
 def run_labels(run_dirs: list[Path]) -> list[str]:
@@ -78,14 +82,14 @@ def build_cases(runs: dict[str, list[dict]], in_manifest: set[str]) -> list[dict
     return sorted(cases.values(), key=lambda c: c["id"])
 
 
-def casemap_html(cases: list[dict], labels: list[str], factors: dict, lock: list[str]) -> str:
+def outcomes_html(cases: list[dict], labels: list[str], factors: dict, lock: list[str]) -> str:
     """Fill the template. `lock`: attack types whose cases cannot be flagged."""
     meta = {**factors, "runs": labels, "lock": lock, "resp_chars": RESPONSE_CHARS}
     page = TEMPLATE.read_text(encoding="utf-8")
     return page.replace("__DATA__", _js_json(cases)).replace("__META__", _js_json(meta))
 
 
-def write_casemap(runs: dict[Path, list[dict]], out: Path, manifest: Path, src_dir: Path = SRC_DIR,
+def write_outcomes(runs: dict[Path, list[dict]], out: Path, manifest: Path, src_dir: Path = SRC_DIR,
                   lock: tuple[str, ...] = ("hijack",)) -> Path:
     """Write the page for {run dir: its trials (attack_type filled in)}, one strip per run in
     the given order. `manifest`: the cases that are current; others are dimmed."""
@@ -95,5 +99,5 @@ def write_casemap(runs: dict[Path, list[dict]], out: Path, manifest: Path, src_d
     factors["reps"] += [r for r in manifest_order(manifest) if r not in factors["reps"] and r in seen]
     cases = build_cases(dict(zip(labels, runs.values())), manifest_ids(manifest))
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(casemap_html(cases, labels, factors, list(lock)), encoding="utf-8")
+    out.write_text(outcomes_html(cases, labels, factors, list(lock)), encoding="utf-8")
     return out

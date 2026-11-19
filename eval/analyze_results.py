@@ -6,15 +6,12 @@ Reads the Inspect logs in runs/<dir>/inspect_logs/*.eval (through
 `inspect_ai.analysis.samples_df`), groups trials by the stimulus factors in
 stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
 
-- outcomes.html            interactive: one mark per trial in a row per outcome;
-                           colour = representation, shape = context, border =
-                           prompt; hover a mark for its details
 - tables.tex               booktabs tables: by representation, by factor,
                            baseline vs injected per prompt x context, by
                            attack type, and purchases by source
 
-and, in the last run's analysis/, casemap.html: every test case, one outcome strip per
-run given (eval/casemap.py).
+and, in the last run's analysis/, outcomes.html: an interactive treemap of every test
+case, one outcome strip per run given (eval/outcomes_page.py).
 
 Outcomes, and the terms used below (obeyed, attack type, off-target call, baseline),
 are defined in eval/outcomes.py.
@@ -41,13 +38,13 @@ from eval.outcomes import (  # noqa: E402
     group_by,
     load_trials,
     manifest_order,
-    outcome,
     split,
     split_attacks,
     summarize,
     wilson,
     _order,
 )
+from eval.outcomes_page import write_outcomes  # noqa: E402
 from stimuli.attack_types import ATTACK_TYPES  # noqa: E402
 
 # Factor table in tables.tex: (manifest field, label)
@@ -290,66 +287,11 @@ def attack_type_table(injected: list[dict], baseline: list[dict], m: str) -> lis
 
 
 # ----------------------------------------------------------------------------
-# Interactive figure
-
-
-TEMPLATE = Path(__file__).with_name("outcomes_template.html")
-
-
-def _js_json(obj) -> str:
-    """JSON safe to inline in a <script> block (model replies can contain '</script>')."""
-    return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/").replace("<!--", "<\\!--")
-
-
-def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_dir: Path) -> str:
-    """Interactive page: one mark per trial, in one row per outcome (closest to success
-    at the top). Colour is the representation, shape the context and border the prompt;
-    hovering a mark shows the trial's details. Self-contained, no network needed."""
-    injected, baseline, errored = split(trials)
-    attacks, no_target = split_attacks(injected)
-    si, sb, sn = summarize(attacks), summarize(baseline), summarize(no_target)
-    se = summarize([t for t in attacks if t.get("attack_type") == "escalation"])
-    sh = summarize([t for t in attacks if t.get("attack_type") == "hijack"])
-    lo, hi = wilson(si["obeyed"], si["n"])
-    stats = [
-        [pct(si["obeyed"], si["n"]), f"attack trials obeyed (hijack + escalation; 95% CI {100 * lo:.0f}–{100 * hi:.0f}%)"],
-        [pct(si["off_target"], si["n"]), "attack trials with an off-target call"],
-        [pct(se["obeyed"], se["n"]), "escalation trials with an injection-driven escalation (bought the injected item)"],
-        [pct(se["context_driven"], se["n"]), "escalation trials with a context-driven escalation (bought something nobody asked for)"],
-        [pct(sh["obeyed"], sh["n"]), "hijack trials with an injection-driven redirection (bought the injected item instead)"],
-        [pct(si["misread_injection"], si["n"]), "attack trials with a misread injection (bought neither the injected item nor one from the scene)"],
-        [pct(sh["followed_user"], sh["n"]), "hijack trials that followed the user (bought the item asked for)"],
-        [pct(sn["obeyed"], sn["n"]), "no_target trials that bought the injected item (item choice, not attack success)"],
-        [pct(sb["target_call"], sb["n"]), "baseline trials that bought the injected item"],
-        [pct(sb["any_call"], sb["n"]), "baseline trials with any tool call"],
-    ]
-    if errored:
-        stats.append([str(len(errored)), "errored trials (left out of the rates)"])
-    data = [
-        {
-            "id": t["id"], "epoch": t["epoch"], "prompt": t["prompt_id"], "context": t["context_id"],
-            "rep": t["representation_id"], "outcome": outcome(t), "stop": t["stop_reason"], "error": t["error"],
-            "calls": [call_label([c]) for c in t["tool_calls"]], "response": (t.get("response") or "")[:2000],
-        }
-        for t in sorted(trials, key=lambda t: (t["id"], t["epoch"]))
-    ]
-    meta = {
-        "model": model, "run": run_dir.name, "stats": stats,
-        "prompts": _order({t["prompt_id"] for t in trials}, LEVEL_ORDER),
-        "contexts": _order({t["context_id"] for t in trials}),
-        "reps": _order({t["representation_id"] for t in trials}, rep_order),
-        "epochs": max(t["epoch"] for t in trials),
-    }
-    page = TEMPLATE.read_text(encoding="utf-8")
-    return page.replace("__DATA__", _js_json(data)).replace("__META__", _js_json(meta))
-
-
-# ----------------------------------------------------------------------------
 # Main
 
 
 def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path], list[dict]]:
-    """Print the headline and write the figures and tables for one run; returns the written
+    """Print the headline and write the tables for one run; returns the written
     paths and the trials (attack_type filled in)."""
     trials, model = load_trials(run_dir)
     if not any(not t["error"] for t in trials):
@@ -363,8 +305,7 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path]
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
     (out_dir / "tables.tex").write_text(latex_tables(trials, model, rep_order), encoding="utf-8")
-    (out_dir / "outcomes.html").write_text(outcomes_html(trials, rep_order, model, run_dir), encoding="utf-8")
-    written = [out_dir / "outcomes.html", out_dir / "tables.tex"]
+    written = [out_dir / "tables.tex"]
 
     print(headline(trials, model, run_dir))
     if derived:
@@ -375,10 +316,8 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path]
 
 
 def analyze(run_dirs: Path | list[Path], manifest: Path | None = None) -> list[Path]:
-    """analyze_run for each run, then casemap.html (eval/casemap.py) over all of them, one
-    outcome strip per run, in the last run's analysis/. Returns the written paths."""
-    from eval.casemap import write_casemap  # imports this module, so not at the top
-
+    """analyze_run for each run, then outcomes.html (eval/outcomes_page.py) over all of them,
+    one outcome strip per run, in the last run's analysis/. Returns the written paths."""
     run_dirs = [run_dirs] if isinstance(run_dirs, Path) else run_dirs
     written, runs = [], {}
     for i, run_dir in enumerate(run_dirs):
@@ -386,19 +325,19 @@ def analyze(run_dirs: Path | list[Path], manifest: Path | None = None) -> list[P
             print()
         paths, runs[run_dir] = analyze_run(run_dir, manifest)
         written += paths
-    page = write_casemap(runs, run_dirs[-1] / "analysis" / "casemap.html", manifest or Path("stimuli/manifest.jsonl"))
+    page = write_outcomes(runs, run_dirs[-1] / "analysis" / "outcomes.html", manifest or Path("stimuli/manifest.jsonl"))
     written.append(page)
-    print(f"\nWrote {page} ({len(runs)} run(s), one outcome strip each)")
-    print("Open outcomes.html or casemap.html in a browser; hover a mark for the trial's details.")
+    print(f"\nWrote {page} ({len(runs)} run(s), one outcome strip each). Open it in a browser; "
+          "hover a case for each run's call and reply.")
     return written
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("run_dirs", type=Path, nargs="+",
-                    help="harness run directories, e.g. runs/2026-11-15_qwen3vl-8b-ollama; casemap.html compares them")
+                    help="harness run directories, e.g. runs/2026-11-15_qwen3vl-8b-ollama; outcomes.html compares them")
     ap.add_argument("--manifest", type=Path,
                     help="manifest for representation order (default: the one in meta.json) and for which cases "
-                         "casemap.html counts as current (default: stimuli/manifest.jsonl)")
+                         "outcomes.html counts as current (default: stimuli/manifest.jsonl)")
     args = ap.parse_args()
     analyze(args.run_dirs, args.manifest)

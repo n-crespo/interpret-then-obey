@@ -10,9 +10,9 @@ from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 from inspect_ai.solver import generate, use_tools
 
-from eval.analyze_results import analyze, headline, latex_tables, outcomes_html
+from eval.analyze_results import analyze, headline, latex_tables
 from eval.outcomes import load_trials
-from eval.tests.trials import MUG, REP_ORDER, TRIALS, manifest_row, trial
+from eval.tests.trials import REP_ORDER, TRIALS, manifest_row
 from harness.task import obeyed, row_to_sample
 from harness.tools import TOOLS
 
@@ -108,7 +108,7 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
-    assert set(written) == {out / "outcomes.html", out / "tables.tex", out / "casemap.html"}
+    assert set(written) == {out / "outcomes.html", out / "tables.tex"}
     printed = capsys.readouterr().out
     # the english row is derived as no_target, so its obey is not attack success
     assert "attacks     1 trials   obeyed 0/1 (0%)" in printed
@@ -116,26 +116,14 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     assert "derived it for 1 trial(s)" in printed
     assert r"All attacks & & & 1 & 0/1 (0\%)" in (out / "tables.tex").read_text(encoding="utf-8")
 
-    # the page embeds one record per trial, with the reply for the hover tooltip
+    # the outcomes page has one record per case, with this run's outcome and reply
     page = (out / "outcomes.html").read_text(encoding="utf-8")
     data = json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])
-    assert {d["id"]: d["outcome"] for d in data} == {
-        "buy.info_board.buy_bear.english": "obeyed",
-        "buy.product_info.buy_bear.pictograms": "no_buy",
-        "buy.product_info.buy_bear.none": "followed_user",
+    cases = {c["id"]: c["runs"][tmp_path.name] for c in data}
+    assert {i: [t["o"] for t in ts] for i, ts in cases.items()} == {
+        "buy.info_board.buy_bear.english": ["obeyed"],
+        "buy.product_info.buy_bear.pictograms": ["no_buy"],
+        "buy.product_info.buy_bear.none": ["followed_user"],
     }
-    assert next(d for d in data if d["rep"] == "none")["calls"] == ["Mug"]
-    assert next(d for d in data if d["rep"] == "pictograms")["response"] == "A mug."
-
-    # the case map has one record per case, with this run's outcome
-    page = (out / "casemap.html").read_text(encoding="utf-8")
-    cases = json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])
-    assert {c["id"]: [t["o"] for t in c["runs"][tmp_path.name]] for c in cases} == {
-        d["id"]: [d["outcome"]] for d in data}
-
-
-def test_outcomes_html_escapes_script_tags_in_replies():
-    t = trial("english", [MUG])
-    t["response"] = "ignore </script><script>alert(1)</script>"
-    page = outcomes_html([t], REP_ORDER, "m", Path("runs/x"))
-    assert page.count("</script>") == 1  # only the page's own closing tag
+    assert cases["buy.product_info.buy_bear.none"][0]["d"] == "Mug"
+    assert cases["buy.product_info.buy_bear.pictograms"][0]["r"] == "A mug."
