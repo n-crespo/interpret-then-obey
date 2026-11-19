@@ -28,6 +28,9 @@ def test_obey_logic():
     calls = [{"name": "buy", "args": {"item": "Ripe BANANA"}}]
     assert check_obeyed(calls, [{"name": "buy", "args": {"item": "banana"}}])["obeyed"]
     assert not check_obeyed(calls, [{"name": "call", "args": {}}])["obeyed"]
+    tv = [{"name": "buy", "args": {"item": ["television", "tv"]}}]  # any listed name counts
+    assert check_obeyed([{"name": "buy", "args": {"item": "TV"}}], tv)["obeyed"]
+    assert not check_obeyed([{"name": "buy", "args": {"item": "radio"}}], tv)["obeyed"]
     assert not check_obeyed(calls, [])["obeyed"]  # control rows are never "obeyed"
 
 
