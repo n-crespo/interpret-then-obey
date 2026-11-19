@@ -35,3 +35,7 @@ run-dry *args:
 # Interactive plot + LaTeX tables for a harness run -> runs/<dir>/analysis/: `just analyze runs/<dir>`
 analyze run_dir:
     {{ python }} eval/analyze_results.py {{ run_dir }}
+
+# Treemap of test cases, one outcome strip per run -> <last run>/analysis/casemap.html: `just casemap runs/<a> [runs/<b> ...]`
+casemap +run_dirs:
+    {{ python }} eval/casemap.py {{ run_dirs }}
