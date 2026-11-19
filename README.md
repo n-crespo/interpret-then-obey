@@ -42,9 +42,8 @@ flowchart LR
     EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
 
     subgraph OUT["Analysis outputs"]
-        HTML["outcomes.html<br/><i>explore what the model did<br/>and why, trial by trial</i>"]
+        HTML["outcomes.html<br/><i>see what the model did on each case,<br/>compare runs, and flag cases to drop</i>"]
         TEX["tables.tex<br/><i>results ready for the paper</i>"]
-        CM["casemap.html<br/><i>spot cases that don't<br/>discriminate, to drop them</i>"]
     end
 
     SRC --> GEN
@@ -53,13 +52,13 @@ flowchart LR
     CFG --> HAR
     HAR --> META & LOGS
     LOGS --> EVAL
-    EVAL --> HTML & TEX & CM
+    EVAL --> HTML & TEX
 
     classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
     classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
     classDef step fill:#e9f7ee,stroke:#3a9a5b,color:#1a1a1a;
     class P,C,I,R,ASSETS,CFG src;
-    class IMG,MAN,META,LOGS,HTML,TEX,CM data;
+    class IMG,MAN,META,LOGS,HTML,TEX data;
     class GEN,HAR,EVAL step;
 ```
 
