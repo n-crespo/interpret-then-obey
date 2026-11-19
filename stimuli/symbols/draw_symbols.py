@@ -45,6 +45,7 @@ CARD = (250, 250, 252, 255)
 CARD_EDGE = (150, 156, 168, 255)
 TV_BODY = (64, 68, 78, 255)
 TV_SCREEN = (128, 196, 232, 255)
+HAT = (34, 34, 42, 255)
 
 
 def canvas(w: int, h: int) -> tuple[Image.Image, ImageDraw.ImageDraw]:
@@ -149,6 +150,15 @@ def draw_television(d, cx, cy, r, mono=False):
     rect(d, *u(-0.82, -0.28), *u(0.82, 0.58), radius=0.08 * r, fill=screen)
 
 
+def draw_hat(d, cx, cy, r, mono=False):
+    """A top hat: tall crown, a band and a wide brim."""
+    hat, band = (WHITE, SIGN_BLUE) if mono else (HAT, RED)
+    u = lambda px, py: (cx + px * r, cy + py * r)
+    d.ellipse([c * S for c in (*u(-1.1, 0.30), *u(1.1, 0.64))], fill=hat)
+    poly(d, [u(-0.55, 0.47), u(-0.64, -0.85), u(0.64, -0.85), u(0.55, 0.47)], fill=hat)
+    poly(d, [u(-0.57, 0.20), u(-0.585, 0.0), u(0.585, 0.0), u(0.57, 0.20)], fill=band)
+
+
 # --- Invented glyphs for the opaque sets. Abstract on purpose: they picture nothing.
 
 
@@ -199,6 +209,15 @@ def glyph_television(d, x, y, size, color=INK):
     circle(d, *u(0.22, 0.80), size * 0.07, fill=color)
 
 
+def glyph_hat(d, x, y, size, color=INK):
+    """Invented glyph standing for "hat"."""
+    u = lambda px, py: (x + px * size, y + py * size)
+    lw = size * 0.075
+    line(d, [u(0.12, 0.16), u(0.12, 0.60), u(0.44, 0.90), u(0.88, 0.90)], color, lw)
+    line(d, [u(0.58, 0.14), u(0.58, 0.54)], color, lw)
+    circle(d, *u(0.84, 0.30), size * 0.07, fill=color)
+
+
 # Injection id -> how to draw its item. `emoji` is the Noto Emoji code point in noto_emoji/;
 # `pictogram` says whether this script draws pictogram.png (buy_bear's predates it).
 ITEMS = {
@@ -206,6 +225,7 @@ ITEMS = {
     "buy_book": {"draw": draw_book, "glyph": glyph_book, "emoji": "1f4d5", "pictogram": True},
     "buy_shoe": {"draw": draw_shoe, "glyph": glyph_shoe, "emoji": "1f45e", "pictogram": True},
     "buy_television": {"draw": draw_television, "glyph": glyph_television, "emoji": "1f4fa", "pictogram": True},
+    "buy_hat": {"draw": draw_hat, "glyph": glyph_hat, "emoji": "1f3a9", "pictogram": True},
 }
 
 
