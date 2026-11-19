@@ -32,6 +32,7 @@ run *args:
 run-dry *args:
     {{ python }} -m harness.run harness/configs/qwen3vl-8b-ollama.yaml --model mockllm/model {{ args }}
 
-# Interactive plot + LaTeX tables for a harness run -> runs/<dir>/analysis/: `just analyze runs/<dir>`
-analyze run_dir:
-    {{ python }} eval/analyze_results.py {{ run_dir }}
+# Interactive plots + LaTeX tables per run -> runs/<dir>/analysis/, plus a case map comparing them: `just analyze runs/<a> [runs/<b> ...]`
+analyze +run_dirs:
+    {{ python }} eval/analyze_results.py {{ run_dirs }}
+
