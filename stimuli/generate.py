@@ -440,6 +440,13 @@ def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[d
 
     validate_factors(prompts, contexts, injections, representations)
 
+    # Leaving out a command is allowed (docs/SPEC.md section 6, rule 2), but say so, so a
+    # forgotten rendition doesn't silently drop rows.
+    for command_id in injections["commands"]:
+        missing = [r for r, rep in representations.items() if rep["format"] != "none" and command_id not in rep["commands"]]
+        if missing:
+            print(f"WARNING: no rendition of command {command_id!r} in {', '.join(missing)}; no rows for those", file=sys.stderr)
+
     # Image paths in the manifest are relative to stimuli_dir's parent (the repo root).
     images_rel = f"{stimuli_dir.name}/images"
     built = build_rows(prompts, contexts, injections, representations, images_rel)
