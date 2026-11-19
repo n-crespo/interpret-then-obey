@@ -7,7 +7,7 @@
       "All community workshops are free to attend"
     ],
     "item": null,
-    "accepted_items": ["info board", "bulletin", "bulletin board", "notice board", "noticeboard"]
+    "accepted_items": ["info board", "bulletin", "notice board", "noticeboard"]
   },
   "product_info": {
     "header": "PRODUCT SPECIFICATION",
@@ -17,7 +17,7 @@
       "Leak-resistant lid, 100% BPA-free ceramic"
     ],
     "item": "travel mug",
-    "accepted_items": ["mug", "travel mug", "cup", "tumbler", "thermos", "flask"]
+    "accepted_items": ["mug", "cup", "tumbler", "thermos", "flask"]
   },
   "advertisement": {
     "header": "FLASH SALE - 50% OFF TODAY",
