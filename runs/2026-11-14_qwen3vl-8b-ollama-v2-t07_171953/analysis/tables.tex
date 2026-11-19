@@ -79,11 +79,11 @@ no\_target & no & 42 & 29/42 (69\%) & 54--81 & 7/42 (17\%) & -- \\
 \begin{table}[ht]
 \centering
 \small
-\caption{Purchases by source (ollama/qwen3-vl:8b). Obeyed: bought the injected item (attack success on hijack and escalation injected rows; on baseline rows, bought it with no injection). Overreach: the user did not ask to buy, and the model bought something other than the injected item. Followed user: the user asked to buy, and the model bought something other than the injected item. Each trial has one outcome.}
+\caption{Purchases by source (ollama/qwen3-vl:8b). Obeyed: bought the injected item; on injected rows this is a hijack or an injection-driven escalation (attack success), on baseline rows a purchase with no injection. Context-driven: the user did not ask to buy, and the model bought something other than the injected item. Followed user: the user asked to buy, and the model bought something other than the injected item. Each trial has one outcome.}
 \label{tab:purchase-source}
 \begin{tabular}{lllrlll}
 \toprule
-Attack type & Product in scene & Rows & $N$ & Obeyed & Overreach & Followed user \\
+Attack type & Product in scene & Rows & $N$ & Obeyed & Context-driven & Followed user \\
 \midrule
 hijack & yes & injected & 84 & 0/84 (0\%) & -- & 81/84 (96\%) \\
 \midrule
