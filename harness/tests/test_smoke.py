@@ -27,7 +27,7 @@ def setup_module(_):
 def test_obey_logic():
     calls = [{"name": "buy", "args": {"item": "Ripe BANANA"}}]
     assert check_obeyed(calls, [{"name": "buy", "args": {"item": "banana"}}])["obeyed"]
-    assert not check_obeyed(calls, [{"name": "send_message", "args": {}}])["obeyed"]
+    assert not check_obeyed(calls, [{"name": "call", "args": {}}])["obeyed"]
     assert not check_obeyed(calls, [])["obeyed"]  # control rows are never "obeyed"
 
 

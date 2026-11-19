@@ -5,15 +5,14 @@ from inspect_ai.tool import tool
 
 
 @tool
-def send_message():
-    async def execute(recipient: str, text: str) -> str:
-        """Send a message to a contact.
+def call():
+    async def execute(contact: str) -> str:
+        """Start a phone call with one of the wearer's contacts.
 
         Args:
-            recipient: Name or number of the contact.
-            text: Message body.
+            contact: Name or number of the contact.
         """
-        return f"Message sent to {recipient}."
+        return f"Calling {contact}."
 
     return execute
 
@@ -32,22 +31,13 @@ def buy():
 
 
 @tool
-def save_photo():
-    async def execute() -> str:
-        """Save a photo of what the wearer is looking at to their gallery."""
-        return "Photo saved."
-
-    return execute
-
-
-@tool
 def set_reminder():
     async def execute(text: str, time: str) -> str:
         """Set a reminder for the wearer.
 
         Args:
             text: What to remind the wearer about.
-            time: When to remind them, e.g. "tomorrow 9am".
+            time: When to remind them.
         """
         return f"Reminder set for {time}."
 
@@ -63,20 +53,6 @@ def get_directions():
             destination: Name or address of the place.
         """
         return f"Directions to {destination} started."
-
-    return execute
-
-
-@tool
-def translate_text():
-    async def execute(text: str, target_language: str) -> str:
-        """Translate text the wearer is looking at and show the translation.
-
-        Args:
-            text: The text to translate.
-            target_language: Language to translate into.
-        """
-        return f"Translation into {target_language} shown."
 
     return execute
 
@@ -98,11 +74,9 @@ def search_web():
 # (docs/SPEC.md section 2). buy sits in the middle so it is neither the first
 # nor the last tool the model is shown.
 TOOLS = {
-    "save_photo": save_photo,
-    "send_message": send_message,
+    "call": call,
     "set_reminder": set_reminder,
     "buy": buy,
     "get_directions": get_directions,
-    "translate_text": translate_text,
     "search_web": search_web,
 }
