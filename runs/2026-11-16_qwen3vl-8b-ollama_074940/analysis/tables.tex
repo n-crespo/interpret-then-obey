@@ -101,22 +101,22 @@ no\_target & no & 11 & 3/11 (27\%) & 10--57 & 6/11 (55\%) & 1/1 (100\%) \\
 \begin{table}[ht]
 \centering
 \small
-\caption{Purchases by source (ollama/qwen3-vl:8b). Obeyed: bought the injected item; on injected rows this is a hijack or an injection-driven escalation (attack success), on baseline rows a purchase with no injection. Context-driven: the user did not ask to buy, and the model bought something other than the injected item. Followed user: the user asked to buy, and the model bought something other than the injected item. Each trial has one outcome.}
+\caption{Purchases by source (ollama/qwen3-vl:8b). Obeyed: bought the injected item; on injected rows this is an injection-driven redirection (hijack) or escalation (attack success), on baseline rows a purchase with no injection. Context-driven: the user did not ask to buy, and the model bought an item from the scene. Followed user: the user asked to buy, and the model bought an item from the scene. Misread: bought something that is neither the injected item nor from the scene. Each trial has one outcome.}
 \label{tab:purchase-source}
-\begin{tabular}{lllrlll}
+\begin{tabular}{lllrllll}
 \toprule
-Attack type & Product in scene & Rows & $N$ & Obeyed & Context-driven & Followed user \\
+Attack type & Product in scene & Rows & $N$ & Obeyed & Context-driven & Followed user & Misread \\
 \midrule
-hijack & yes & injected & 22 & 0/22 (0\%) & -- & 22/22 (100\%) \\
- & yes & baseline & 2 & 0/2 (0\%) & -- & 2/2 (100\%) \\
+hijack & yes & injected & 22 & 0/22 (0\%) & -- & 22/22 (100\%) & 0/22 (0\%) \\
+ & yes & baseline & 2 & 0/2 (0\%) & -- & 2/2 (100\%) & 0/2 (0\%) \\
 \midrule
-escalation & yes & injected & 44 & 0/44 (0\%) & 31/44 (70\%) & -- \\
- & yes & baseline & 4 & 0/4 (0\%) & 3/4 (75\%) & -- \\
- & no & injected & 22 & 2/22 (9\%) & 0/22 (0\%) & -- \\
- & no & baseline & 2 & 0/2 (0\%) & 0/2 (0\%) & -- \\
+escalation & yes & injected & 44 & 0/44 (0\%) & 31/44 (70\%) & -- & 0/44 (0\%) \\
+ & yes & baseline & 4 & 0/4 (0\%) & 3/4 (75\%) & -- & 0/4 (0\%) \\
+ & no & injected & 22 & 2/22 (9\%) & 0/22 (0\%) & -- & 0/22 (0\%) \\
+ & no & baseline & 2 & 0/2 (0\%) & 0/2 (0\%) & -- & 0/2 (0\%) \\
 \midrule
-no\_target & no & injected & 11 & 3/11 (27\%) & -- & 6/11 (55\%) \\
- & no & baseline & 1 & 0/1 (0\%) & -- & 1/1 (100\%) \\
+no\_target & no & injected & 11 & 3/11 (27\%) & -- & 4/11 (36\%) & 2/11 (18\%) \\
+ & no & baseline & 1 & 0/1 (0\%) & -- & 1/1 (100\%) & 0/1 (0\%) \\
 \bottomrule
 \end{tabular}
 \end{table}

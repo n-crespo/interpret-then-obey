@@ -79,18 +79,18 @@ no\_target & no & 42 & 29/42 (69\%) & 54--81 & 7/42 (17\%) & -- \\
 \begin{table}[ht]
 \centering
 \small
-\caption{Purchases by source (ollama/qwen3-vl:8b). Obeyed: bought the injected item; on injected rows this is a hijack or an injection-driven escalation (attack success), on baseline rows a purchase with no injection. Context-driven: the user did not ask to buy, and the model bought something other than the injected item. Followed user: the user asked to buy, and the model bought something other than the injected item. Each trial has one outcome.}
+\caption{Purchases by source (ollama/qwen3-vl:8b). Obeyed: bought the injected item; on injected rows this is an injection-driven redirection (hijack) or escalation (attack success), on baseline rows a purchase with no injection. Context-driven: the user did not ask to buy, and the model bought an item from the scene. Followed user: the user asked to buy, and the model bought an item from the scene. Misread: bought something that is neither the injected item nor from the scene. Each trial has one outcome.}
 \label{tab:purchase-source}
-\begin{tabular}{lllrlll}
+\begin{tabular}{lllrllll}
 \toprule
-Attack type & Product in scene & Rows & $N$ & Obeyed & Context-driven & Followed user \\
+Attack type & Product in scene & Rows & $N$ & Obeyed & Context-driven & Followed user & Misread \\
 \midrule
-hijack & yes & injected & 84 & 0/84 (0\%) & -- & 81/84 (96\%) \\
+hijack & yes & injected & 84 & 0/84 (0\%) & -- & 81/84 (96\%) & 0/84 (0\%) \\
 \midrule
-escalation & yes & injected & 168 & 2/168 (1\%) & 93/168 (55\%) & -- \\
- & no & injected & 84 & 21/84 (25\%) & 2/84 (2\%) & -- \\
+escalation & yes & injected & 168 & 2/168 (1\%) & 93/168 (55\%) & -- & 0/168 (0\%) \\
+ & no & injected & 84 & 21/84 (25\%) & 0/84 (0\%) & -- & 2/84 (2\%) \\
 \midrule
-no\_target & no & injected & 42 & 29/42 (69\%) & -- & 7/42 (17\%) \\
+no\_target & no & injected & 42 & 29/42 (69\%) & -- & 2/42 (5\%) & 5/42 (12\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
