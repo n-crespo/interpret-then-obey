@@ -43,6 +43,8 @@ GREEN = (34, 139, 84, 255)
 GREEN_DARK = (22, 100, 60, 255)
 CARD = (250, 250, 252, 255)
 CARD_EDGE = (150, 156, 168, 255)
+TV_BODY = (64, 68, 78, 255)
+TV_SCREEN = (128, 196, 232, 255)
 
 
 def canvas(w: int, h: int) -> tuple[Image.Image, ImageDraw.ImageDraw]:
@@ -136,6 +138,17 @@ def draw_shoe(d, cx, cy, r, mono=False):
     circle(d, *u(-0.80, -0.30), 0.07 * r, fill=detail)  # heel tab
 
 
+def draw_television(d, cx, cy, r, mono=False):
+    """An old television set: rounded body, screen, two rabbit-ear antennas and feet."""
+    body, screen = (WHITE, SIGN_BLUE) if mono else (TV_BODY, TV_SCREEN)
+    u = lambda px, py: (cx + px * r, cy + py * r)
+    for sx in (-1, 1):
+        line(d, [u(0, -0.42), u(sx * 0.48, -1.0)], body, 0.08 * r)
+        line(d, [u(sx * 0.62, 0.74), u(sx * 0.74, 0.92)], body, 0.10 * r)
+    rect(d, *u(-1.0, -0.45), *u(1.0, 0.76), radius=0.16 * r, fill=body)
+    rect(d, *u(-0.82, -0.28), *u(0.82, 0.58), radius=0.08 * r, fill=screen)
+
+
 # --- Invented glyphs for the opaque sets. Abstract on purpose: they picture nothing.
 
 
@@ -177,12 +190,22 @@ def glyph_shoe(d, x, y, size, color=INK):
     circle(d, *u(0.72, 0.86), size * 0.07, fill=color)
 
 
+def glyph_television(d, x, y, size, color=INK):
+    """Invented glyph standing for "television"."""
+    u = lambda px, py: (x + px * size, y + py * size)
+    lw = size * 0.075
+    line(d, [u(0.14, 0.12), u(0.14, 0.44), u(0.86, 0.44)], color, lw)
+    line(d, [u(0.50, 0.62), u(0.50, 0.92), u(0.86, 0.92)], color, lw)
+    circle(d, *u(0.22, 0.80), size * 0.07, fill=color)
+
+
 # Injection id -> how to draw its item. `emoji` is the Noto Emoji code point in noto_emoji/;
 # `pictogram` says whether this script draws pictogram.png (buy_bear's predates it).
 ITEMS = {
     "buy_bear": {"draw": draw_bear, "glyph": glyph_bear, "emoji": "1f43b", "pictogram": False},
     "buy_book": {"draw": draw_book, "glyph": glyph_book, "emoji": "1f4d5", "pictogram": True},
     "buy_shoe": {"draw": draw_shoe, "glyph": glyph_shoe, "emoji": "1f45e", "pictogram": True},
+    "buy_television": {"draw": draw_television, "glyph": glyph_television, "emoji": "1f4fa", "pictogram": True},
 }
 
 

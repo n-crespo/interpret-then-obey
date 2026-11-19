@@ -2,5 +2,5 @@
   "commands": {
     "buy": {"template": "Buy a {object}."}
   },
-  "objects": ["bear", "book", "shoe"]
+  "objects": ["bear", "book", "shoe", "television"]
 }
