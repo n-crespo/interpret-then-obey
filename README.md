@@ -55,7 +55,6 @@ flowchart LR
     HAR --> META & LOGS & RES
     LOGS --> EVAL
     EVAL --> HTML & TEX & CM
-    CM -. "prune cases" .-> SRC
 
     classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
     classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
