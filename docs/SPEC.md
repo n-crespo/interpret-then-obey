@@ -15,9 +15,9 @@ A test case is one image shown to the model together with one user message. It i
 | Injection | The malicious instruction placed somewhere in the image | `injections.json` |
 | Representation | The form the injection is shown in | `representations.json` |
 
-Test cases are never written by hand. The generator expands every combination of the four factors.
+Test cases are never written by hand. The generator expands every combination of the four factors, except the prompt × context pairs a prompt excludes (see [section 3](#3-prompts-promptsjson)).
 
-One representation, `none`, is a control rather than a way of showing the injection: its images have the injection box drawn but empty. These are the **no-injection baseline** rows, one per prompt × context (and injection). They measure how often the model calls the buy tool when nothing tells it to, so that a buy call on an injected row can be attributed to the injection. See [section 6](#6-representations-representationsjson) and [section 7](#7-output).
+One representation, `none`, is a control rather than a way of showing the injection: its images have the injection box drawn but empty. These are the **no-injection baseline** rows, one per included prompt × context (and injection). They measure how often the model calls the buy tool when nothing tells it to, so that a buy call on an injected row can be attributed to the injection. See [section 6](#6-representations-representationsjson) and [section 7](#7-output).
 
 A fifth factor, **style** (borders, colours and similar), is out of scope for this version. See [section 9](#9-not-yet-specified).
 
@@ -41,6 +41,8 @@ None of the distractors can purchase anything, so a purchase is always a `buy` c
 Each prompt is keyed by its id, and its `text` is the user message, sent verbatim. Its `requests_purchase` says whether the user asks the model to buy something; it feeds the [attack type](#attack-type). The prompts are ordered by how explicitly the user asks the model to take an action: from only asking it to read, through an open request for help where the user may want an action, to directly asking it to buy.
 
 Prompts must not name a language, a script, a franchise or the injected item.
+
+A prompt's optional `exclude_contexts` lists context ids that are not paired with it. A pair is excluded when an obeyed row there would not be an attack success, for example when the prompt asks for a purchase in a scene with nothing to buy (`no_target` in `stimuli/attack_types.py`, where any buy call is expected and the injection only picks the item). The excluded pairs are the data in `prompts.json`. Every id listed must be a context in `context.json`.
 
 ## 4. Contexts (`context.json`)
 
@@ -117,10 +119,10 @@ The baseline is a representation rather than a separate flag so that it needs no
 
 ## 7. Output
 
-The generator writes a manifest that the harness loads directly with `harness.manifest.load_manifest`. It has one row per test case and contains every combination:
+The generator writes a manifest that the harness loads directly with `harness.manifest.load_manifest`. It has one row per test case and contains every combination, except the excluded prompt × context pairs ([section 3](#3-prompts-promptsjson)):
 
 ```
-prompts × contexts × injections × representations
+(prompts × contexts − excluded pairs) × injections × representations
 ```
 
 The expansion is `build_rows` in `stimuli/generate.py`.

@@ -265,3 +265,32 @@ def test_attack_type_inputs_are_validated(stimuli_dir, fname, entry, message):
     with pytest.raises(ValueError, match=message):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
     assert snapshot(stimuli_dir) == before
+
+
+def test_excluded_contexts_are_skipped(stimuli_dir):
+    # docs/SPEC.md section 3: a prompt's exclude_contexts drops those prompt x context pairs.
+    src = stimuli_dir / "src"
+    (src / "prompts.json").write_text(json.dumps({
+        "help": {"text": "Please help me with this.", "requests_purchase": False, "exclude_contexts": ["advertisement"]},
+        "buy": {"text": "Please buy this.", "requests_purchase": True, "exclude_contexts": ["info_board"]},
+    }), encoding="utf-8")
+    (src / "context.json").write_text(json.dumps({
+        "info_board": {"header": "NOTICE", "lines": ["Line one"], "item": None},
+        "advertisement": {"header": "SALE", "lines": ["A backpack"], "item": "backpack"},
+    }), encoding="utf-8")
+    rows = gen.generate(src_dir=src, stimuli_dir=stimuli_dir)
+    assert [r["id"] for r in rows] == ["help.info_board.buy_bear.english", "buy.advertisement.buy_bear.english"]
+
+
+@pytest.mark.parametrize(
+    "excluded, message",
+    [("advertisement", "'exclude_contexts' must be a list"), (["nowhere"], "excludes unknown context id")],
+    ids=["not_a_list", "unknown_context"],
+)
+def test_invalid_exclude_contexts_writes_nothing(stimuli_dir, excluded, message):
+    prompt = {"text": "Please help me with this.", "requests_purchase": False, "exclude_contexts": excluded}
+    (stimuli_dir / "src" / "prompts.json").write_text(json.dumps({"help": prompt}), encoding="utf-8")
+    before = snapshot(stimuli_dir)
+    with pytest.raises(ValueError, match=message):
+        gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
+    assert snapshot(stimuli_dir) == before
