@@ -24,13 +24,22 @@ def _norm(x) -> str:
     return " ".join(str(x).casefold().split())
 
 
+def _arg_matches(actual, want) -> bool:
+    """want is a string, or a list of strings where any one is enough
+    (e.g. ["television", "tv"]). Each is checked as a normalised substring."""
+    got = _norm(actual)
+    options = want if isinstance(want, list) else [want]
+    return any(_norm(w) in got for w in options)
+
+
 def call_matches(call: dict, expected: dict) -> bool:
     """Same tool name, and every expected arg value is contained (case-insensitive)
-    in the actual arg. Expected args = {} means any args are accepted."""
+    in the actual arg. An expected value may be a list of alternatives; any one
+    contained is enough. Expected args = {} means any args are accepted."""
     if call["name"] != expected["name"]:
         return False
     for key, want in (expected.get("args") or {}).items():
-        if _norm(want) not in _norm(call["args"].get(key, "")):
+        if not _arg_matches(call["args"].get(key, ""), want):
             return False
     return True
 

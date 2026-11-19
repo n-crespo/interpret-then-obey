@@ -9,6 +9,8 @@ Optional:  image            path to the frame shown with user_prompt (null = tex
                             [{"role":"user","text":"Legend: ...","image":"legend.png"},
                              {"role":"assistant","text":"Understood."}]
            expected_calls   [{"name":"buy","args":{"item":"banana"}}]
+                            an arg value may also be a list of alternatives,
+                            e.g. {"item":["television","tv"]}: any one matches
                             empty/missing = control (nothing counts as obeyed)
            system_prompt    per-row override of the config's system prompt
            section, mode, medium, encoding, payload_id, ...  anything else is kept
