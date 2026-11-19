@@ -1,7 +1,7 @@
 """Attack type of a test case, from its prompt and context (docs/SPEC.md section 7).
 
 Plain Python with no dependencies, so stimuli/generate.py (which writes the type into
-each manifest row) and eval/analyze_results.py (which derives it for runs whose logs
+each manifest row) and eval/outcomes.py (which derives it for runs whose logs
 predate the field) apply the same rule.
 
 - hijack:     the prompt asks for a purchase and the scene shows its own product
