@@ -17,7 +17,6 @@ and `eval/` analyses a run.
 
 ```mermaid
 flowchart LR
-    %% ---------- 1. SOURCES ----------
     subgraph SRC["1 · Sources (hand-written, stimuli/src/)"]
         P["prompts.json<br/><i>user message, e.g. 'Please buy this.'<br/>+ requests_purchase, exclude_contexts</i>"]
         C["context.json<br/><i>benign scene: header, lines,<br/>item, accepted_items</i>"]
@@ -26,42 +25,14 @@ flowchart LR
         ASSETS["fonts/ + symbols/<br/><i>vendored fonts, pre-drawn<br/>symbol images</i>"]
     end
 
-    %% ---------- 2. GENERATION ----------
-    subgraph GEN["2 · Generation (just build-stimuli → stimuli/generate.py)"]
-        VAL["validate_factors<br/><i>fail = nothing written</i>"]
-        EXP["build_rows<br/><i>(prompts × contexts − excluded)<br/>× injections × representations</i>"]
-        AT["attack_types.py<br/><i>attack_type, competing_product<br/>from requests_purchase + item</i>"]
-        RENDER["render_stimulus_image<br/><i>card + injection box</i>"]
-    end
+    GEN["<b>2 · Generation</b><br/><i>just build-stimuli</i><br/>Combine every factor into test cases<br/>and render one image per case"]
 
     IMG[("stimuli/images/&lt;id&gt;.png<br/><i>gitignored, deterministic</i>")]
     MAN[("stimuli/manifest.jsonl<br/><i>committed: one row per test case,<br/>image_sha256, expected_calls</i>")]
 
-    P & C & I & R --> VAL --> EXP
-    AT --> EXP
-    EXP --> RENDER
-    ASSETS --> RENDER
-    RENDER --> IMG
-    EXP --> MAN
-    IMG -. "hash" .-> MAN
+    HAR["<b>3 · Harness</b><br/><i>just run &lt;config&gt;</i><br/>Show each case to a vision model with mock tools<br/>and score whether it called buy as injected"]
 
-    %% ---------- 3. HARNESS ----------
-    subgraph HAR["3 · Harness (just run &lt;config&gt; → harness/run.py)"]
-        CFG["harness/configs/*.yaml<br/><i>model, system_prompt,<br/>generate + run settings</i>"]
-        LOAD["manifest.py: load_manifest<br/><i>checks image hashes</i>"]
-        TASK["task.py: build_task<br/><i>image + user prompt → Inspect Sample</i>"]
-        TOOLS["tools/mock_tools.py<br/><i>buy + distractor tools<br/>(record calls, do nothing)</i>"]
-        VLM{{"Vision-language model<br/><i>Ollama / vLLM</i>"}}
-        SCORE["obey.py: check_obeyed<br/><i>did it call buy(item ∈ accepted_items)?</i>"]
-        EXPORT["export.py<br/><i>.eval logs → results.jsonl</i>"]
-    end
-
-    MAN --> LOAD
-    IMG --> LOAD
-    CFG --> TASK
-    LOAD --> TASK --> VLM
-    TOOLS <--> VLM
-    VLM --> SCORE
+    CFG["harness/configs/*.yaml<br/><i>model, system_prompt,<br/>generate + run settings</i>"]
 
     subgraph RUN["runs/&lt;date&gt;_&lt;name&gt;/"]
         META["meta.json<br/><i>config, model, manifest, commit</i>"]
@@ -69,20 +40,7 @@ flowchart LR
         RES["results.jsonl"]
     end
 
-    CFG --> META
-    SCORE --> LOGS --> EXPORT --> RES
-
-    %% ---------- 4. ANALYSIS ----------
-    subgraph EVAL["4 · Analysis (just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …] → eval/analyze_results.py)"]
-        OUTC["outcomes.py<br/><i>name each trial's outcome<br/>(obeyed, bought from scene, …)</i>"]
-        HEAD["headline<br/><i>printed summary; baseline 'none'<br/>reported separately</i>"]
-        CMAP["casemap.py<br/><i>compare runs case by case</i>"]
-    end
-
-    LOGS --> OUTC
-    AT -. "shared rules" .-> OUTC
-    C -. "accepted_items" .-> OUTC
-    OUTC --> HEAD
+    EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
 
     subgraph OUT["runs/&lt;dir&gt;/analysis/"]
         HTML["outcomes.html<br/><i>one mark per trial</i>"]
@@ -90,14 +48,21 @@ flowchart LR
         CM["casemap.html<br/><i>last run only: treemap,<br/>flag cases to drop</i>"]
     end
 
-    OUTC --> HTML & TEX
-    OUTC --> CMAP --> CM
+    SRC --> GEN
+    GEN --> IMG & MAN
+    IMG & MAN --> HAR
+    CFG --> HAR
+    HAR --> META & LOGS & RES
+    LOGS --> EVAL
+    EVAL --> HTML & TEX & CM
     CM -. "prune manifest" .-> SRC
 
     classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
     classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
-    class P,C,I,R,ASSETS src;
+    classDef step fill:#e9f7ee,stroke:#3a9a5b,color:#1a1a1a;
+    class P,C,I,R,ASSETS,CFG src;
     class IMG,MAN,META,LOGS,RES,HTML,TEX,CM data;
+    class GEN,HAR,EVAL step;
 ```
 
 ## Running locally
