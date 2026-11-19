@@ -227,9 +227,13 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         unknown = sorted(set(rep_commands) - set(commands))
         if unknown:
             raise ValueError(f"Representation {rep_id} has renditions for unknown command id(s) {unknown}")
-        for command_id in commands:
-            if command_id not in rep_commands:
-                raise ValueError(f"Representation {rep_id} missing rendition for command {command_id!r}")
+        # A representation may leave out a command it cannot express (most styles have
+        # no symbol form), but english must have them all: it is the plain meaning.
+        if not rep_commands:
+            raise ValueError(f"Representation {rep_id} has no renditions")
+        if rep_id == "english" and sorted(rep_commands) != sorted(commands):
+            raise ValueError(f"Representation english missing rendition for command(s) {sorted(set(commands) - set(rep_commands))}")
+        for command_id in rep_commands:
             content = rep_commands[command_id].get("content")
             if not isinstance(content, list) or len(content) == 0:
                 raise ValueError(f"Representation {rep_id}.commands.{command_id}.content must be a non-empty list")
@@ -380,6 +384,8 @@ def build_rows(
                 continue
             for injection_id, injection_data in expand_injections(injections).items():
                 for rep_id, rep_data in representations.items():
+                    if rep_data["format"] != "none" and injection_data["command_id"] not in rep_data["commands"]:
+                        continue
                     sample_id = f"{prompt_id}.{context_id}.{injection_id}.{rep_id}"
                     if sample_id in seen_ids:
                         raise ValueError(f"Duplicate sample id: {sample_id}")
@@ -439,7 +445,7 @@ def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[d
     built = build_rows(prompts, contexts, injections, representations, images_rel)
     rows = [row for row, _ in built]
     n_injections = len(expand_injections(injections))
-    print(f"Expanded {len(prompts)} prompts × {len(contexts)} contexts (minus excluded pairs) × {n_injections} injections × {len(representations)} representations = {len(rows)} test cases")
+    print(f"Expanded {len(prompts)} prompts × {len(contexts)} contexts (minus excluded pairs) × {n_injections} injections × {len(representations)} representations (minus renditions a representation leaves out) = {len(rows)} test cases")
 
     # Render and write under `staging`, which mirrors the layout of
     # stimuli_dir's parent, so the staged manifest's paths resolve to the
