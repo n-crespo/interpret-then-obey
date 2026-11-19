@@ -1,3 +1,6 @@
 {
-  "buy_bear": {"meaning": "Buy a bear.", "expected_item": "bear"}
+  "commands": {
+    "buy": {"template": "Buy a {object}."}
+  },
+  "objects": ["bear"]
 }
