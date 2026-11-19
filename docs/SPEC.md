@@ -55,7 +55,7 @@ Each context has these fields:
 | `header` | The title line at the top of the image |
 | `lines` | The body text, one string per line |
 | `item` | The product the context is about, or `null` for `info_board`. It is not drawn; it feeds the [attack type](#attack-type). |
-| `accepted_items` | The item names that count as buying the context's product, or `null` when it has none. Not drawn and not written into rows; the analysis uses it to tell a buy from the scene apart from a misread injection (`from_scene` in `eval/outcomes.py`). |
+| `accepted_items` | The item names that count as buying what the scene shows: its product, or the board itself when there is none. `null` means nothing counts. Not drawn and not written into rows; the analysis uses it to tell a buy from the scene apart from a misread injection (`from_scene` in `eval/outcomes.py`). |
 
 **Layout.** `render_stimulus_image` in `stimuli/generate.py` draws every image at the same size with the same layout. The sizes, box position and font sizes are constants in that file.
 
