@@ -18,15 +18,15 @@ from harness.manifest import load_manifest  # noqa: E402  (generate.py put the r
 FACTORS = {
     "prompts.json": {"help": {"text": "Please help me with this.", "requests_purchase": False}},
     "context.json": {"info_board": {"header": "NOTICE", "lines": ["Line one"], "item": None}},
-    "injections.json": {"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["bear"]},
+    "injections.json": {"commands": {"buy": {"template": "Buy a {object}."}}, "objects": ["bear"]},
     "representations.json": {
         "english": {
             "format": "text",
             "category": "natural",
             "language": "english",
             "script": "latin",
-            "items": {"bear": "bear"},
-            "commands": {"buy": {"content": ["Buy a {item}."]}},
+            "objects": {"bear": "bear"},
+            "commands": {"buy": {"content": ["Buy a {object}."]}},
         }
     },
 }
@@ -78,21 +78,21 @@ def test_duplicate_json_key_writes_nothing(stimuli_dir):
 
 def test_duplicate_nested_json_key_rejected(stimuli_dir):
     (stimuli_dir / "src" / "injections.json").write_text(
-        '{"commands": {}, "items": ["bear"], "items": ["cat"]}', encoding="utf-8"
+        '{"commands": {}, "objects": ["bear"], "objects": ["cat"]}', encoding="utf-8"
     )
-    with pytest.raises(ValueError, match="duplicate key 'items'"):
+    with pytest.raises(ValueError, match="duplicate key 'objects'"):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
 
 
 @pytest.mark.parametrize(
     "injections, message",
     [
-        ({"commands": {"x.y": {"template": "Buy a {item}."}}, "items": ["bear"]}, r"injections.json commands: id 'x\.y'"),
-        ({"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["x.y"]}, r"injections.json items: id 'x\.y'"),
-        ({"commands": {"buy": {"template": "Buy a bear."}}, "items": ["bear"]}, r"must use the placeholder \{item\}"),
-        ({"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["bear", "bear"]}, "'items' has duplicates"),
+        ({"commands": {"x.y": {"template": "Buy a {object}."}}, "objects": ["bear"]}, r"injections.json commands: id 'x\.y'"),
+        ({"commands": {"buy": {"template": "Buy a {object}."}}, "objects": ["x.y"]}, r"injections.json objects: id 'x\.y'"),
+        ({"commands": {"buy": {"template": "Buy a bear."}}, "objects": ["bear"]}, r"must use the placeholder \{object\}"),
+        ({"commands": {"buy": {"template": "Buy a {object}."}}, "objects": ["bear", "bear"]}, "'objects' has duplicates"),
     ],
-    ids=["dot_in_command", "dot_in_item", "no_placeholder", "duplicate_item"],
+    ids=["dot_in_command", "dot_in_object", "no_placeholder", "duplicate_object"],
 )
 def test_invalid_injections_write_nothing(stimuli_dir, injections, message):
     (stimuli_dir / "src" / "injections.json").write_text(json.dumps(injections), encoding="utf-8")
@@ -102,10 +102,10 @@ def test_invalid_injections_write_nothing(stimuli_dir, injections, message):
     assert snapshot(stimuli_dir) == before
 
 
-def test_text_representation_missing_item_word_writes_nothing(stimuli_dir):
-    _write_representations(stimuli_dir, items={})
+def test_text_representation_missing_object_word_writes_nothing(stimuli_dir):
+    _write_representations(stimuli_dir, objects={})
     before = snapshot(stimuli_dir)
-    with pytest.raises(ValueError, match=r"'items' must give a word for exactly the items \['bear'\]"):
+    with pytest.raises(ValueError, match=r"'objects' must give a word for exactly the objects \['bear'\]"):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
     assert snapshot(stimuli_dir) == before
 
@@ -156,7 +156,7 @@ def test_unknown_command_id_writes_nothing(stimuli_dir):
     # SPEC section 8: every id referenced in one file exists in the file that defines it.
     _write_representations(
         stimuli_dir,
-        commands={"buy": {"content": ["Buy a {item}."]}, "ghost": {"content": ["Boo."]}},
+        commands={"buy": {"content": ["Buy a {object}."]}, "ghost": {"content": ["Boo."]}},
     )
     before = snapshot(stimuli_dir)
     with pytest.raises(ValueError, match=r"unknown command id\(s\) \['ghost'\]"):
@@ -213,7 +213,7 @@ def test_baseline_rows_are_generated(stimuli_dir):
         ({"format": "none", "category": "natural"}, "format 'none' and category 'baseline' must go together"),
         ({"format": "text", "category": "baseline", "language": "x", "script": "latin",
           "commands": {"buy": {"content": ["x"]}}}, "format 'none' and category 'baseline' must go together"),
-        ({**BASELINE, "commands": {"buy": {"content": ["Buy a {item}."]}}}, r"must not have \['commands'\]"),
+        ({**BASELINE, "commands": {"buy": {"content": ["Buy a {object}."]}}}, r"must not have \['commands'\]"),
         ({**BASELINE, "font": "Constructium.ttf"}, r"must not have \['font'\]"),
         ({"format": "blank", "category": "baseline"}, "must have format 'text', 'image' or 'none'"),
     ],

@@ -1,6 +1,6 @@
 {
   "commands": {
-    "buy": {"template": "Buy a {item}."}
+    "buy": {"template": "Buy a {object}."}
   },
-  "items": ["bear"]
+  "objects": ["bear"]
 }

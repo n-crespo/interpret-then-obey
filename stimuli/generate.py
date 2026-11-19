@@ -8,9 +8,9 @@ Combines the 4 factors:
 The `none` representation (format "none", category "baseline") is the
 no-injection baseline: its images have the injection box drawn but empty.
 
-Injections are commands × items (stimuli/src/injections.json): each
-`{item}` placeholder (str.format syntax) in a command's renditions is filled
-with every item, giving one injection per pair, id `<command>_<item>`.
+Injections are commands × objects (stimuli/src/injections.json): each
+`{object}` placeholder (str.format syntax) in a command's renditions is filled
+with every object, giving one injection per pair, id `<command>_<object>`.
 
 Deterministically renders images to stimuli/images/<id>.png and writes
 the harness-loadable manifest to stimuli/manifest.jsonl (the only file it
@@ -113,23 +113,23 @@ def placeholders(text: str) -> set[str]:
 
 
 def expand_injections(injections: dict) -> dict[str, dict]:
-    """Every command × item pair in injections.json, keyed by injection id `<command>_<item>`."""
+    """Every command × object pair in injections.json, keyed by injection id `<command>_<object>`."""
     return {
-        f"{command_id}_{item}": {"command_id": command_id, "item": item}
+        f"{command_id}_{obj}": {"command_id": command_id, "object": obj}
         for command_id in injections["commands"]
-        for item in injections["items"]
+        for obj in injections["objects"]
     }
 
 
-def fill_rendition(rep: dict, command_id: str, item: str) -> dict:
-    """The rendition of `command_id` in `rep` with `{item}` filled in.
+def fill_rendition(rep: dict, command_id: str, obj: str) -> dict:
+    """The rendition of `command_id` in `rep` with `{object}` filled in.
 
-    Text representations fill it with their own word for the item (`items`); image
-    representations with the item id, which names the asset's folder.
+    Text representations fill it with their own word for the object (`objects`); image
+    representations with the object id, which names the asset's folder.
     """
-    word = rep["items"][item] if rep["format"] == "text" else item
+    word = rep["objects"][obj] if rep["format"] == "text" else obj
     rendition = rep["commands"][command_id]
-    return {**rendition, "content": [line.format(item=word) for line in rendition["content"]]}
+    return {**rendition, "content": [line.format(object=word) for line in rendition["content"]]}
 
 
 def validate_factors(prompts: dict, contexts: dict, injections: dict, representations: dict) -> None:
@@ -138,18 +138,18 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         raise ValueError("prompts.json is empty")
     if not contexts:
         raise ValueError("context.json is empty")
-    if set(injections) != {"commands", "items"}:
-        raise ValueError("injections.json must have exactly the keys 'commands' and 'items'")
-    commands, items = injections["commands"], injections["items"]
+    if set(injections) != {"commands", "objects"}:
+        raise ValueError("injections.json must have exactly the keys 'commands' and 'objects'")
+    commands, objects = injections["commands"], injections["objects"]
     if not commands:
         raise ValueError("injections.json: 'commands' is empty")
-    if not isinstance(items, list) or not items:
-        raise ValueError("injections.json: 'items' must be a non-empty list")
-    if len(set(items)) != len(items):
-        raise ValueError("injections.json: 'items' has duplicates")
+    if not isinstance(objects, list) or not objects:
+        raise ValueError("injections.json: 'objects' must be a non-empty list")
+    if len(set(objects)) != len(objects):
+        raise ValueError("injections.json: 'objects' has duplicates")
     for command_id, command in commands.items():
-        if placeholders(command.get("template", "")) != {"item"}:
-            raise ValueError(f"injections.json: command {command_id!r} 'template' must use the placeholder {{item}} and no other")
+        if placeholders(command.get("template", "")) != {"object"}:
+            raise ValueError(f"injections.json: command {command_id!r} 'template' must use the placeholder {{object}} and no other")
     if not representations:
         raise ValueError("representations.json is empty")
 
@@ -160,7 +160,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         ("prompts.json", prompts),
         ("context.json", contexts),
         ("injections.json commands", commands),
-        ("injections.json items", items),
+        ("injections.json objects", objects),
         ("representations.json", representations),
     ):
         for fid in factor:
@@ -189,7 +189,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         if (rep["format"] == "none") != (rep["category"] == "baseline"):
             raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
         if rep["format"] == "none":
-            extra = sorted({"commands", "items", "language", "script", "font"} & set(rep))
+            extra = sorted({"commands", "objects", "language", "script", "font"} & set(rep))
             if extra:
                 raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
             continue
@@ -200,13 +200,13 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         if "font" in rep and not (FONTS_DIR / rep["font"]).is_file():
             raise FileNotFoundError(f"Representation {rep_id} font not found: {FONTS_DIR / rep['font']}")
 
-        # Text renditions say the item in the representation's own words; image
-        # renditions fill {item} with the item id, so they have no word list.
+        # Text renditions say the object in the representation's own words; image
+        # renditions fill {object} with the object id, so they have no word list.
         if rep["format"] == "text":
-            if sorted(rep.get("items", {})) != sorted(items):
-                raise ValueError(f"Representation {rep_id} 'items' must give a word for exactly the items {sorted(items)}")
-        elif "items" in rep:
-            raise ValueError(f"Image representation {rep_id} must not have 'items'")
+            if sorted(rep.get("objects", {})) != sorted(objects):
+                raise ValueError(f"Representation {rep_id} 'objects' must give a word for exactly the objects {sorted(objects)}")
+        elif "objects" in rep:
+            raise ValueError(f"Image representation {rep_id} must not have 'objects'")
 
         rep_commands = rep.get("commands", {})
         unknown = sorted(set(rep_commands) - set(commands))
@@ -219,14 +219,14 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
             if not isinstance(content, list) or len(content) == 0:
                 raise ValueError(f"Representation {rep_id}.commands.{command_id}.content must be a non-empty list")
             for line in content:
-                if not placeholders(line) <= {"item"}:
-                    raise ValueError(f"Representation {rep_id}.commands.{command_id}: {line!r} uses a placeholder other than {{item}}")
+                if not placeholders(line) <= {"object"}:
+                    raise ValueError(f"Representation {rep_id}.commands.{command_id}: {line!r} uses a placeholder other than {{object}}")
             if rep["format"] == "image":
-                for item in items:
-                    for p_str in fill_rendition(rep, command_id, item)["content"]:
+                for obj in objects:
+                    for p_str in fill_rendition(rep, command_id, obj)["content"]:
                         img_path = REPO_ROOT / p_str
                         if not img_path.exists():
-                            raise FileNotFoundError(f"Rendition image not found: {img_path} (from {rep_id}.{command_id}, item {item!r})")
+                            raise FileNotFoundError(f"Rendition image not found: {img_path} (from {rep_id}.{command_id}, object {obj!r})")
 
 
 def render_stimulus_image(
@@ -368,7 +368,7 @@ def build_rows(
                         raise ValueError(f"Duplicate sample id: {sample_id}")
                     seen_ids.add(sample_id)
 
-                    expected_item = injection_data["item"]
+                    expected_item = injection_data["object"]
                     row = {
                         "id": sample_id,
                         "user_prompt": prompt_data["text"],
