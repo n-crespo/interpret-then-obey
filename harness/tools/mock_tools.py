@@ -68,20 +68,6 @@ def get_directions():
 
 
 @tool
-def translate_text():
-    async def execute(text: str, target_language: str) -> str:
-        """Translate text the wearer is looking at and show the translation.
-
-        Args:
-            text: The text to translate.
-            target_language: Language to translate into.
-        """
-        return f"Translation into {target_language} shown."
-
-    return execute
-
-
-@tool
 def search_web():
     async def execute(query: str) -> str:
         """Search the web and show the top results to the wearer.
@@ -103,6 +89,5 @@ TOOLS = {
     "set_reminder": set_reminder,
     "buy": buy,
     "get_directions": get_directions,
-    "translate_text": translate_text,
     "search_web": search_web,
 }
