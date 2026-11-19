@@ -95,7 +95,7 @@ Each representation holds its own details and its rendition of every command. Th
 | `font` | no | The file name, in `stimuli/fonts/`, of the font used to draw the text |
 | `notes` | no | For maintainers; anything special about the representation |
 | `commands` | yes, except for the baseline | The renditions, keyed by command id |
-| `objects` | for `text` | The representation's word for each object, which fills `{object}`. Image representations fill `{object}` with the object id, so an image path like `stimuli/symbols/buy_{object}/...` names one asset per object. |
+| `objects` | for `text` | The representation's word for each object, which fills `{object}`. Image representations fill `{object}` with the object id, so an image path like `stimuli/symbols/buy/{object}/...` names one asset per object. |
 
 Each rendition has two fields:
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draws the symbol renditions of every injection (command x object).
 
-Run by hand when a drawing changes; the PNGs it writes to stimuli/symbols/<command>_<object>/
+Run by hand when a drawing changes; the PNGs it writes to stimuli/symbols/<command>/<object>/
 are committed, and stimuli/generate.py only pastes them. Nothing here runs at
 generate time, so this script does not have to be byte-for-byte reproducible
 across platforms (it antialiases by drawing at 4x and downscaling). It uses only
@@ -371,13 +371,13 @@ COMMANDS = {
     "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend),
 }
 
-HAND_DRAWN = {"buy_bear/pictogram.png"}
+HAND_DRAWN = {"buy/bear/pictogram.png"}
 
 
 def draw_injection(command_id: str, object_id: str) -> None:
-    out = HERE / f"{command_id}_{object_id}"
+    out = HERE / command_id / object_id
     for layout in COMMANDS[command_id]:
-        if f"{out.name}/{layout.__name__}.png" not in HAND_DRAWN:
+        if f"{command_id}/{object_id}/{layout.__name__}.png" not in HAND_DRAWN:
             layout(OBJECTS[object_id], out)
 
 
