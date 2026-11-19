@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interpret-Then-Obey analysis of one harness run.
+Interpret-Then-Obey analysis of one or more harness runs.
 
 Reads the Inspect logs in runs/<dir>/inspect_logs/*.eval (through
 `inspect_ai.analysis.samples_df`), groups trials by the stimulus factors in
@@ -13,6 +13,9 @@ stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
                            baseline vs injected per prompt x context, by
                            attack type, and purchases by source
 
+and, in the last run's analysis/, casemap.html: every test case, one outcome strip per
+run given (eval/casemap.py).
+
 Outcomes, and the terms used below (obeyed, attack type, off-target call, baseline),
 are defined in eval/outcomes.py.
 
@@ -20,7 +23,7 @@ Only P(obey) is measurable: nothing yet labels whether the model interpreted the
 payload, so P(interpret) and P(obey | interpret) are not computed.
 
 Usage:
-    python eval/analyze_results.py runs/<date>_<name>
+    python eval/analyze_results.py runs/<date>_<name> [runs/<other> ...]
 """
 
 from __future__ import annotations
@@ -345,8 +348,9 @@ def outcomes_html(trials: list[dict], rep_order: list, model: str | None, run_di
 # Main
 
 
-def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
-    """Print the headline and write the figures and tables; returns the written paths."""
+def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path], list[dict]]:
+    """Print the headline and write the figures and tables for one run; returns the written
+    paths and the trials (attack_type filled in)."""
     trials, model = load_trials(run_dir)
     if not any(not t["error"] for t in trials):
         sys.exit(f"No successful samples in {run_dir / 'inspect_logs'} ({len(trials)} errored)")
@@ -367,13 +371,34 @@ def analyze(run_dir: Path, manifest: Path | None = None) -> list[Path]:
         print(f"\nNote: the logs predate attack_type; derived it for {derived} trial(s) from prompt_id x context_id "
               "with stimuli/src/.")
     print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
-    print("Open outcomes.html in a browser; hover a mark for the trial's details.")
+    return written, trials
+
+
+def analyze(run_dirs: Path | list[Path], manifest: Path | None = None) -> list[Path]:
+    """analyze_run for each run, then casemap.html (eval/casemap.py) over all of them, one
+    outcome strip per run, in the last run's analysis/. Returns the written paths."""
+    from eval.casemap import write_casemap  # imports this module, so not at the top
+
+    run_dirs = [run_dirs] if isinstance(run_dirs, Path) else run_dirs
+    written, runs = [], {}
+    for i, run_dir in enumerate(run_dirs):
+        if i:
+            print()
+        paths, runs[run_dir] = analyze_run(run_dir, manifest)
+        written += paths
+    page = write_casemap(runs, run_dirs[-1] / "analysis" / "casemap.html", manifest or Path("stimuli/manifest.jsonl"))
+    written.append(page)
+    print(f"\nWrote {page} ({len(runs)} run(s), one outcome strip each)")
+    print("Open outcomes.html or casemap.html in a browser; hover a mark for the trial's details.")
     return written
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("run_dir", type=Path, help="harness run directory, e.g. runs/2026-11-15_qwen3vl-8b-ollama")
-    ap.add_argument("--manifest", type=Path, help="manifest for representation order (default: the one in meta.json)")
+    ap.add_argument("run_dirs", type=Path, nargs="+",
+                    help="harness run directories, e.g. runs/2026-11-15_qwen3vl-8b-ollama; casemap.html compares them")
+    ap.add_argument("--manifest", type=Path,
+                    help="manifest for representation order (default: the one in meta.json) and for which cases "
+                         "casemap.html counts as current (default: stimuli/manifest.jsonl)")
     args = ap.parse_args()
-    analyze(args.run_dir, args.manifest)
+    analyze(args.run_dirs, args.manifest)
