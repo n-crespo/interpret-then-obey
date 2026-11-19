@@ -37,7 +37,6 @@ flowchart LR
     subgraph RUN["Run folder"]
         META["meta.json<br/><i>trace a result back to<br/>what produced it</i>"]
         LOGS["Inspect logs<br/><i>full conversations,<br/>for inspecting any trial</i>"]
-        RES["results.jsonl<br/><i>flat results for<br/>other tools</i>"]
     end
 
     EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
@@ -52,7 +51,7 @@ flowchart LR
     GEN --> IMG & MAN
     IMG & MAN --> HAR
     CFG --> HAR
-    HAR --> META & LOGS & RES
+    HAR --> META & LOGS
     LOGS --> EVAL
     EVAL --> HTML & TEX & CM
 
@@ -60,7 +59,7 @@ flowchart LR
     classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
     classDef step fill:#e9f7ee,stroke:#3a9a5b,color:#1a1a1a;
     class P,C,I,R,ASSETS,CFG src;
-    class IMG,MAN,META,LOGS,RES,HTML,TEX,CM data;
+    class IMG,MAN,META,LOGS,HTML,TEX,CM data;
     class GEN,HAR,EVAL step;
 ```
 
