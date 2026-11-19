@@ -21,7 +21,7 @@ flowchart LR
         P["prompts.json<br/><i>vary how strongly the user<br/>asks for an action</i>"]
         C["context.json<br/><i>vary how strongly the scene<br/>itself invites a purchase</i>"]
         I["injections.json<br/><i>what the attacker wants<br/>the model to do</i>"]
-        R["representations.json<br/><i>vary how much interpreting<br/>the injection takes: the core question</i>"]
+        R["representations.json<br/><i>vary representation of<br/> the injection</i>"]
         ASSETS["fonts/ + symbols/<br/><i>draw scripts and symbols<br/>a plain font can't</i>"]
     end
 
