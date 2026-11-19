@@ -71,7 +71,7 @@ Injections are built from two lists so that the command and the thing it names v
 
 | Key | Purpose |
 | --- | --- |
-| `commands` | The commands, keyed by command id. Each has a `meaning`: the command in plain English, with the placeholder `{item}` where the item goes. |
+| `commands` | The commands, keyed by command id. Each has a `template`: the command in plain English, with the placeholder `{item}` where the item goes. |
 | `items` | The items an injection can name. Each item is also the `item` the model buys if it obeys. |
 
 Every command is combined with every item. The injection id is `<command>_<item>`; it is the id used everywhere else.

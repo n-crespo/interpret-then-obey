@@ -148,8 +148,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     if len(set(items)) != len(items):
         raise ValueError("injections.json: 'items' has duplicates")
     for command_id, command in commands.items():
-        if placeholders(command.get("meaning", "")) != {"item"}:
-            raise ValueError(f"injections.json: command {command_id!r} 'meaning' must use the placeholder {{item}} and no other")
+        if placeholders(command.get("template", "")) != {"item"}:
+            raise ValueError(f"injections.json: command {command_id!r} 'template' must use the placeholder {{item}} and no other")
     if not representations:
         raise ValueError("representations.json is empty")
 

@@ -23,7 +23,7 @@ def test_factor_files():
     assert len(contexts) == 3
     assert set(contexts) == {"info_board", "product_info", "advertisement"}
 
-    assert injections == {"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear"]}
+    assert injections == {"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["bear"]}
 
     # Rule 1: english is the first representation
     assert list(representations.keys())[0] == "english"

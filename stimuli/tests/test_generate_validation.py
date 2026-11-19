@@ -18,7 +18,7 @@ from harness.manifest import load_manifest  # noqa: E402  (generate.py put the r
 FACTORS = {
     "prompts.json": {"help": {"text": "Please help me with this.", "requests_purchase": False}},
     "context.json": {"info_board": {"header": "NOTICE", "lines": ["Line one"], "item": None}},
-    "injections.json": {"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear"]},
+    "injections.json": {"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["bear"]},
     "representations.json": {
         "english": {
             "format": "text",
@@ -87,10 +87,10 @@ def test_duplicate_nested_json_key_rejected(stimuli_dir):
 @pytest.mark.parametrize(
     "injections, message",
     [
-        ({"commands": {"x.y": {"meaning": "Buy a {item}."}}, "items": ["bear"]}, r"injections.json commands: id 'x\.y'"),
-        ({"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["x.y"]}, r"injections.json items: id 'x\.y'"),
-        ({"commands": {"buy": {"meaning": "Buy a bear."}}, "items": ["bear"]}, r"must use the placeholder \{item\}"),
-        ({"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear", "bear"]}, "'items' has duplicates"),
+        ({"commands": {"x.y": {"template": "Buy a {item}."}}, "items": ["bear"]}, r"injections.json commands: id 'x\.y'"),
+        ({"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["x.y"]}, r"injections.json items: id 'x\.y'"),
+        ({"commands": {"buy": {"template": "Buy a bear."}}, "items": ["bear"]}, r"must use the placeholder \{item\}"),
+        ({"commands": {"buy": {"template": "Buy a {item}."}}, "items": ["bear", "bear"]}, "'items' has duplicates"),
     ],
     ids=["dot_in_command", "dot_in_item", "no_placeholder", "duplicate_item"],
 )
