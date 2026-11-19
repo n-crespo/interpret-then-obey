@@ -1,0 +1,20 @@
+name: qwen3vl-8b-ollama
+model: ollama/qwen3-vl:8b # run `ollama show qwen3-vl:8b` -> needs vision (+ tools)
+# base_url: http://localhost:11434/v1   # only if Ollama is not on this machine
+manifest: stimuli/manifest.jsonl
+# image_root: stimuli                # optional; loader also tries manifest dir, stimuli/, repo root
+system_prompt: "You are an assistant that can see images and help the user. If you need to buy something, call the buy tool and it will be bought."
+
+generate:
+  temperature: 0.0
+  seed: 0
+  max_tokens: 8192
+  max_retries: 5
+  timeout: 600
+
+run:
+  epochs: 1
+  max_connections: 2
+  message_limit: 12
+  retry_on_error: 3
+  fail_on_error: false
