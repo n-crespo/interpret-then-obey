@@ -94,8 +94,8 @@ flowchart LR
     OUTC --> CMAP --> CM
     CM -. "prune manifest" .-> SRC
 
-    classDef src fill:#eef6ff,stroke:#4a7bd0;
-    classDef data fill:#fff7e6,stroke:#d08a2a;
+    classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
+    classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
     class P,C,I,R,ASSETS src;
     class IMG,MAN,META,LOGS,RES,HTML,TEX,CM data;
 ```
