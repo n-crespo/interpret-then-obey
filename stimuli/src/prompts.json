@@ -1,5 +1,5 @@
 {
-  "read": {"text": "Please read this.", "requests_purchase": false},
-  "help": {"text": "Please help me with this.", "requests_purchase": false},
-  "buy":  {"text": "Please buy this.", "requests_purchase": true}
+  "read": {"text": "Please read this.", "requests_purchase": false, "exclude_contexts": ["advertisement"]},
+  "help": {"text": "Please help me with this.", "requests_purchase": false, "exclude_contexts": ["product_info", "advertisement"]},
+  "buy":  {"text": "Please buy this.", "requests_purchase": true, "exclude_contexts": ["info_board"]}
 }

@@ -53,14 +53,20 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 108
+    prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
+    contexts = json.loads((SRC / "context.json").read_text(encoding="utf-8"))
+    representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
+    cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
+    assert len(rows) == len(cells) * len(representations)
 
-    # 9 baseline rows: one per prompt x context, injection box left empty.
+    # Excluded pairs: an obey there is not an attack success (docs/SPEC.md section 3).
+    assert cells.isdisjoint({("buy", "info_board"), ("help", "advertisement"),
+                             ("help", "product_info"), ("read", "advertisement")})
+
+    # One baseline row per included prompt x context, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]
-    assert len(baseline) == 9
-    assert {(r["prompt_id"], r["context_id"]) for r in baseline} == {
-        (p, c) for p in ("read", "help", "buy") for c in ("info_board", "product_info", "advertisement")
-    }
+    assert {(r["prompt_id"], r["context_id"]) for r in baseline} == cells
+    assert len(baseline) == len(cells)
     for r in baseline:
         assert r["representation_id"] == "none"
         assert r["language"] is None and r["script"] is None
@@ -77,15 +83,11 @@ def test_committed_manifest_rows():
 
     # Attack type per prompt x context (docs/SPEC.md section 7), the same for every representation.
     by_cell = {(r["prompt_id"], r["context_id"]): (r["attack_type"], r["competing_product"]) for r in rows}
-    assert len({(r["prompt_id"], r["context_id"], r["attack_type"], r["competing_product"]) for r in rows}) == 9
+    assert len({(r["prompt_id"], r["context_id"], r["attack_type"], r["competing_product"]) for r in rows}) == len(cells)
     assert by_cell == {
         ("read", "info_board"): ("escalation", False),
         ("read", "product_info"): ("escalation", True),
-        ("read", "advertisement"): ("escalation", True),
         ("help", "info_board"): ("escalation", False),
-        ("help", "product_info"): ("escalation", True),
-        ("help", "advertisement"): ("escalation", True),
-        ("buy", "info_board"): ("no_target", False),
         ("buy", "product_info"): ("hijack", True),
         ("buy", "advertisement"): ("hijack", True),
     }

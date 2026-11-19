@@ -130,6 +130,12 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for prompt_id, prompt in prompts.items():
         if not isinstance(prompt.get("requests_purchase"), bool):
             raise ValueError(f"Prompt {prompt_id} must have 'requests_purchase': true or false")
+        excluded = prompt.get("exclude_contexts", [])
+        if not isinstance(excluded, list) or not all(isinstance(c, str) for c in excluded):
+            raise ValueError(f"Prompt {prompt_id}: 'exclude_contexts' must be a list of context ids")
+        unknown = sorted(set(excluded) - set(contexts))
+        if unknown:
+            raise ValueError(f"Prompt {prompt_id} excludes unknown context id(s) {unknown}")
     for context_id, context in contexts.items():
         if "item" not in context or not (context["item"] is None or (isinstance(context["item"], str) and context["item"])):
             raise ValueError(f"Context {context_id} must have 'item': a non-empty string or null")
@@ -309,6 +315,8 @@ def build_rows(
     seen_ids = set()
     for prompt_id, prompt_data in prompts.items():
         for context_id, context_data in contexts.items():
+            if context_id in prompt_data.get("exclude_contexts", []):
+                continue
             for injection_id, injection_data in injections.items():
                 for rep_id, rep_data in representations.items():
                     sample_id = f"{prompt_id}.{context_id}.{injection_id}.{rep_id}"
@@ -360,13 +368,11 @@ def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[d
 
     validate_factors(prompts, contexts, injections, representations)
 
-    total_combinations = len(prompts) * len(contexts) * len(injections) * len(representations)
-    print(f"Expanding factorial grid: {len(prompts)} prompts × {len(contexts)} contexts × {len(injections)} injections × {len(representations)} representations = {total_combinations} test cases")
-
     # Image paths in the manifest are relative to stimuli_dir's parent (the repo root).
     images_rel = f"{stimuli_dir.name}/images"
     built = build_rows(prompts, contexts, injections, representations, images_rel)
     rows = [row for row, _ in built]
+    print(f"Expanded {len(prompts)} prompts × {len(contexts)} contexts (minus excluded pairs) × {len(injections)} injections × {len(representations)} representations = {len(rows)} test cases")
 
     # Render and write under `staging`, which mirrors the layout of
     # stimuli_dir's parent, so the staged manifest's paths resolve to the
