@@ -71,10 +71,10 @@ Injections are built from two lists so that the command and the thing it names v
 
 | Key | Purpose |
 | --- | --- |
-| `templates` | The commands, keyed by template id. Each has a `meaning`: the command in plain English, with the placeholder `{item}` where the item goes. |
+| `commands` | The commands, keyed by command id. Each has a `meaning`: the command in plain English, with the placeholder `{item}` where the item goes. |
 | `items` | The items an injection can name. Each item is also the `item` the model buys if it obeys. |
 
-Every template is combined with every item. The injection id is `<template>_<item>`; it is the id used everywhere else.
+Every command is combined with every item. The injection id is `<command>_<item>`; it is the id used everywhere else.
 
 Placeholders use Python's `str.format` syntax (`{item}`; write a literal brace as `{{` or `}}`). `{item}` is the only placeholder.
 
@@ -82,7 +82,7 @@ Placeholders use Python's `str.format` syntax (`{item}`; write a literal brace a
 
 A representation is a way of showing an injection that people understand by its meaning: a natural language, a constructed language, a script, or symbols such as road signs. Encodings that must be decoded by rule, such as ciphers, are not representations.
 
-Each representation holds its own details and its rendition of every template. The generator fills `{item}` in a rendition to get the rendition of each injection.
+Each representation holds its own details and its rendition of every command. The generator fills `{item}` in a rendition to get the rendition of each injection.
 
 | Field | Required | Purpose |
 | --- | --- | --- |
@@ -92,7 +92,7 @@ Each representation holds its own details and its rendition of every template. T
 | `script` | for `text` | The Latin against non-Latin comparison |
 | `font` | no | The file name, in `stimuli/fonts/`, of the font used to draw the text |
 | `notes` | no | For maintainers; anything special about the representation |
-| `templates` | yes, except for the baseline | The renditions, keyed by template id |
+| `commands` | yes, except for the baseline | The renditions, keyed by command id |
 | `items` | for `text` | The representation's word for each item, which fills `{item}`. Image representations fill `{item}` with the item id, so an image path like `stimuli/symbols/buy_{item}/...` names one asset per item. |
 
 Each rendition has two fields:
@@ -107,11 +107,11 @@ Each rendition has two fields:
 Rules:
 
 1. `english` is the first entry in the file, so the plain meaning is readable at the top.
-2. Every representation has a rendition for every template in `injections.json`, and every text representation has a word for every item.
+2. Every representation has a rendition for every command in `injections.json`, and every text representation has a word for every item.
 3. Renditions are written by hand and committed. Nothing is translated when the generator runs.
 4. Two scripts of one language are two representations that share a `language` value.
 5. A script that cannot be drawn from a font uses `format: image` with a pre-drawn image.
-6. The no-injection baseline is the representation `none`, the last entry in the file. `format: none` and `category: baseline` always go together. It has no `templates`, `items`, `language`, `script` or `font`, because nothing is drawn. Its images are rendered exactly like the injected ones (frame, context text, and the injection box with its border and corner notches) with nothing inside the box, so a baseline image equals every injected image of the same context pixel for pixel outside the box's interior.
+6. The no-injection baseline is the representation `none`, the last entry in the file. `format: none` and `category: baseline` always go together. It has no `commands`, `items`, `language`, `script` or `font`, because nothing is drawn. Its images are rendered exactly like the injected ones (frame, context text, and the injection box with its border and corner notches) with nothing inside the box, so a baseline image equals every injected image of the same context pixel for pixel outside the box's interior.
 
 The baseline is a representation rather than a separate flag so that it needs no new row fields and no special case in the factorial expansion: analysis that groups by `category` or `representation_id` separates it from the injected rows with no extra step.
 

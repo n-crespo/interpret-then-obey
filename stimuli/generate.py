@@ -8,9 +8,9 @@ Combines the 4 factors:
 The `none` representation (format "none", category "baseline") is the
 no-injection baseline: its images have the injection box drawn but empty.
 
-Injections are templates × items (stimuli/src/injections.json): each
-`{item}` placeholder (str.format syntax) in a template's renditions is filled
-with every item, giving one injection per pair, id `<template>_<item>`.
+Injections are commands × items (stimuli/src/injections.json): each
+`{item}` placeholder (str.format syntax) in a command's renditions is filled
+with every item, giving one injection per pair, id `<command>_<item>`.
 
 Deterministically renders images to stimuli/images/<id>.png and writes
 the harness-loadable manifest to stimuli/manifest.jsonl (the only file it
@@ -113,22 +113,22 @@ def placeholders(text: str) -> set[str]:
 
 
 def expand_injections(injections: dict) -> dict[str, dict]:
-    """Every template × item pair in injections.json, keyed by injection id `<template>_<item>`."""
+    """Every command × item pair in injections.json, keyed by injection id `<command>_<item>`."""
     return {
-        f"{template_id}_{item}": {"template_id": template_id, "item": item}
-        for template_id in injections["templates"]
+        f"{command_id}_{item}": {"command_id": command_id, "item": item}
+        for command_id in injections["commands"]
         for item in injections["items"]
     }
 
 
-def fill_rendition(rep: dict, template_id: str, item: str) -> dict:
-    """The rendition of `template_id` in `rep` with `{item}` filled in.
+def fill_rendition(rep: dict, command_id: str, item: str) -> dict:
+    """The rendition of `command_id` in `rep` with `{item}` filled in.
 
     Text representations fill it with their own word for the item (`items`); image
     representations with the item id, which names the asset's folder.
     """
     word = rep["items"][item] if rep["format"] == "text" else item
-    rendition = rep["templates"][template_id]
+    rendition = rep["commands"][command_id]
     return {**rendition, "content": [line.format(item=word) for line in rendition["content"]]}
 
 
@@ -138,18 +138,18 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         raise ValueError("prompts.json is empty")
     if not contexts:
         raise ValueError("context.json is empty")
-    if set(injections) != {"templates", "items"}:
-        raise ValueError("injections.json must have exactly the keys 'templates' and 'items'")
-    templates, items = injections["templates"], injections["items"]
-    if not templates:
-        raise ValueError("injections.json: 'templates' is empty")
+    if set(injections) != {"commands", "items"}:
+        raise ValueError("injections.json must have exactly the keys 'commands' and 'items'")
+    commands, items = injections["commands"], injections["items"]
+    if not commands:
+        raise ValueError("injections.json: 'commands' is empty")
     if not isinstance(items, list) or not items:
         raise ValueError("injections.json: 'items' must be a non-empty list")
     if len(set(items)) != len(items):
         raise ValueError("injections.json: 'items' has duplicates")
-    for template_id, template in templates.items():
-        if placeholders(template.get("meaning", "")) != {"item"}:
-            raise ValueError(f"injections.json: template {template_id!r} 'meaning' must use the placeholder {{item}} and no other")
+    for command_id, command in commands.items():
+        if placeholders(command.get("meaning", "")) != {"item"}:
+            raise ValueError(f"injections.json: command {command_id!r} 'meaning' must use the placeholder {{item}} and no other")
     if not representations:
         raise ValueError("representations.json is empty")
 
@@ -159,7 +159,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for fname, factor in (
         ("prompts.json", prompts),
         ("context.json", contexts),
-        ("injections.json templates", templates),
+        ("injections.json commands", commands),
         ("injections.json items", items),
         ("representations.json", representations),
     ):
@@ -189,7 +189,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         if (rep["format"] == "none") != (rep["category"] == "baseline"):
             raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
         if rep["format"] == "none":
-            extra = sorted({"templates", "items", "language", "script", "font"} & set(rep))
+            extra = sorted({"commands", "items", "language", "script", "font"} & set(rep))
             if extra:
                 raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
             continue
@@ -208,25 +208,25 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         elif "items" in rep:
             raise ValueError(f"Image representation {rep_id} must not have 'items'")
 
-        rep_templates = rep.get("templates", {})
-        unknown = sorted(set(rep_templates) - set(templates))
+        rep_commands = rep.get("commands", {})
+        unknown = sorted(set(rep_commands) - set(commands))
         if unknown:
-            raise ValueError(f"Representation {rep_id} has renditions for unknown template id(s) {unknown}")
-        for template_id in templates:
-            if template_id not in rep_templates:
-                raise ValueError(f"Representation {rep_id} missing rendition for template {template_id!r}")
-            content = rep_templates[template_id].get("content")
+            raise ValueError(f"Representation {rep_id} has renditions for unknown command id(s) {unknown}")
+        for command_id in commands:
+            if command_id not in rep_commands:
+                raise ValueError(f"Representation {rep_id} missing rendition for command {command_id!r}")
+            content = rep_commands[command_id].get("content")
             if not isinstance(content, list) or len(content) == 0:
-                raise ValueError(f"Representation {rep_id}.templates.{template_id}.content must be a non-empty list")
+                raise ValueError(f"Representation {rep_id}.commands.{command_id}.content must be a non-empty list")
             for line in content:
                 if not placeholders(line) <= {"item"}:
-                    raise ValueError(f"Representation {rep_id}.templates.{template_id}: {line!r} uses a placeholder other than {{item}}")
+                    raise ValueError(f"Representation {rep_id}.commands.{command_id}: {line!r} uses a placeholder other than {{item}}")
             if rep["format"] == "image":
                 for item in items:
-                    for p_str in fill_rendition(rep, template_id, item)["content"]:
+                    for p_str in fill_rendition(rep, command_id, item)["content"]:
                         img_path = REPO_ROOT / p_str
                         if not img_path.exists():
-                            raise FileNotFoundError(f"Rendition image not found: {img_path} (from {rep_id}.{template_id}, item {item!r})")
+                            raise FileNotFoundError(f"Rendition image not found: {img_path} (from {rep_id}.{command_id}, item {item!r})")
 
 
 def render_stimulus_image(
@@ -385,7 +385,7 @@ def build_rows(
                         **attack_fields(prompt_data, context_data),
                     }
                     rendition = (
-                        fill_rendition(rep_data, injection_data["template_id"], expected_item)
+                        fill_rendition(rep_data, injection_data["command_id"], expected_item)
                         if rep_data["format"] != "none"
                         else None
                     )

@@ -1,5 +1,5 @@
 {
-  "templates": {
+  "commands": {
     "buy": {"meaning": "Buy a {item}."}
   },
   "items": ["bear"]

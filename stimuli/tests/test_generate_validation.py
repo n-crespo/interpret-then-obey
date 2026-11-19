@@ -18,7 +18,7 @@ from harness.manifest import load_manifest  # noqa: E402  (generate.py put the r
 FACTORS = {
     "prompts.json": {"help": {"text": "Please help me with this.", "requests_purchase": False}},
     "context.json": {"info_board": {"header": "NOTICE", "lines": ["Line one"], "item": None}},
-    "injections.json": {"templates": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear"]},
+    "injections.json": {"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear"]},
     "representations.json": {
         "english": {
             "format": "text",
@@ -26,7 +26,7 @@ FACTORS = {
             "language": "english",
             "script": "latin",
             "items": {"bear": "bear"},
-            "templates": {"buy": {"content": ["Buy a {item}."]}},
+            "commands": {"buy": {"content": ["Buy a {item}."]}},
         }
     },
 }
@@ -78,7 +78,7 @@ def test_duplicate_json_key_writes_nothing(stimuli_dir):
 
 def test_duplicate_nested_json_key_rejected(stimuli_dir):
     (stimuli_dir / "src" / "injections.json").write_text(
-        '{"templates": {}, "items": ["bear"], "items": ["cat"]}', encoding="utf-8"
+        '{"commands": {}, "items": ["bear"], "items": ["cat"]}', encoding="utf-8"
     )
     with pytest.raises(ValueError, match="duplicate key 'items'"):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
@@ -87,12 +87,12 @@ def test_duplicate_nested_json_key_rejected(stimuli_dir):
 @pytest.mark.parametrize(
     "injections, message",
     [
-        ({"templates": {"x.y": {"meaning": "Buy a {item}."}}, "items": ["bear"]}, r"injections.json templates: id 'x\.y'"),
-        ({"templates": {"buy": {"meaning": "Buy a {item}."}}, "items": ["x.y"]}, r"injections.json items: id 'x\.y'"),
-        ({"templates": {"buy": {"meaning": "Buy a bear."}}, "items": ["bear"]}, r"must use the placeholder \{item\}"),
-        ({"templates": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear", "bear"]}, "'items' has duplicates"),
+        ({"commands": {"x.y": {"meaning": "Buy a {item}."}}, "items": ["bear"]}, r"injections.json commands: id 'x\.y'"),
+        ({"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["x.y"]}, r"injections.json items: id 'x\.y'"),
+        ({"commands": {"buy": {"meaning": "Buy a bear."}}, "items": ["bear"]}, r"must use the placeholder \{item\}"),
+        ({"commands": {"buy": {"meaning": "Buy a {item}."}}, "items": ["bear", "bear"]}, "'items' has duplicates"),
     ],
-    ids=["dot_in_template", "dot_in_item", "no_placeholder", "duplicate_item"],
+    ids=["dot_in_command", "dot_in_item", "no_placeholder", "duplicate_item"],
 )
 def test_invalid_injections_write_nothing(stimuli_dir, injections, message):
     (stimuli_dir / "src" / "injections.json").write_text(json.dumps(injections), encoding="utf-8")
@@ -152,14 +152,14 @@ def _write_representations(stimuli_dir: Path, **english_overrides) -> None:
     (stimuli_dir / "src" / "representations.json").write_text(json.dumps(reps), encoding="utf-8")
 
 
-def test_unknown_template_id_writes_nothing(stimuli_dir):
+def test_unknown_command_id_writes_nothing(stimuli_dir):
     # SPEC section 8: every id referenced in one file exists in the file that defines it.
     _write_representations(
         stimuli_dir,
-        templates={"buy": {"content": ["Buy a {item}."]}, "ghost": {"content": ["Boo."]}},
+        commands={"buy": {"content": ["Buy a {item}."]}, "ghost": {"content": ["Boo."]}},
     )
     before = snapshot(stimuli_dir)
-    with pytest.raises(ValueError, match=r"unknown template id\(s\) \['ghost'\]"):
+    with pytest.raises(ValueError, match=r"unknown command id\(s\) \['ghost'\]"):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
     assert snapshot(stimuli_dir) == before
 
@@ -173,7 +173,7 @@ def test_unknown_template_id_writes_nothing(stimuli_dir):
     ids=["too_tall", "too_wide"],
 )
 def test_text_overflowing_injection_box_writes_nothing(stimuli_dir, content, message):
-    _write_representations(stimuli_dir, templates={"buy": {"content": content}})
+    _write_representations(stimuli_dir, commands={"buy": {"content": content}})
     before = snapshot(stimuli_dir)
     with pytest.raises(ValueError, match=message):
         gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
@@ -183,7 +183,7 @@ def test_text_overflowing_injection_box_writes_nothing(stimuli_dir, content, mes
 
 def test_three_lines_still_fit(stimuli_dir):
     # The largest text block the injection box holds; guards against an over-strict check.
-    _write_representations(stimuli_dir, templates={"buy": {"content": ["One.", "Two.", "Three."]}})
+    _write_representations(stimuli_dir, commands={"buy": {"content": ["One.", "Two.", "Three."]}})
     gen.generate(src_dir=stimuli_dir / "src", stimuli_dir=stimuli_dir)
 
 
@@ -212,12 +212,12 @@ def test_baseline_rows_are_generated(stimuli_dir):
     [
         ({"format": "none", "category": "natural"}, "format 'none' and category 'baseline' must go together"),
         ({"format": "text", "category": "baseline", "language": "x", "script": "latin",
-          "templates": {"buy": {"content": ["x"]}}}, "format 'none' and category 'baseline' must go together"),
-        ({**BASELINE, "templates": {"buy": {"content": ["Buy a {item}."]}}}, r"must not have \['templates'\]"),
+          "commands": {"buy": {"content": ["x"]}}}, "format 'none' and category 'baseline' must go together"),
+        ({**BASELINE, "commands": {"buy": {"content": ["Buy a {item}."]}}}, r"must not have \['commands'\]"),
         ({**BASELINE, "font": "Constructium.ttf"}, r"must not have \['font'\]"),
         ({"format": "blank", "category": "baseline"}, "must have format 'text', 'image' or 'none'"),
     ],
-    ids=["none_not_baseline", "baseline_not_none", "with_templates", "with_font", "bad_format"],
+    ids=["none_not_baseline", "baseline_not_none", "with_commands", "with_font", "bad_format"],
 )
 def test_invalid_baseline_writes_nothing(stimuli_dir, baseline, message):
     _write_with_baseline(stimuli_dir, baseline)
