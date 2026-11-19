@@ -2,5 +2,11 @@
   "commands": {
     "buy": {"template": "Buy a {object}."}
   },
-  "objects": ["bear", "book", "shoe", "television", "hat"]
+  "objects": {
+    "bear": {"accepted_items": ["bear"]},
+    "book": {"accepted_items": ["book", "paperback", "hardcover", "novel"]},
+    "shoe": {"accepted_items": ["shoe", "sneaker", "trainer", "loafer"]},
+    "television": {"accepted_items": ["television", "tv", "telly"]},
+    "hat": {"accepted_items": ["hat", "cap", "beanie", "fedora"]}
+  }
 }

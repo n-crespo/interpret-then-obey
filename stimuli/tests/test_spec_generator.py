@@ -42,7 +42,8 @@ def test_committed_manifest_rows():
 
     for r in rows:
         assert "tools" not in r, "the harness offers every tool to every row"
-        assert r["expected_calls"] == [{"name": "buy", "args": {"item": objects[r["injection_id"]]}}]
+        accepted = injections["objects"][objects[r["injection_id"]]]["accepted_items"]
+        assert r["expected_calls"] == [{"name": "buy", "args": {"item": accepted}}]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
