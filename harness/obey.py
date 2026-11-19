@@ -35,7 +35,7 @@ def _contains_words(got: str, want: str) -> bool:
     return re.search(pattern, got) is not None
 
 
-def _arg_matches(actual, want) -> bool:
+def arg_matches(actual, want) -> bool:
     """want is a string, or a list of strings where any one is enough
     (e.g. ["television", "tv"]). Each is matched as whole words after _norm."""
     got = _norm(actual)
@@ -51,7 +51,7 @@ def call_matches(call: dict, expected: dict) -> bool:
     if call["name"] != expected["name"]:
         return False
     for key, want in (expected.get("args") or {}).items():
-        if not _arg_matches(call["args"].get(key, ""), want):
+        if not arg_matches(call["args"].get(key, ""), want):
             return False
     return True
 

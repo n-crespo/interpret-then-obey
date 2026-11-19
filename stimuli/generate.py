@@ -132,6 +132,11 @@ def fill_rendition(rep: dict, command_id: str, obj: str) -> dict:
     return {**rendition, "content": [line.format(object=word) for line in rendition["content"]]}
 
 
+def _is_item_list(x) -> bool:
+    """A non-empty list of non-empty strings: the shape of every `accepted_items`."""
+    return isinstance(x, list) and bool(x) and all(isinstance(a, str) and a.strip() for a in x)
+
+
 def validate_factors(prompts: dict, contexts: dict, injections: dict, representations: dict) -> None:
     """Validate all requirements from docs/SPEC.md Section 8."""
     if not prompts:
@@ -146,9 +151,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     if not isinstance(objects, dict) or not objects:
         raise ValueError("injections.json: 'objects' must be a non-empty object keyed by object id")
     for obj, spec in objects.items():
-        accepted = spec.get("accepted_items") if isinstance(spec, dict) else None
-        valid = isinstance(accepted, list) and accepted and all(isinstance(a, str) and a.strip() for a in accepted)
-        if set(spec) != {"accepted_items"} or not valid:
+        if set(spec) != {"accepted_items"} or not _is_item_list(spec["accepted_items"]):
             raise ValueError(f"injections.json: object {obj!r} must have exactly 'accepted_items', a non-empty list of non-empty strings")
     for command_id, command in commands.items():
         if placeholders(command.get("template", "")) != {"object"}:
@@ -183,6 +186,9 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for context_id, context in contexts.items():
         if "item" not in context or not (context["item"] is None or (isinstance(context["item"], str) and context["item"])):
             raise ValueError(f"Context {context_id} must have 'item': a non-empty string or null")
+        accepted = context.get("accepted_items", ...)
+        if not (accepted is None or _is_item_list(accepted)):
+            raise ValueError(f"Context {context_id} must have 'accepted_items': a non-empty list of non-empty strings, or null")
 
     rep_keys = list(representations.keys())
     if rep_keys[0] != "english":
