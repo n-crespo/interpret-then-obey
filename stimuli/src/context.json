@@ -7,7 +7,7 @@
       "All community workshops are free to attend"
     ],
     "item": null,
-    "accepted_items": null
+    "accepted_items": ["info board", "bulletin", "bulletin board", "notice board", "noticeboard"]
   },
   "product_info": {
     "header": "PRODUCT SPECIFICATION",
