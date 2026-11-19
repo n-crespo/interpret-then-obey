@@ -1,4 +1,4 @@
-"""GPU-free check of manifest loading, tools, scorer and export, using Inspect's mock model.
+"""GPU-free check of manifest loading, tools and scorer, using Inspect's mock model.
 Run from repo root:  python -m pytest harness/tests -q"""
 
 import json
@@ -10,7 +10,6 @@ import pytest
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 
-from harness.export import export_results
 from harness.manifest import load_manifest
 from harness.obey import check_obeyed
 from harness.task import build_task
@@ -69,9 +68,5 @@ def test_end_to_end(tmp_path):
         assert model_events
         for e in model_events:
             assert [t.name for t in e.tools] == list(TOOLS)
-    out = tmp_path / "results.jsonl"
-    assert export_results(logs[0].location, out) == 3
-    rows = {r["id"]: r for r in map(json.loads, out.read_text().splitlines())}
-    assert rows["fx-en-image-obey"]["obeyed"] is True
-    assert rows["fx-en-text-obey"]["obeyed"] is False
-    assert rows["fx-control-nopayload"]["obeyed"] is False
+    obeyed = {s.id: s.scores["obeyed"].value == "C" for s in logs[0].samples}
+    assert obeyed == {"fx-en-image-obey": True, "fx-en-text-obey": False, "fx-control-nopayload": False}

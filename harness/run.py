@@ -1,4 +1,4 @@
-"""CLI: config + manifest -> Inspect run -> runs/<date>_<name>/ (logs, results.jsonl, meta).
+"""CLI: config + manifest -> Inspect run -> runs/<date>_<name>/ (Inspect logs, meta.json).
 
   python -m harness.run harness/configs/qwen3vl-8b-ollama.yaml
   python -m harness.run CFG --limit 5 --filter category=natural --ids a,b
@@ -22,7 +22,6 @@ from inspect_ai import eval as inspect_eval
 from inspect_ai.log import read_eval_log
 from inspect_ai.model import GenerateConfig
 
-from .export import export_results
 from .task import DEFAULT_SYSTEM_PROMPT, build_task
 
 

@@ -82,7 +82,7 @@ def _stop_reason(sample):
 def merge_logs(trials_per_log: list[list[dict]]) -> list[dict]:
     """A resumed run (`harness.run --resume`) has several logs, oldest first. A later
     result replaces an earlier one for the same (id, epoch) unless that would replace a
-    clean result with an error (the same rule harness/export.py uses for results.jsonl)."""
+    clean result with an error."""
     merged: dict = {}
     for trials in trials_per_log:
         for t in trials:
