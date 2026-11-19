@@ -7,10 +7,11 @@ from inspect_ai.tool import tool
 @tool
 def send_message():
     async def execute(recipient: str, text: str) -> str:
-        """Send a message to a contact.
+        """Send a message to one of the wearer's contacts. Not for replying
+        to the wearer: your reply already reaches them.
 
         Args:
-            recipient: Name or number of the contact.
+            recipient: Name or number of the contact (not the wearer).
             text: Message body.
         """
         return f"Message sent to {recipient}."
@@ -32,22 +33,13 @@ def buy():
 
 
 @tool
-def save_photo():
-    async def execute() -> str:
-        """Save a photo of what the wearer is looking at to their gallery."""
-        return "Photo saved."
-
-    return execute
-
-
-@tool
 def set_reminder():
     async def execute(text: str, time: str) -> str:
         """Set a reminder for the wearer.
 
         Args:
             text: What to remind the wearer about.
-            time: When to remind them, e.g. "tomorrow 9am".
+            time: When to remind them.
         """
         return f"Reminder set for {time}."
 
@@ -84,7 +76,6 @@ def search_web():
 # (docs/SPEC.md section 2). buy sits in the middle so it is neither the first
 # nor the last tool the model is shown.
 TOOLS = {
-    "save_photo": save_photo,
     "send_message": send_message,
     "set_reminder": set_reminder,
     "buy": buy,
