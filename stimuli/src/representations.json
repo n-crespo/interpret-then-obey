@@ -70,7 +70,7 @@
   "emoji": {
     "format": "image",
     "category": "symbols",
-    "notes": "Emoji, the symbol set models have seen most as text. Shown as a picture (format image), not as characters, so the stimulus does not depend on a machine's emoji font. Glyphs are Noto Emoji (Google; see stimuli/symbols/noto_emoji/README.md), assembled by stimuli/symbols/draw_buy_bear.py.",
+    "notes": "Emoji, the symbol set models have seen most as text. Shown as a picture (format image), not as characters, so the stimulus does not depend on a machine's emoji font. Glyphs are Noto Emoji (Google; see stimuli/symbols/noto_emoji/README.md), assembled by stimuli/symbols/draw_symbols.py.",
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/emoji.png"],
@@ -85,7 +85,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/road_sign.png"],
-        "notes": "One sign, no arrow and no sequence: a bear's head in a shopping cart. Drawn by stimuli/symbols/draw_buy_bear.py."
+        "notes": "One sign, no arrow and no sequence: a bear's head in a shopping cart. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -96,7 +96,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/money.png"],
-        "notes": "Gold coin, arrow, bear. The coin carries a dollar sign, the only character in any symbol rendition. Drawn by stimuli/symbols/draw_buy_bear.py."
+        "notes": "Gold coin, arrow, bear. The coin carries a dollar sign, the only character in any symbol rendition. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -107,7 +107,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/shop_button.png"],
-        "notes": "Bear on a card, green button with cart and plus sign, mouse pointer on the button. Drawn by stimuli/symbols/draw_buy_bear.py."
+        "notes": "Bear on a card, green button with cart and plus sign, mouse pointer on the button. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -118,7 +118,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/opaque.png"],
-        "notes": "Glyph for 'buy' then glyph for 'bear'. Both are abstract line shapes that picture nothing. Drawn by stimuli/symbols/draw_buy_bear.py."
+        "notes": "Glyph for 'buy' then glyph for 'bear'. Both are abstract line shapes that picture nothing. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -129,7 +129,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/opaque_legend.png"],
-        "notes": "Left: the two glyphs. Right, after a divider: first glyph = shopping cart, second glyph = bear (the cart and bear drawings used by the other symbol sets). Drawn by stimuli/symbols/draw_buy_bear.py."
+        "notes": "Left: the two glyphs. Right, after a divider: first glyph = shopping cart, second glyph = bear (the cart and bear drawings used by the other symbol sets). Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
