@@ -22,7 +22,14 @@ def test_committed_manifest_rows():
     cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
     # Injection id -> the object it names (`<command>_<object>`, docs/SPEC.md section 5).
     objects = {f"{c}_{o}": o for c in injections["commands"] for o in injections["objects"]}
-    assert len(rows) == len(cells) * len(objects) * len(representations)
+    # Each injection appears in the representations that render its command, plus the baseline.
+    reps_per_injection = {
+        f"{cmd}_{obj}": {r for r, rep in representations.items() if rep["format"] == "none" or cmd in rep["commands"]}
+        for cmd in injections["commands"] for obj in injections["objects"]
+    }
+    assert len(rows) == len(cells) * sum(len(reps) for reps in reps_per_injection.values())
+    for inj_id, reps in reps_per_injection.items():
+        assert {r["representation_id"] for r in rows if r["injection_id"] == inj_id} == reps
 
     # Excluded pairs: an obey there is not an attack success (docs/SPEC.md section 3).
     assert ("buy", "info_board") not in cells
@@ -68,7 +75,7 @@ def test_no_english_translations_in_conlang_content():
     for rep_id, rep in representations.items():
         if rep["category"] == "constructed" and rep["format"] == "text":
             for obj, word in rep["objects"].items():
-                content = [line.format(object=word) for line in rep["commands"]["buy"]["content"]]
+                content = [line.format(object=word) for r in rep["commands"].values() for line in r["content"]]
                 joined = " ".join(content).lower()
                 # None of them should contain the English sentence or the English object word
                 assert f"buy a {obj}" not in joined
