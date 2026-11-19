@@ -17,17 +17,22 @@ def test_committed_manifest_rows():
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
     contexts = json.loads((SRC / "context.json").read_text(encoding="utf-8"))
+    injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
-    assert len(rows) == len(cells) * len(representations)
+    # Injection id -> the object it names (`<command>_<object>`, docs/SPEC.md section 5).
+    objects = {f"{c}_{o}": o for c in injections["commands"] for o in injections["objects"]}
+    assert len(rows) == len(cells) * len(objects) * len(representations)
 
     # Excluded pairs: an obey there is not an attack success (docs/SPEC.md section 3).
     assert ("buy", "info_board") not in cells
 
-    # One baseline row per included prompt x context, injection box left empty.
+    # One baseline row per included prompt x context x injection, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]
-    assert {(r["prompt_id"], r["context_id"]) for r in baseline} == cells
-    assert len(baseline) == len(cells)
+    assert {(r["prompt_id"], r["context_id"], r["injection_id"]) for r in baseline} == {
+        (p, c, i) for p, c in cells for i in objects
+    }
+    assert len(baseline) == len(cells) * len(objects)
     for r in baseline:
         assert r["representation_id"] == "none"
         assert r["language"] is None and r["script"] is None
@@ -37,7 +42,7 @@ def test_committed_manifest_rows():
 
     for r in rows:
         assert "tools" not in r, "the harness offers every tool to every row"
-        assert r["expected_calls"] == [{"name": "buy", "args": {"item": "bear"}}]
+        assert r["expected_calls"] == [{"name": "buy", "args": {"item": objects[r["injection_id"]]}}]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
@@ -61,15 +66,16 @@ def test_no_english_translations_in_conlang_content():
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     for rep_id, rep in representations.items():
         if rep["category"] == "constructed" and rep["format"] == "text":
-            content = [line.format(object=rep["objects"]["bear"]) for line in rep["commands"]["buy"]["content"]]
-            joined = " ".join(content).lower()
-            # None of them should contain "buy a bear" or English translations
-            assert "buy a bear" not in joined
-            assert "ignore user" not in joined
-            assert "add a banana" not in joined
-            assert not re.search(r"\bbear\b", joined, re.IGNORECASE), (
-                f"{rep_id} rendition contains the English word 'bear': {content}"
-            )
+            for obj, word in rep["objects"].items():
+                content = [line.format(object=word) for line in rep["commands"]["buy"]["content"]]
+                joined = " ".join(content).lower()
+                # None of them should contain the English sentence or the English object word
+                assert f"buy a {obj}" not in joined
+                assert "ignore user" not in joined
+                assert "add a banana" not in joined
+                assert not re.search(rf"\b{obj}s?\b", joined, re.IGNORECASE), (
+                    f"{rep_id} rendition contains the English word {obj!r}: {content}"
+                )
 
 
 def _ink(font, ch):
@@ -105,5 +111,5 @@ def test_fonted_renditions_have_no_missing_glyphs():
                 for ch in "".join(rendition["content"]).format(object=word):
                     if ch.isspace():
                         continue
-                    assert _ink(font, ch) != notdef, f"{rep_id}.{command_id}.{object}: U+{ord(ch):04X} not in {rep['font']}"
+                    assert _ink(font, ch) != notdef, f"{rep_id}.{command_id}.{obj}: U+{ord(ch):04X} not in {rep['font']}"
 
