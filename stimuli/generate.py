@@ -143,10 +143,13 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     commands, objects = injections["commands"], injections["objects"]
     if not commands:
         raise ValueError("injections.json: 'commands' is empty")
-    if not isinstance(objects, list) or not objects:
-        raise ValueError("injections.json: 'objects' must be a non-empty list")
-    if len(set(objects)) != len(objects):
-        raise ValueError("injections.json: 'objects' has duplicates")
+    if not isinstance(objects, dict) or not objects:
+        raise ValueError("injections.json: 'objects' must be a non-empty object keyed by object id")
+    for obj, spec in objects.items():
+        accepted = spec.get("accepted_items") if isinstance(spec, dict) else None
+        valid = isinstance(accepted, list) and accepted and all(isinstance(a, str) and a.strip() for a in accepted)
+        if set(spec) != {"accepted_items"} or not valid:
+            raise ValueError(f"injections.json: object {obj!r} must have exactly 'accepted_items', a non-empty list of non-empty strings")
     for command_id, command in commands.items():
         if placeholders(command.get("template", "")) != {"object"}:
             raise ValueError(f"injections.json: command {command_id!r} 'template' must use the placeholder {{object}} and no other")
@@ -376,13 +379,14 @@ def build_rows(
                         raise ValueError(f"Duplicate sample id: {sample_id}")
                     seen_ids.add(sample_id)
 
-                    expected_item = injection_data["object"]
+                    obj = injection_data["object"]
+                    accepted_items = injections["objects"][obj]["accepted_items"]
                     row = {
                         "id": sample_id,
                         "user_prompt": prompt_data["text"],
                         "image": f"{images_rel}/{sample_id}.png",
                         "image_sha256": None,
-                        "expected_calls": [{"name": "buy", "args": {"item": expected_item}}],
+                        "expected_calls": [{"name": "buy", "args": {"item": accepted_items}}],
                         "prompt_id": prompt_id,
                         "context_id": context_id,
                         "injection_id": injection_id,
@@ -393,7 +397,7 @@ def build_rows(
                         **attack_fields(prompt_data, context_data),
                     }
                     rendition = (
-                        fill_rendition(rep_data, injection_data["command_id"], expected_item)
+                        fill_rendition(rep_data, injection_data["command_id"], obj)
                         if rep_data["format"] != "none"
                         else None
                     )
