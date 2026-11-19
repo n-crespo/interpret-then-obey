@@ -1,19 +1,19 @@
-"""eval/casemap.py: the per-case records, run labels and factor order behind the case map page.
+"""eval/outcomes_page.py: the per-case records, run labels and factor order behind the outcomes page.
 Run from repo root: python -m pytest eval/tests -q"""
 
 import json
 from pathlib import Path
 
-from eval.casemap import load_factors, run_labels, write_casemap
+from eval.outcomes_page import TEMPLATE, load_factors, run_labels, write_outcomes
 from eval.tests.trials import BEAR, MUG, trial
 
 
-def test_write_casemap_has_one_case_per_id_with_a_strip_per_run(tmp_path):
+def test_write_outcomes_has_one_case_per_id_with_a_strip_per_run(tmp_path):
     kept, dropped = trial("english", BEAR), trial("pictograms", [MUG], prompt="read")
     manifest = tmp_path / "manifest.jsonl"
     manifest.write_text(json.dumps({"id": kept["id"]}) + "\n", encoding="utf-8")
     runs = {Path("runs/2026-11-17_m"): [trial("english", [MUG]), dropped], Path("runs/2026-11-16_m"): [kept]}
-    page = write_casemap(runs, tmp_path / "casemap.html", manifest).read_text(encoding="utf-8")
+    page = write_outcomes(runs, tmp_path / "outcomes.html", manifest).read_text(encoding="utf-8")
 
     meta = json.loads(page.split("const META = ", 1)[1].split(";\n", 1)[0])
     cases = {c["id"]: c for c in json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])}
@@ -34,3 +34,12 @@ def test_load_factors_keeps_the_order_of_stimuli_src(tmp_path):
     (tmp_path / "representations.json").write_text(json.dumps({"r2": {}, "r1": {}}))
     f = load_factors(tmp_path)
     assert ([p["id"] for p in f["prompts"]], f["contexts"], f["reps"]) == (["z", "a"], ["ctx2", "ctx1"], ["r2", "r1"])
+
+
+def test_page_escapes_script_tags_in_replies(tmp_path):
+    t = trial("english", [MUG])
+    t["response"] = "ignore </script><script>alert(1)</script>"
+    manifest = tmp_path / "manifest.jsonl"
+    manifest.write_text(json.dumps({"id": t["id"]}) + "\n", encoding="utf-8")
+    page = write_outcomes({Path("runs/x"): [t]}, tmp_path / "outcomes.html", manifest).read_text(encoding="utf-8")
+    assert page.count("</script>") == TEMPLATE.read_text(encoding="utf-8").count("</script>")  # only the page's own
