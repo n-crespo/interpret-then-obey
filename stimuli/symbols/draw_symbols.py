@@ -121,6 +121,21 @@ def draw_book(d, cx, cy, r, mono=False):
          fill=SIGN_BLUE if mono else CREAM)  # blank title label
 
 
+def draw_shoe(d, cx, cy, r, mono=False):
+    """A laced shoe seen from the side, toe to the right."""
+    upper, sole, detail = (WHITE, WHITE, SIGN_BLUE) if mono else (BROWN, BROWN_DARK, TAN)
+    u = lambda px, py: (cx + px * r, cy + py * r)
+    rect(d, *u(-1.05, 0.30), *u(1.12, 0.56), radius=0.10 * r, fill=sole)
+    poly(d, [u(-1.0, 0.36), u(-1.0, -0.46), u(-0.62, -0.52), u(-0.22, -0.30),
+             u(0.35, 0.00), u(0.88, 0.10), u(1.10, 0.36)], fill=upper)
+    if mono:
+        line(d, [u(-1.0, 0.33), u(1.1, 0.33)], detail, 0.06 * r)
+    for t in (0.15, 0.45, 0.75):  # laces across the instep
+        px, py = -0.22 + 0.57 * t, -0.30 + 0.30 * t
+        line(d, [u(px - 0.08, py - 0.02), u(px + 0.06, py + 0.20)], detail, 0.07 * r)
+    circle(d, *u(-0.80, -0.30), 0.07 * r, fill=detail)  # heel tab
+
+
 # --- Invented glyphs for the opaque sets. Abstract on purpose: they picture nothing.
 
 
@@ -153,11 +168,21 @@ def glyph_book(d, x, y, size, color=INK):
     circle(d, *u(0.58, 0.50), size * 0.07, fill=color)
 
 
+def glyph_shoe(d, x, y, size, color=INK):
+    """Invented glyph standing for "shoe"."""
+    u = lambda px, py: (x + px * size, y + py * size)
+    lw = size * 0.075
+    line(d, [u(0.10, 0.34), u(0.35, 0.10), u(0.60, 0.34), u(0.86, 0.10)], color, lw)
+    line(d, [u(0.20, 0.92), u(0.20, 0.60), u(0.80, 0.60)], color, lw)
+    circle(d, *u(0.72, 0.86), size * 0.07, fill=color)
+
+
 # Injection id -> how to draw its item. `emoji` is the Noto Emoji code point in noto_emoji/;
 # `pictogram` says whether this script draws pictogram.png (buy_bear's predates it).
 ITEMS = {
     "buy_bear": {"draw": draw_bear, "glyph": glyph_bear, "emoji": "1f43b", "pictogram": False},
     "buy_book": {"draw": draw_book, "glyph": glyph_book, "emoji": "1f4d5", "pictogram": True},
+    "buy_shoe": {"draw": draw_shoe, "glyph": glyph_shoe, "emoji": "1f45e", "pictogram": True},
 }
 
 
