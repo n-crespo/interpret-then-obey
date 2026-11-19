@@ -11,7 +11,7 @@ just analyze runs/<date>_<name>     # = python eval/analyze_results.py runs/<dat
 
 | File | What it shows |
 | --- | --- |
-| `outcomes.html` | Interactive, self-contained page: one mark per trial. Rows are the outcome (obeyed, off-target call, cut off, no call); colour is the representation (the baseline is grey), shape is the context, border is the prompt. Hover a mark for the trial's details and reply; click a legend item to show or hide it. |
+| `outcomes.html` | Interactive, self-contained page: one mark per trial. Rows are the outcome (`outcome` in `analyze_results.py`); colour is the representation (the baseline is grey), shape is the context, border is the prompt. Hover a mark for the trial's details and reply; click a legend item to show or hide it. |
 | `tables.tex` | Booktabs tables of the same results (see `latex_tables`). `\input{}` it; needs `\usepackage{booktabs}` |
 
 The `none` representation (no injection) is never counted in attack success. It is
