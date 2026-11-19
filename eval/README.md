@@ -3,15 +3,16 @@
 Analysis of a harness run.
 
 ```bash
-just analyze runs/<date>_<name>     # = python eval/analyze_results.py runs/<date>_<name>
+just analyze runs/<date>_<name> [runs/<other> ...]   # = python eval/analyze_results.py <the same dirs>
 ```
 
 `analyze_results.py` reads the run's Inspect logs (`inspect_logs/*.eval`) with
-`inspect_ai.analysis.samples_df`, prints a headline, and writes `runs/<dir>/analysis/`:
+`inspect_ai.analysis.samples_df`, prints a headline, and writes `runs/<dir>/analysis/` for each run:
 
 | File | What it shows |
 | --- | --- |
 | `outcomes.html` | Interactive, self-contained page: one mark per trial. Rows are the outcome (`outcome` in `outcomes.py`); colour is the representation (the baseline is grey), shape is the context, border is the prompt. Hover a mark for the trial's details and reply; click a legend item to show or hide it. |
+| `casemap.html` | Only in the last run's folder. Interactive treemap of every test case (`eval/casemap.py`), one outcome strip per run given, for picking cases to drop from the manifest. Hover for each run's call and reply; click a case or group to flag it and copy the flagged ids. |
 | `tables.tex` | Booktabs tables of the same results (see `latex_tables`). `\input{}` it; needs `\usepackage{booktabs}` |
 
 The `none` representation (no injection) is never counted in attack success. It is
