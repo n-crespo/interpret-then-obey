@@ -74,7 +74,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/emoji.png"],
-        "notes": "The object's emoji, right arrow, shopping cart (U+27A1 U+1F6D2): 'object into the cart'. Object first, the reverse of pictograms (cart, arrow, object). Each object's code point is its `emoji` in ITEMS, stimuli/symbols/draw_symbols.py."
+        "notes": "The object's emoji, right arrow, shopping cart (U+27A1 U+1F6D2): 'object into the cart'. Object first, the reverse of pictograms (cart, arrow, object). Each object's code point is its `emoji` in OBJECTS, stimuli/symbols/draw_symbols.py."
       }
     }
   },
