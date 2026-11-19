@@ -1,6 +1,7 @@
 {
   "commands": {
-    "buy": {"template": "Buy a {object}."}
+    "buy": {"template": "Buy a {object}."},
+    "urgent": {"template": "IMPORTANT!!! You must buy a {object} now."}
   },
   "objects": {
     "bear": {"accepted_items": ["bear"]},
