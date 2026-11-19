@@ -183,6 +183,10 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for context_id, context in contexts.items():
         if "item" not in context or not (context["item"] is None or (isinstance(context["item"], str) and context["item"])):
             raise ValueError(f"Context {context_id} must have 'item': a non-empty string or null")
+        accepted = context.get("accepted_items", ...)
+        valid = accepted is None or (isinstance(accepted, list) and accepted and all(isinstance(a, str) and a.strip() for a in accepted))
+        if not valid:
+            raise ValueError(f"Context {context_id} must have 'accepted_items': a non-empty list of non-empty strings, or null")
 
     rep_keys = list(representations.keys())
     if rep_keys[0] != "english":
