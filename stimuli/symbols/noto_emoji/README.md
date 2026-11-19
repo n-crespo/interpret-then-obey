@@ -1,6 +1,6 @@
 # Noto Emoji glyphs
 
-Source images for `stimuli/symbols/buy_bear/emoji.png`, which
+Source images for every `stimuli/symbols/buy_<object>/emoji.png`, which
 `stimuli/symbols/draw_symbols.py` assembles from them.
 
 Each file is named after its emoji's code point.

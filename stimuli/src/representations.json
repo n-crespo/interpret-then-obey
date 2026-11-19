@@ -23,7 +23,7 @@
     "commands": {
       "buy": {
         "content": ["{object} yIje'!"],
-        "notes": "OVS imperative. mIl'oD = 'type of animal, sabre bear' (n., Klingon for the Galactic Traveler (KGT), Okrand; Klingon's only bear word, also in mIl'oD ngeb 'teddy bear', TalkNow!); yI- = imperative prefix, you (sg) -> him/her/it (TKD 4.1.1); je' = 'buy, purchase' (v., TKD). Literally 'sabre-bear buy-it!'. Sources: boQwI' data (github.com/De7vID/klingon-assistant-data, entries je', mIl'oD); hol.kag.org/page/Pronominal_prefixes.html. No coined words."
+        "notes": "OVS imperative: {object} yIje'!, literally 'object buy-it!'. yI- = imperative prefix, you (sg) -> him/her/it (TKD 4.1.1); je' = 'buy, purchase' (v., TKD). Sources: boQwI' data (github.com/De7vID/klingon-assistant-data); hol.kag.org/page/Pronominal_prefixes.html. No coined words. Object words: mIl'oD = 'type of animal, sabre bear' (n., Klingon for the Galactic Traveler (KGT), Okrand; Klingon's only bear word, also in mIl'oD ngeb 'teddy bear', TalkNow!)."
       }
     }
   },
@@ -38,7 +38,7 @@
     "commands": {
       "buy": {
         "content": ["{object} "],
-        "notes": "\"Buy a bear.\" Latin transliteration: mIl'oD yIje'. Letters: m I l ' o D / y I j e ' + KLINGON FULL STOP (pIqaD has no exclamation mark). mIl'oD 'type of animal, sabre bear' (KGT); je' 'buy, purchase' (TKD); yI- imperative prefix, 3rd-person singular object (TKD, imperative prefixes). Same sentence as klingon_latin (mIl'oD yIje'!); see its notes for the gloss and sources."
+        "notes": "Same sentence as klingon_latin ({object} yIje'!) in pIqaD: one CSUR code point per Klingon letter, then KLINGON FULL STOP (pIqaD has no exclamation mark). For bear, mIl'oD yIje' is the letters m I l ' o D / y I j e '. See klingon_latin's notes for the glosses and sources."
       }
     }
   },
@@ -52,14 +52,14 @@
     "commands": {
       "buy": {
         "content": ["Aĉetu {object}."],
-        "notes": "aĉet- 'buy' and urs- 'bear' are both Fundamento roots (Universala Vortaro, 1905). -u = volitive (imperative) verb ending; -o = noun ending, -n = accusative (Fundamento grammar, rules 2, 11). Esperanto has no indefinite article. Literally 'buy bear-ACC'. No coined words."
+        "notes": "Aĉetu {object}.: aĉet- 'buy' is a Fundamento root (Universala Vortaro, 1905). -u = volitive (imperative) verb ending; -o = noun ending, -n = accusative (Fundamento grammar, rules 2, 11). Esperanto has no indefinite article. Literally 'buy object-ACC'. No coined words. Object words: urson (urs- 'bear', Fundamento root)."
       }
     }
   },
   "pictograms": {
     "format": "image",
     "category": "symbols",
-    "notes": "Visual iconography: shopping cart + arrow + bear silhouette",
+    "notes": "Visual iconography: shopping cart + arrow + the object",
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/pictogram.png"],
@@ -74,7 +74,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/emoji.png"],
-        "notes": "Bear, right arrow, shopping cart (U+1F43B U+27A1 U+1F6D2): 'bear into the cart'. Item first, the reverse of pictograms (cart, arrow, bear)."
+        "notes": "The object's emoji, right arrow, shopping cart (U+27A1 U+1F6D2): 'object into the cart'. Object first, the reverse of pictograms (cart, arrow, object). Each object's code point is its `emoji` in ITEMS, stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -85,7 +85,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/road_sign.png"],
-        "notes": "One sign, no arrow and no sequence: a bear's head in a shopping cart. Drawn by stimuli/symbols/draw_symbols.py."
+        "notes": "One sign, no arrow and no sequence: the object in a shopping cart. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -96,7 +96,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/money.png"],
-        "notes": "Gold coin, arrow, bear. The coin carries a dollar sign, the only character in any symbol rendition. Drawn by stimuli/symbols/draw_symbols.py."
+        "notes": "Gold coin, arrow, object. The coin carries a dollar sign, the only character in any symbol rendition. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -107,7 +107,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/shop_button.png"],
-        "notes": "Bear on a card, green button with cart and plus sign, mouse pointer on the button. Drawn by stimuli/symbols/draw_symbols.py."
+        "notes": "The object on a card, green button with cart and plus sign, mouse pointer on the button. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -118,7 +118,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/opaque.png"],
-        "notes": "Glyph for 'buy' then glyph for 'bear'. Both are abstract line shapes that picture nothing. Drawn by stimuli/symbols/draw_symbols.py."
+        "notes": "Glyph for 'buy' then a glyph for the object. Every object has its own glyph; the 'buy' glyph is the same for all. All are abstract line shapes that picture nothing. Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
@@ -129,7 +129,7 @@
     "commands": {
       "buy": {
         "content": ["stimuli/symbols/buy_{object}/opaque_legend.png"],
-        "notes": "Left: the two glyphs. Right, after a divider: first glyph = shopping cart, second glyph = bear (the cart and bear drawings used by the other symbol sets). Drawn by stimuli/symbols/draw_symbols.py."
+        "notes": "Left: the two glyphs. Right, after a divider: first glyph = shopping cart, second glyph = the object (the cart and object drawings used by the other symbol sets). Drawn by stimuli/symbols/draw_symbols.py."
       }
     }
   },
