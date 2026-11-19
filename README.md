@@ -15,6 +15,53 @@ The pipeline: `stimuli/` renders the test-case images and writes the manifest,
 `harness/` runs a model on the manifest with mocked tools and writes to `runs/`,
 and `eval/` analyses a run.
 
+```mermaid
+flowchart LR
+    subgraph SRC["1 · Sources: the experiment's factors"]
+        P["prompts.json<br/><i>vary how strongly the user<br/>asks for an action</i>"]
+        C["context.json<br/><i>vary how strongly the scene<br/>itself invites a purchase</i>"]
+        I["injections.json<br/><i>what the attacker wants<br/>the model to do</i>"]
+        R["representations.json<br/><i>vary representation of<br/> the injection</i>"]
+        ASSETS["fonts/ + symbols/<br/><i>draw scripts and symbols<br/>a plain font can't</i>"]
+    end
+
+    GEN["<b>2 · Generation</b><br/><i>just build-stimuli</i><br/>Combine every factor into test cases<br/>and render one image per case"]
+
+    IMG[("Test-case images<br/><i>what the model sees</i>")]
+    MAN[("manifest.jsonl<br/><i>one fixed, reproducible set of cases<br/>and what counts as obeying each</i>")]
+
+    HAR["<b>3 · Harness</b><br/><i>just run &lt;config&gt;</i><br/>Show each case to a vision model with mock tools<br/>and score whether it called buy as injected"]
+
+    CFG["Run config<br/><i>choose the model and settings<br/>without touching the cases</i>"]
+
+    subgraph RUN["Run folder"]
+        META["meta.json<br/><i>trace a result back to<br/>what produced it</i>"]
+        LOGS["Inspect logs<br/><i>full conversations,<br/>for inspecting any trial</i>"]
+    end
+
+    EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
+
+    subgraph OUT["Analysis outputs"]
+        HTML["outcomes.html<br/><i>see what the model did on each case,<br/>compare runs, and flag cases to drop</i>"]
+        TEX["tables.tex<br/><i>results ready for the paper</i>"]
+    end
+
+    SRC --> GEN
+    GEN --> IMG & MAN
+    IMG & MAN --> HAR
+    CFG --> HAR
+    HAR --> META & LOGS
+    LOGS --> EVAL
+    EVAL --> HTML & TEX
+
+    classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
+    classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
+    classDef step fill:#e9f7ee,stroke:#3a9a5b,color:#1a1a1a;
+    class P,C,I,R,ASSETS,CFG src;
+    class IMG,MAN,META,LOGS,HTML,TEX data;
+    class GEN,HAR,EVAL step;
+```
+
 ## Running locally
 
 Requirements: Python 3.11+ (the Pillow pinned in `stimuli/requirements.txt` has no 3.10 wheels), and [`just`](https://github.com/casey/just)
