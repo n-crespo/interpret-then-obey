@@ -22,4 +22,14 @@ Only P(obey) is measured. P(interpret) and P(obey | interpret) need a per-trial
 label of whether the model understood the payload (`docs/proposal.md`), and nothing
 produces one yet.
 
+## Test case map
+
+```bash
+just casemap runs/<a> [runs/<b> ...]   # = python eval/casemap.py runs/<a> [runs/<b> ...]
+```
+
+`casemap.py` writes an interactive treemap of every test case, one outcome strip per
+run, for picking cases to drop from the manifest. Outcomes are `outcome` in
+`analyze_results.py`; see `casemap.py --help` for the output path and options.
+
 Tests: `python -m pytest eval/tests -q` (part of `just test`).
