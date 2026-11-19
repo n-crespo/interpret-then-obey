@@ -17,35 +17,35 @@ and `eval/` analyses a run.
 
 ```mermaid
 flowchart LR
-    subgraph SRC["1 · Sources (hand-written, stimuli/src/)"]
-        P["prompts.json<br/><i>user message, e.g. 'Please buy this.'<br/>+ requests_purchase, exclude_contexts</i>"]
-        C["context.json<br/><i>benign scene: header, lines,<br/>item, accepted_items</i>"]
-        I["injections.json<br/><i>commands × objects<br/>→ 'Buy a {object}.'</i>"]
-        R["representations.json<br/><i>how the injection is shown:<br/>natural / constructed / symbols /<br/>opaque / baseline 'none'</i>"]
-        ASSETS["fonts/ + symbols/<br/><i>vendored fonts, pre-drawn<br/>symbol images</i>"]
+    subgraph SRC["1 · Sources: the experiment's factors"]
+        P["prompts.json<br/><i>vary how strongly the user<br/>asks for an action</i>"]
+        C["context.json<br/><i>vary how strongly the scene<br/>itself invites a purchase</i>"]
+        I["injections.json<br/><i>what the attacker wants<br/>the model to do</i>"]
+        R["representations.json<br/><i>vary how much interpreting<br/>the injection takes: the core question</i>"]
+        ASSETS["fonts/ + symbols/<br/><i>draw scripts and symbols<br/>a plain font can't</i>"]
     end
 
     GEN["<b>2 · Generation</b><br/><i>just build-stimuli</i><br/>Combine every factor into test cases<br/>and render one image per case"]
 
-    IMG[("stimuli/images/&lt;id&gt;.png<br/><i>gitignored, deterministic</i>")]
-    MAN[("stimuli/manifest.jsonl<br/><i>committed: one row per test case,<br/>image_sha256, expected_calls</i>")]
+    IMG[("Test-case images<br/><i>what the model sees</i>")]
+    MAN[("manifest.jsonl<br/><i>one fixed, reproducible set of cases<br/>and what counts as obeying each</i>")]
 
     HAR["<b>3 · Harness</b><br/><i>just run &lt;config&gt;</i><br/>Show each case to a vision model with mock tools<br/>and score whether it called buy as injected"]
 
-    CFG["harness/configs/*.yaml<br/><i>model, system_prompt,<br/>generate + run settings</i>"]
+    CFG["Run config<br/><i>choose the model and settings<br/>without touching the cases</i>"]
 
-    subgraph RUN["runs/&lt;date&gt;_&lt;name&gt;/"]
-        META["meta.json<br/><i>config, model, manifest, commit</i>"]
-        LOGS["inspect_logs/*.eval"]
-        RES["results.jsonl"]
+    subgraph RUN["Run folder"]
+        META["meta.json<br/><i>trace a result back to<br/>what produced it</i>"]
+        LOGS["Inspect logs<br/><i>full conversations,<br/>for inspecting any trial</i>"]
+        RES["results.jsonl<br/><i>flat results for<br/>other tools</i>"]
     end
 
     EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
 
-    subgraph OUT["runs/&lt;dir&gt;/analysis/"]
-        HTML["outcomes.html<br/><i>one mark per trial</i>"]
-        TEX["tables.tex<br/><i>booktabs tables</i>"]
-        CM["casemap.html<br/><i>last run only: treemap,<br/>flag cases to drop</i>"]
+    subgraph OUT["Analysis outputs"]
+        HTML["outcomes.html<br/><i>explore what the model did<br/>and why, trial by trial</i>"]
+        TEX["tables.tex<br/><i>results ready for the paper</i>"]
+        CM["casemap.html<br/><i>spot cases that don't<br/>discriminate, to drop them</i>"]
     end
 
     SRC --> GEN
@@ -55,7 +55,7 @@ flowchart LR
     HAR --> META & LOGS & RES
     LOGS --> EVAL
     EVAL --> HTML & TEX & CM
-    CM -. "prune manifest" .-> SRC
+    CM -. "prune cases" .-> SRC
 
     classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
     classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
