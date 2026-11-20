@@ -108,7 +108,7 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
-    assert set(written) == {out / "outcomes.html", out / "tables.tex"}
+    assert set(written) == {out / "outcomes.html", out / "summary.html", out / "tables.tex"}
     printed = capsys.readouterr().out
     # the english row is derived as no_target, so its obey is not attack success
     assert "attacks     1 trials   obeyed 0/1 (0%)" in printed
