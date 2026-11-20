@@ -11,7 +11,8 @@ just analyze runs/<date>_<name> [runs/<other> ...]   # = python eval/analyze_res
 
 | File | What it shows |
 | --- | --- |
-| `outcomes.html` | Only in the last run's folder. Interactive, self-contained treemap of every test case (`eval/outcomes_page.py`), one outcome strip per run given (`outcome` in `outcomes.py`). Hover for each run's call and reply; click a case or group to flag it for dropping from the manifest and copy the flagged ids. |
+| `case_map.html` | Only in the last run's folder. Interactive, self-contained treemap of every test case (`eval/case_map_page.py`), one outcome strip per run given (`outcome` in `outcomes.py`). Hover for each run's call and reply; click a case or group to flag it for dropping from the manifest and copy the flagged ids. |
+| `summary.html` | Every trial counted by outcome, prompts and contexts abstracted away (`eval/summary_page.py`). Click an outcome for its breakdown and trials. |
 | `tables.tex` | Booktabs tables of the same results (see `latex_tables`). `\input{}` it; needs `\usepackage{booktabs}` |
 
 The `none` representation (no injection) is never counted in attack success. It is

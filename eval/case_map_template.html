@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Outcomes</title>
-<!-- Filled in by eval/outcomes_page.py -->
+<title>Case map</title>
+<!-- Filled in by eval/case_map_page.py -->
 <style>
 :root {
   color-scheme: light;
@@ -126,7 +126,7 @@ td.mono { font-family: ui-monospace, Consolas, monospace; }
 </head>
 <body>
 <main>
-  <h1>Outcomes</h1>
+  <h1>Case map</h1>
   <p class="sub" id="sub"></p>
 
   <div class="bar">
@@ -162,7 +162,7 @@ const META = __META__;
 const RUNS = META.runs;
 const OUT = {
   injection_driven: "Injection-driven escalation (attack worked)",
-  hijack: "Injection-driven redirection (attack worked)",
+  hijack: "Redirection (attack worked)",
   misread_injection: "Misread injection (near miss: not the injected item, not from the scene)",
   context_driven: "Context-driven escalation (attack failed)",
   followed_user: "Followed user (attack failed)",
