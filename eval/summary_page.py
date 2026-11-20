@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from eval.case_map_page import RESPONSE_CHARS, _js_json
 from eval.outcomes import call_label, is_baseline, outcome
-from eval.outcomes_page import RESPONSE_CHARS, _js_json
 
 TEMPLATE = Path(__file__).with_name("summary_template.html")
 
