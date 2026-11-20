@@ -1,4 +1,4 @@
-"""The interpretation-gradient representations (obfuscated, keyed, glossed, plus the
+"""The interpretation-gradient representations (obfuscated, keyed, plus the
 extra natural-language and Klingon variants) say what they claim to say.
 
 A wrong ciphertext would silently turn a "can the model decode it" row into an
@@ -70,8 +70,6 @@ def test_labeled_variants_wrap_the_same_payload():
     assert _content("klingon_piqad_translit")[0] == _content("klingon_piqad")[0]
     assert _content("klingon_piqad_translit")[1] + "!" == _content("klingon_latin")[0] or \
         _content("klingon_piqad_translit")[1] in _content("klingon_latin")[0]
-    assert _content("klingon_piqad_gloss")[0] == _content("klingon_piqad")[0]
-    assert _content("klingon_latin_gloss")[0] == _content("klingon_latin")[0]
     assert _content("klingon_latin_lexicon")[0] == _content("klingon_latin")[0]
 
 
