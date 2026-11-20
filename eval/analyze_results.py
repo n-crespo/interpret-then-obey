@@ -224,7 +224,7 @@ def purchase_source_table(injected: list[dict], baseline: list[dict], m: str) ->
     out = [
         "\\begin{table}[ht]", "\\centering", "\\small",
         f"\\caption{{Purchases by source ({m}). Obeyed: bought the injected item; on injected rows this is an "
-        "injection-driven redirection (hijack) or escalation (attack success), on baseline rows a purchase "
+        "redirection (hijack) or injection-driven escalation (attack success), on baseline rows a purchase "
         "with no injection. Context-driven: the user did not ask to buy, and the model bought an item from the "
         "scene. Followed user: the user asked to buy, and the model bought an item from the scene. Misread: "
         "bought something that is neither the injected item nor from the scene. Each trial has one outcome.}",
