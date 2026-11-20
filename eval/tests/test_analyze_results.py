@@ -1,4 +1,4 @@
-"""eval/analyze_results.py: the headline, LaTeX tables, the outcomes page, and reading real Inspect
+"""eval/analyze_results.py: the headline, LaTeX tables, the case map page, and reading real Inspect
 logs written with the mock model.
 Run from repo root: python -m pytest eval/tests -q"""
 
@@ -108,7 +108,7 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
-    assert set(written) == {out / "outcomes.html", out / "summary.html", out / "tables.tex"}
+    assert set(written) == {out / "case_map.html", out / "summary.html", out / "tables.tex"}
     printed = capsys.readouterr().out
     # the english row is derived as no_target, so its obey is not attack success
     assert "attacks     1 trials   obeyed 0/1 (0%)" in printed
@@ -116,8 +116,8 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     assert "derived it for 1 trial(s)" in printed
     assert r"All attacks & & & 1 & 0/1 (0\%)" in (out / "tables.tex").read_text(encoding="utf-8")
 
-    # the outcomes page has one record per case, with this run's outcome and reply
-    page = (out / "outcomes.html").read_text(encoding="utf-8")
+    # the case map page has one record per case, with this run's outcome and reply
+    page = (out / "case_map.html").read_text(encoding="utf-8")
     data = json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])
     cases = {c["id"]: c["runs"][tmp_path.name] for c in data}
     assert {i: [t["o"] for t in ts] for i, ts in cases.items()} == {
