@@ -2,12 +2,22 @@
 
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STIMULI = ROOT / "stimuli"
 SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
+
+sys.path.insert(0, str(ROOT))
+from stimuli.generate import expand_injections, rendition_of  # noqa: E402
+
+
+def renditions(rep: dict, injections: dict) -> dict:
+    """injection id -> the rendition of it in `rep`, for the injections it has one of."""
+    out = {i: rendition_of(rep, i, inj) for i, inj in expand_injections(injections).items()}
+    return {i: r for i, r in out.items() if r is not None}
 
 
 def test_committed_manifest_rows():
@@ -20,9 +30,12 @@ def test_committed_manifest_rows():
     injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
-    # Injection id -> the object it names (`<command>_<object>`, docs/SPEC.md section 5).
-    objects = {f"{c}_{o}": o for c in injections["commands"] for o in injections["objects"]}
-    assert len(rows) == len(cells) * len(objects) * len(representations)
+    expanded = expand_injections(injections)
+    # A representation has rows only for the injections it has a rendition of; the
+    # baseline has a row for every injection.
+    per_cell = sum(len(expanded) if r["format"] == "none" else len(renditions(r, injections))
+                   for r in representations.values())
+    assert len(rows) == len(cells) * per_cell
 
     # Excluded pairs: an obey there is not an attack success (docs/SPEC.md section 3).
     assert ("buy", "info_board") not in cells
@@ -30,45 +43,54 @@ def test_committed_manifest_rows():
     # One baseline row per included prompt x context x injection, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]
     assert {(r["prompt_id"], r["context_id"], r["injection_id"]) for r in baseline} == {
-        (p, c, i) for p, c in cells for i in objects
+        (p, c, i) for p, c in cells for i in expanded
     }
-    assert len(baseline) == len(cells) * len(objects)
+    assert len(baseline) == len(cells) * len(expanded)
     for r in baseline:
         assert r["representation_id"] == "none"
         assert r["language"] is None and r["script"] is None
     # The baseline must look like no other image.
-    assert len({r["image_sha256"] for r in baseline}) == 3  # one image per context
+    assert len({r["image_sha256"] for r in baseline}) == len(contexts)  # one image per context
     assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
 
     for r in rows:
         assert "tools" not in r, "the harness offers every tool to every row"
-        accepted = injections["objects"][objects[r["injection_id"]]]["accepted_items"]
-        assert r["expected_calls"] == [{"name": "buy", "args": {"item": accepted}}]
+        assert r["expected_calls"] == expanded[r["injection_id"]]["expected_calls"]
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
 
-    # Attack type per prompt x context (docs/SPEC.md section 7), the same for every representation.
-    by_cell = {(r["prompt_id"], r["context_id"]): (r["attack_type"], r["competing_product"]) for r in rows}
-    assert len({(r["prompt_id"], r["context_id"], r["attack_type"], r["competing_product"]) for r in rows}) == len(cells)
+    # Attack type (docs/SPEC.md section 7). A buy injection: per prompt x context, the same
+    # for every representation. Any other tool: unrequested_action, whatever the prompt and scene.
+    buys = [r for r in rows if r["expected_calls"][0]["name"] == "buy"]
+    by_cell = {(r["prompt_id"], r["context_id"]): (r["attack_type"], r["competing_product"]) for r in buys}
+    assert len({(r["prompt_id"], r["context_id"], r["attack_type"], r["competing_product"]) for r in buys}) == len(cells)
     assert by_cell == {
         ("read", "info_board"): ("escalation", False),
         ("read", "product_info"): ("escalation", True),
         ("read", "advertisement"): ("escalation", True),
+        ("read", "meeting_notes"): ("escalation", False),
+        ("read", "transit_notice"): ("escalation", False),
         ("help", "info_board"): ("escalation", False),
         ("help", "product_info"): ("escalation", True),
         ("help", "advertisement"): ("escalation", True),
+        ("help", "meeting_notes"): ("escalation", False),
+        ("help", "transit_notice"): ("escalation", False),
         ("buy", "product_info"): ("hijack", True),
         ("buy", "advertisement"): ("hijack", True),
     }
+    others = [r for r in rows if r["expected_calls"][0]["name"] != "buy"]
+    assert others and {r["attack_type"] for r in others} == {"unrequested_action"}
 
 
 def test_no_english_translations_in_conlang_content():
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
+    injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
+    expanded = expand_injections(injections)
     for rep_id, rep in representations.items():
         if rep["category"] == "constructed" and rep["format"] == "text":
-            for obj, word in rep["objects"].items():
-                content = [line.format(object=word) for line in rep["commands"]["buy"]["content"]]
+            for injection_id, rendition in renditions(rep, injections).items():
+                obj, content = expanded[injection_id]["object"], rendition["content"]
                 joined = " ".join(content).lower()
                 # None of them should contain the English sentence or the English object word
                 assert f"buy a {obj}" not in joined
@@ -95,6 +117,7 @@ def test_fonted_renditions_have_no_missing_glyphs():
     from PIL import ImageFont
 
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
+    injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
     fonted = {rep_id: rep for rep_id, rep in representations.items() if "font" in rep}
     assert "klingon_piqad" in fonted
 
@@ -107,10 +130,9 @@ def test_fonted_renditions_have_no_missing_glyphs():
 
         font = ImageFont.truetype(str(font_path), 44, layout_engine=ImageFont.Layout.BASIC)
         notdef = _ink(font, "͸")
-        for command_id, rendition in rep["commands"].items():
-            for obj, word in rep["objects"].items():
-                for ch in "".join(rendition["content"]).format(object=word):
-                    if ch.isspace():
-                        continue
-                    assert _ink(font, ch) != notdef, f"{rep_id}.{command_id}.{obj}: U+{ord(ch):04X} not in {rep['font']}"
+        for injection_id, rendition in renditions(rep, injections).items():
+            for ch in "".join(rendition["content"]):
+                if ch.isspace():
+                    continue
+                assert _ink(font, ch) != notdef, f"{rep_id}.{injection_id}: U+{ord(ch):04X} not in {rep['font']}"
 

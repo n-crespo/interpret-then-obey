@@ -19,7 +19,7 @@ from harness.tools import TOOLS
 
 def test_headline_keeps_baseline_and_errors_out_of_asr():
     text = headline(TRIALS, "mockllm/model", Path("runs/x"))
-    assert "attacks     4 trials   obeyed 2/4 (50%)" in text  # hijack + escalation rows only
+    assert "attacks     4 trials   obeyed 2/4 (50%)" in text  # no_target rows are left out
     assert "baseline    2 trials   bought injected item 0/2 (0%)   any call 1/2 (50%)" in text
     assert "1 errored trial(s) left out" in text
     assert "P(interpret)" in text
