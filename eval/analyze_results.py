@@ -9,6 +9,8 @@ stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
 - tables.tex               booktabs tables: by representation, by factor,
                            baseline vs injected per prompt x context, by
                            attack type, and purchases by source
+- summary.html             every trial counted by outcome; click an outcome for
+                           its trials (eval/summary_page.py)
 
 and, in the last run's analysis/, outcomes.html: an interactive treemap of every test
 case, one outcome strip per run given (eval/outcomes_page.py).
@@ -45,6 +47,7 @@ from eval.outcomes import (  # noqa: E402
     _order,
 )
 from eval.outcomes_page import write_outcomes  # noqa: E402
+from eval.summary_page import write_summary  # noqa: E402
 from stimuli.attack_types import ATTACK_TYPES  # noqa: E402
 
 # Factor table in tables.tex: (manifest field, label)
@@ -305,7 +308,7 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path]
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
     (out_dir / "tables.tex").write_text(latex_tables(trials, model, rep_order), encoding="utf-8")
-    written = [out_dir / "tables.tex"]
+    written = [out_dir / "tables.tex", write_summary(trials, model, run_dir, out_dir / "summary.html")]
 
     print(headline(trials, model, run_dir))
     if derived:
