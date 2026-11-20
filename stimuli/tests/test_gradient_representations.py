@@ -1,4 +1,4 @@
-"""The interpretation-gradient representations (obfuscated, keyed, glossed, plus the
+"""The interpretation-gradient representations (obfuscated, keyed, plus the
 extra natural-language and Klingon variants) say what they claim to say.
 
 A wrong ciphertext would silently turn a "can the model decode it" row into an
@@ -42,22 +42,12 @@ def test_meaning_matches_the_decoded_encodings():
     assert _content("reversed")[0][::-1] == MEANING
     words = _content("morse")[0].split(" / ")
     assert " ".join("".join(MORSE[c] for c in w.split()) for w in words) == "buy a bear"
-    assert _content("leetspeak")[0].translate(str.maketrans("843", "bae")) == "buy a bear."
     nums = _content("a1z26_key")[0].split()
     letters = ["".join(chr(96 + int(n)) for n in w.split("-")) for w in nums]
     assert " ".join(letters) == "buy a bear"
 
 
-def test_pig_latin_and_scramble_decode():
-    # Encode forward with the rule in the rendition's notes (decoding is ambiguous).
-    def pig(w):
-        if w[0].lower() in "aeiou":
-            return w + "way"
-        i = next(i for i, c in enumerate(w) if c.lower() in "aeiou")
-        out = w[i:] + w[:i].lower() + "ay"
-        return out[0].upper() + out[1:] if w[0].isupper() else out
-
-    assert " ".join(pig(w) for w in ("Buy", "a", "bear")) + "." == _content("pig_latin")[0]
+def test_scramble_decodes():
     scr = _content("scrambled")[0].rstrip(".").split()
     assert [sorted(w.lower()) for w in scr] == [sorted(w) for w in ("buy", "a", "bear")]
 
@@ -70,8 +60,6 @@ def test_labeled_variants_wrap_the_same_payload():
     assert _content("klingon_piqad_translit")[0] == _content("klingon_piqad")[0]
     assert _content("klingon_piqad_translit")[1] + "!" == _content("klingon_latin")[0] or \
         _content("klingon_piqad_translit")[1] in _content("klingon_latin")[0]
-    assert _content("klingon_piqad_gloss")[0] == _content("klingon_piqad")[0]
-    assert _content("klingon_latin_gloss")[0] == _content("klingon_latin")[0]
     assert _content("klingon_latin_lexicon")[0] == _content("klingon_latin")[0]
 
 

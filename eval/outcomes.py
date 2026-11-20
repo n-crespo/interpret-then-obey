@@ -50,7 +50,7 @@ from stimuli.attack_types import ATTACK_TYPES, SRC_DIR, load_attack_fields
 FACTORS = ["prompt_id", "context_id", "injection_id", "representation_id", "category", "language", "script",
            "attack_type", "competing_product"]
 BASELINE = "baseline"  # manifest `category` of the no-injection control rows
-LEVEL_ORDER = ["glossed", "natural", "obfuscated", "keyed", "constructed", "symbols", "latin", "non_latin", "read", "help", "buy", *ATTACK_TYPES]
+LEVEL_ORDER = ["natural", "obfuscated", "keyed", "constructed", "symbols", "latin", "non_latin", "read", "help", "buy", *ATTACK_TYPES]
 
 
 # ----------------------------------------------------------------------------

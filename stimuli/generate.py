@@ -59,7 +59,7 @@ SCRIPT_FONT_SIZE = 44
 FONT_SIZE_RANGE = (12, 64)  # allowed `font_size` of a representation
 
 FORMATS = ("text", "image", "none")
-CATEGORIES = ("natural", "constructed", "symbols", "opaque", "obfuscated", "keyed", "glossed", "baseline")
+CATEGORIES = ("natural", "constructed", "symbols", "opaque", "obfuscated", "keyed", "baseline")
 
 
 def sha256_file(path: Path) -> str:
