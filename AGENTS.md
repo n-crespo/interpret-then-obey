@@ -2,7 +2,7 @@
 
 ## Images in PR descriptions
 
-The repo is private, so PR images can't go on a public host. Put them on the orphan `pr-assets` branch, one folder per PR (`<pr-number>/<file>.png`), and embed them by branch path:
+Put PR images on the orphan `pr-assets` branch, one folder per PR (`<pr-number>/<file>.png`), and embed them by branch path:
 
 ```
 https://github.com/n-crespo/interpret-then-obey/raw/pr-assets/<pr-number>/<file>.png
