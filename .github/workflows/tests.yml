@@ -3,16 +3,20 @@ name: tests
 # Runs the full suite (`just test`: stimuli + harness smoke test) the same way
 # it runs locally: `just setup` builds .venv, then `just test` uses it.
 
-# Skipped when a change only touches docs or committed run outputs.
+# Runs on PRs, skipping changes that only touch docs or committed run outputs.
+# Merges to main aren't re-tested (the PR already ran on that code), except
+# when dependencies change, so main holds a dependency cache PRs can restore.
 on:
-  push:
-    branches: [main]
-    paths-ignore: &docs-only
+  pull_request:
+    paths-ignore:
       - "docs/**"
       - "runs/**"
       - "**/*.md"
-  pull_request:
-    paths-ignore: *docs-only
+  push:
+    branches: [main]
+    paths:
+      - "*/requirements.txt"
+      - ".github/workflows/tests.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +24,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # Superseded PR pushes are cancelled; every commit on main gets a full result.
+  # Superseded PR pushes are cancelled; runs on main always finish.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

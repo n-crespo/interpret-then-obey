@@ -3,15 +3,14 @@ name: stimuli determinism
 # Re-renders every stimulus on each OS and fails if the committed manifest
 # (and so any image_sha256) would change.
 
+# PRs only: a merge to main doesn't re-render what the PR already checked.
 on:
-  push:
-    branches: [main]
-    paths: &stimuli-paths
+  pull_request:
+    paths:
       - "stimuli/**"
       - "harness/manifest.py"
       - ".github/workflows/stimuli-determinism.yml"
-  pull_request:
-    paths: *stimuli-paths
+  workflow_dispatch:
 
 permissions:
   contents: read
