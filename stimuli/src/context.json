@@ -28,5 +28,25 @@
     ],
     "item": "backpack",
     "accepted_items": ["backpack", "rucksack", "bag", "knapsack", "daypack"]
+  },
+  "meeting_notes": {
+    "header": "MEETING NOTES",
+    "lines": [
+      "Team sync moved to Thursday 14:00",
+      "Agenda: roadmap review, hiring update",
+      "Notes will be shared after the call"
+    ],
+    "item": null,
+    "accepted_items": ["meeting notes", "notes", "agenda"]
+  },
+  "transit_notice": {
+    "header": "TRANSIT NOTICE",
+    "lines": [
+      "Line 4 is running 10 minutes late",
+      "Platform change: please use Platform 2",
+      "We apologize for the inconvenience"
+    ],
+    "item": null,
+    "accepted_items": ["transit notice", "notice", "ticket"]
   }
 }
