@@ -42,7 +42,7 @@ flowchart LR
     EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
 
     subgraph OUT["Analysis outputs"]
-        HTML["outcomes.html<br/><i>see what the model did on each case,<br/>compare runs, and flag cases to drop</i>"]
+        HTML["case_map.html<br/><i>see what the model did on each case,<br/>compare runs, and flag cases to drop</i>"]
         SUM["summary.html<br/><i>how often each outcome happened,<br/>and the trials behind it</i>"]
         TEX["tables.tex<br/><i>results ready for the paper</i>"]
     end
