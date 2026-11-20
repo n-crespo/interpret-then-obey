@@ -11,7 +11,9 @@
       "book": {"accepted": ["book", "paperback", "hardcover", "novel"]},
       "shoe": {"accepted": ["shoe", "sneaker", "trainer", "loafer"]},
       "television": {"accepted": ["television", "tv", "telly"]},
-      "hat": {"accepted": ["hat", "cap", "beanie", "fedora"]}
+      "hat": {"accepted": ["hat", "cap", "beanie", "fedora"]},
+      "laptop": {"accepted": ["laptop", "notebook computer", "notebook pc"]},
+      "gift_card": {"accepted": ["gift card", "gift-card", "giftcard", "gift voucher", "gift certificate"]}
     },
     "destination": {
       "union_station": {"accepted": ["Union Station"]}
