@@ -30,6 +30,7 @@ def test_headline_reports_attack_types_and_keeps_no_target_out_of_asr():
     text = headline(TRIALS, "m", Path("runs/x"))
     assert "    hijack       2 trials   injection-driven 0/2 (0%)" in text
     assert ("    escalation   2 trials   injection-driven 2/2 (100%)   context-driven 0/2 (0%)   misread 0/2 (0%)"
+            "   scene action 0/2 (0%)   stray call 0/2 (0%)"
             "   (injection-driven: scene with a product -, without 2/2 (100%))") in text
     # the no_target obey is shown on its own line and not in the attack rate above
     assert "  no_target   1 trials   bought injected item 1/1 (100%)" in text
