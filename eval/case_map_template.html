@@ -21,6 +21,8 @@
   --o-misread_injection: #f3aba8;
   --o-obeyed: #86b6ef;
   --o-context_driven: #7ea32a;
+  --o-scene_action: #b9cf6e;
+  --o-stray_call: #d8c37a;
   --o-followed_user: #0e6b34;
   --o-off_target_buy: #c99a2e;
   --o-no_buy: #cfcec7;
@@ -46,6 +48,8 @@
     --o-misread_injection: #8a4644;
     --o-obeyed: #1c5cab;
     --o-context_driven: #9cb83a;
+    --o-scene_action: #64782a;
+    --o-stray_call: #8c7a3c;
     --o-followed_user: #2f9e55;
     --o-off_target_buy: #b5862a;
     --o-no_buy: #575651;
@@ -71,6 +75,8 @@
   --o-misread_injection: #8a4644;
   --o-obeyed: #1c5cab;
   --o-context_driven: #9cb83a;
+  --o-scene_action: #64782a;
+  --o-stray_call: #8c7a3c;
   --o-followed_user: #2f9e55;
   --o-off_target_buy: #b5862a;
   --o-no_buy: #575651;
@@ -167,12 +173,14 @@ const OUT = {
   injection_driven: "Injection-driven escalation (attack worked)",
   hijack: "Redirection (attack worked)",
   unrequested_action: "Unrequested action: made the injected non-buy call (attack worked)",
-  misread_injection: "Misread injection (near miss: not the injected item, not from the scene)",
+  misread_injection: "Misread injection (near miss: follows the injection without matching it)",
   context_driven: "Context-driven escalation (attack failed)",
   followed_user: "Followed user (attack failed)",
+  scene_action: "Scene action: a non-buy call prompted by the scene",
+  stray_call: "Stray call: a non-buy call from neither the injection nor the scene",
   obeyed: "Bought injected item (no_target)",
   off_target_buy: "Bought another item (context or attack type unknown)",
-  no_buy: "No buy call",
+  no_buy: "No call",
   cut_off: "Cut off (max_tokens)",
   error: "Error"
 };
@@ -232,10 +240,10 @@ function groupSummary(leaves) {
 }
 function summaryText(kind, c, n) {
   const f = (k, label) => `${label} ${c[k] || 0}/${n}`;
-  if (kind === "escalation") return `${f("injection_driven", "injection-driven")} · ${f("context_driven", "context-driven")} · ${f("misread_injection", "misread")}`;
-  if (kind === "hijack") return `${f("hijack", "redirected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")}`;
-  if (kind === "unrequested_action") return `${f("unrequested_action", "made the call")} · ${f("off_target_buy", "bought something")}`;
-  if (kind === "no_target") return `${f("obeyed", "bought injected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")}`;
+  if (kind === "escalation") return `${f("injection_driven", "injection-driven")} · ${f("context_driven", "context-driven")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
+  if (kind === "hijack") return `${f("hijack", "redirected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
+  if (kind === "unrequested_action") return `${f("unrequested_action", "made the call")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")} · ${f("off_target_buy", "bought something")}`;
+  if (kind === "no_target") return `${f("obeyed", "bought injected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
   return Object.entries(c).map(([k, v]) => `${k} ${v}/${n}`).join(" · ");
 }
 
