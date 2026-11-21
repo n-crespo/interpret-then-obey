@@ -6,8 +6,10 @@ Analysis of a harness run.
 just analyze runs/<date>_<name> [runs/<other> ...]   # = python eval/analyze_results.py <the same dirs>
 ```
 
-`analyze_results.py` reads the run's Inspect logs (`inspect_logs/*.eval`) with
-`inspect_ai.analysis.samples_df`, prints a headline, and writes `runs/<dir>/analysis/` for each run:
+`trials.py` reads the run's Inspect logs (`inspect_logs/*.eval`) into one `Trial` per case and
+epoch: the `Case` that was shown, the model's `Response` and the scorer's verdict.
+`outcomes.py` gives each trial one outcome and lists them all (`OUTCOMES`).
+`analyze_results.py` prints a headline and writes `runs/<dir>/analysis/` for each run:
 
 | File | What it shows |
 | --- | --- |

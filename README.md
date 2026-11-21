@@ -11,9 +11,11 @@ It measures P(interpret) and P(obey | interpret) separately.
 - [stimuli/README.md](stimuli/README.md): the stimulus generator
 - [eval/README.md](eval/README.md): analysis of a run
 
-The pipeline: `stimuli/` renders the test-case images and writes the manifest,
-`harness/` runs a model on the manifest with mocked tools and writes to `runs/`,
-and `eval/` analyses a run.
+The pipeline: `stimuli/` builds the test cases, renders their images and writes the
+manifest, `harness/` runs a model on the cases with mocked tools and writes to `runs/`,
+and `eval/` analyses a run. A test case is one `Case` object (`stimuli/cases.py`),
+passed whole from one stage to the next: the manifest and the run's logs each hold it
+in full.
 
 ```mermaid
 flowchart LR
