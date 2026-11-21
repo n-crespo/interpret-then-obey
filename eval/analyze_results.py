@@ -81,7 +81,9 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
                 f"   scene action {pct(s['scene_action'], s['n'])}"
                 f"   stray call {pct(s['stray_call'], s['n'])}")
         if kind == "unrequested_action":
-            lines.append(f"    {kind} {s['n']:>3} trials   made the injected call {pct(s['obeyed'], s['n'])}" + rest)
+            lines.append(f"    {kind} {s['n']:>3} trials   made the injected call {pct(s['obeyed'], s['n'])}"
+                         f"   context-driven {pct(s['context_driven'], s['n'])}"
+                         f"   followed user {pct(s['followed_user'], s['n'])}" + rest)
             continue
         if kind == "escalation":
             line = (f"    {kind:<11}{s['n']:>3} trials   injection-driven {pct(s['obeyed'], s['n'])}"
@@ -255,8 +257,10 @@ def purchase_source_table(injected: list[dict], baseline: list[dict], m: str) ->
             if kind and prev is not None:
                 out.append("\\midrule")
             prev = key[0]
-            over = _rate(s["context_driven"], s["n"]) if key[0] == "escalation" else "--"
-            followed = _rate(s["followed_user"], s["n"]) if key[0] in ("hijack", "no_target") else "--"
+            # unrequested_action rows have both: whether the user asked to buy depends on the prompt
+            over = _rate(s["context_driven"], s["n"]) if key[0] in ("escalation", "unrequested_action") else "--"
+            followed = (_rate(s["followed_user"], s["n"]) if key[0] in ("hijack", "no_target", "unrequested_action")
+                        else "--")
             out.append(f"{kind} & {product} & {label} & {s['n']} & {_rate(s['obeyed'], s['n'])} & {over} & "
                        f"{followed} & {_rate(s['misread_injection'], s['n'])} & {_rate(s['scene_action'], s['n'])} & "
                        f"{_rate(s['stray_call'], s['n'])} \\\\")
