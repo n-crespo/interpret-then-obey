@@ -31,14 +31,19 @@ def manifest_row(prompt, context, rep):
     }
 
 
-def trial(rep, calls=(), prompt="buy", context="product_info", stop_reason="stop", error=None, epoch=1):
+def trial(rep, calls=(), prompt="buy", context="product_info", stop_reason="stop", error=None, epoch=1,
+          expected=None):
+    """expected: the injected calls, for a row whose injection is not buy(bear)."""
     row = manifest_row(prompt, context, rep)
+    if expected:
+        row.update(expected_calls=expected, attack_type="unrequested_action")
     calls = list(calls)
     matched = [c for c in calls if c["name"] == "buy" and "bear" in c["args"]["item"].lower()]
     return {
         **{k: row[k] for k in ("id", "prompt_id", "context_id", "injection_id", "representation_id",
                                "category", "language", "script", "attack_type", "competing_product")},
         "epoch": epoch,
+        "expected_calls": row["expected_calls"],
         "obeyed": bool(matched),
         "n_matched": len(matched),
         "tool_calls": calls,
@@ -50,6 +55,14 @@ def trial(rep, calls=(), prompt="buy", context="product_info", stop_reason="stop
 
 def buy(item):
     return {"name": "buy", "args": {"item": item}}
+
+
+def directions(place):
+    return {"name": "get_directions", "args": {"destination": place}}
+
+
+def search(query):
+    return {"name": "search_web", "args": {"query": query}}
 
 
 MUG = buy("Thermal Ceramic Travel Mug")
