@@ -15,18 +15,20 @@ giving one injection per pair, id `<command>_<object>`. A representation may
 instead give a whole rendition of one injection (`injections`), and one that
 has no rendition of an injection is left out of its rows, with a warning.
 
-Deterministically renders images to stimuli/images/<id>.png and writes
-the harness-loadable manifest to stimuli/manifest.jsonl (the only file it
-writes, per docs/SPEC.md section 7).
+Builds one `Case` (stimuli/cases.py) per test case, deterministically renders
+its image to stimuli/images/<id>.png, and writes the cases to
+stimuli/manifest.jsonl, one per line (the only file it writes, per
+docs/SPEC.md section 7). The harness loads them from there.
 
 Section 8: if any check fails, nothing is written. Images and the manifest
 are built in a staging dir under stimuli/, the staged manifest is checked
-with harness.manifest.load_manifest(..., verify_hashes=True), and only then
+with harness.manifest.load_cases(..., verify_hashes=True), and only then
 are both moved into place.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 import os
@@ -39,8 +41,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
-from harness.manifest import load_manifest  # noqa: E402
-from stimuli.attack_types import attack_fields  # noqa: E402
+from harness.manifest import load_cases  # noqa: E402
+from stimuli.cases import (  # noqa: E402
+    Case,
+    Injection,
+    context_from_src,
+    prompt_from_src,
+    representation_from_src,
+)
 
 STIMULI_DIR = REPO_ROOT / "stimuli"
 SRC_DIR = STIMULI_DIR / "src"
@@ -116,21 +124,18 @@ def placeholders(text: str) -> set[str]:
     return {name for _, name, _, _ in string.Formatter().parse(text) if name is not None}
 
 
-def expand_injections(injections: dict) -> dict[str, dict]:
+def expand_injections(injections: dict) -> dict[str, Injection]:
     """Every command × object of its group in injections.json, keyed by injection id
-    `<command>_<object>`, with the tool call that obeys it."""
+    `<command>_<object>`."""
     return {
-        f"{command_id}_{obj}": {
-            "command_id": command_id,
-            "object": obj,
-            "expected_calls": [{"name": command["tool"], "args": {command["arg"]: spec["accepted"]}}],
-        }
+        f"{command_id}_{obj}": Injection(f"{command_id}_{obj}", command_id, obj, command["tool"], command["arg"],
+                                         tuple(spec["accepted"]))
         for command_id, command in injections["commands"].items()
         for obj, spec in injections["objects"][command["arg"]].items()
     }
 
 
-def rendition_of(rep: dict, injection_id: str, injection: dict) -> dict | None:
+def rendition_of(rep: dict, injection_id: str, injection: Injection) -> dict | None:
     """The rendition of one injection in `rep`, or None when it has none.
 
     A whole rendition in `injections` wins. Otherwise the command's rendition has
@@ -139,8 +144,8 @@ def rendition_of(rep: dict, injection_id: str, injection: dict) -> dict | None:
     """
     if injection_id in rep.get("injections", {}):
         return rep["injections"][injection_id]
-    rendition = rep.get("commands", {}).get(injection["command_id"])
-    word = rep.get("objects", {}).get(injection["object"]) if rep["format"] == "text" else injection["object"]
+    rendition = rep.get("commands", {}).get(injection.command)
+    word = rep.get("objects", {}).get(injection.object) if rep["format"] == "text" else injection.object
     if rendition is None or word is None:
         return None
     return {**rendition, "content": [line.format(object=word) for line in rendition["content"]]}
@@ -422,10 +427,10 @@ def render_stimulus_image(
     img.save(image_path, format="PNG", compress_level=0)
 
 
-def build_rows(
+def build_cases(
     prompts: dict, contexts: dict, injections: dict, representations: dict, images_rel: str
-) -> list[tuple[dict, tuple]]:
-    """Every row in memory (image_sha256 filled in after rendering), each with its render arguments."""
+) -> list[tuple[Case, tuple]]:
+    """Every case in memory (image_sha256 filled in after rendering), each with its render arguments."""
     out = []
     seen_ids = set()
     for prompt_id, prompt_data in prompts.items():
@@ -446,23 +451,16 @@ def build_rows(
                         raise ValueError(f"Duplicate sample id: {sample_id}")
                     seen_ids.add(sample_id)
 
-                    expected_calls = injection_data["expected_calls"]
-                    row = {
-                        "id": sample_id,
-                        "user_prompt": prompt_data["text"],
-                        "image": f"{images_rel}/{sample_id}.png",
-                        "image_sha256": None,
-                        "expected_calls": expected_calls,
-                        "prompt_id": prompt_id,
-                        "context_id": context_id,
-                        "injection_id": injection_id,
-                        "representation_id": rep_id,
-                        "category": rep_data["category"],
-                        "language": rep_data.get("language"),
-                        "script": rep_data.get("script"),
-                        **attack_fields(prompt_data, context_data, expected_calls[0]["name"]),
-                    }
-                    out.append((row, (context_id, context_data, rep_data, rendition)))
+                    case = Case(
+                        id=sample_id,
+                        image=f"{images_rel}/{sample_id}.png",
+                        image_sha256=None,
+                        prompt=prompt_from_src(prompt_id, prompt_data),
+                        context=context_from_src(context_id, context_data),
+                        injection=injection_data,
+                        representation=representation_from_src(rep_id, rep_data),
+                    )
+                    out.append((case, (context_id, context_data, rep_data, rendition)))
     return out
 
 
@@ -480,7 +478,7 @@ def _swap_in_dir(new: Path, dest: Path, trash: Path) -> None:
         raise
 
 
-def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[dict]:
+def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[Case]:
     print(f"Loading factor files from {src_dir}...")
     prompts = load_json(src_dir / "prompts.json")
     contexts = load_json(src_dir / "context.json")
@@ -494,38 +492,38 @@ def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[d
 
     # Image paths in the manifest are relative to stimuli_dir's parent (the repo root).
     images_rel = f"{stimuli_dir.name}/images"
-    built = build_rows(prompts, contexts, injections, representations, images_rel)
-    rows = [row for row, _ in built]
+    built = build_cases(prompts, contexts, injections, representations, images_rel)
     n_injections = len(expand_injections(injections))
-    print(f"Expanded {len(prompts)} prompts × {len(contexts)} contexts (minus excluded pairs) × {n_injections} injections × {len(representations)} representations (where they have a rendition) = {len(rows)} test cases")
+    print(f"Expanded {len(prompts)} prompts × {len(contexts)} contexts (minus excluded pairs) × {n_injections} injections × {len(representations)} representations (where they have a rendition) = {len(built)} test cases")
 
     # Render and write under `staging`, which mirrors the layout of
     # stimuli_dir's parent, so the staged manifest's paths resolve to the
     # staged images. Nothing outside it changes until every check has passed.
     staging = Path(tempfile.mkdtemp(prefix=STAGING_PREFIX, dir=stimuli_dir))
     try:
-        for row, render_args in built:
-            staged_image = staging / row["image"]
+        cases = []
+        for case, render_args in built:
+            staged_image = staging / case.image
             render_stimulus_image(staged_image, *render_args)
-            row["image_sha256"] = sha256_file(staged_image)
+            cases.append(dataclasses.replace(case, image_sha256=sha256_file(staged_image)))
 
         staged_manifest = staging / stimuli_dir.name / "manifest.jsonl"
         with open(staged_manifest, "w", encoding="utf-8", newline="\n") as f:
-            for r in rows:
-                f.write(json.dumps(r) + "\n")
+            for case in cases:
+                f.write(json.dumps(case.to_dict()) + "\n")
 
-        print("Verifying manifest with harness.manifest.load_manifest(..., verify_hashes=True)...")
-        loaded = load_manifest(staged_manifest, image_root=staging, verify_hashes=True)
-        if len(loaded) != len(rows):
-            raise ValueError(f"Loaded {len(loaded)} rows, expected {len(rows)}")
+        print("Verifying manifest with harness.manifest.load_cases(..., verify_hashes=True)...")
+        loaded = load_cases(staged_manifest, image_root=staging, verify_hashes=True)
+        if len(loaded) != len(cases):
+            raise ValueError(f"Loaded {len(loaded)} cases, expected {len(cases)}")
 
         _swap_in_dir(staging / images_rel, stimuli_dir / "images", staging)
         os.replace(staged_manifest, stimuli_dir / "manifest.jsonl")
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 
-    print(f"SUCCESS: wrote and verified {len(rows)} test cases in {stimuli_dir / 'manifest.jsonl'}")
-    return rows
+    print(f"SUCCESS: wrote and verified {len(cases)} test cases in {stimuli_dir / 'manifest.jsonl'}")
+    return cases
 
 
 if __name__ == "__main__":

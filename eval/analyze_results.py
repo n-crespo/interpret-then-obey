@@ -15,8 +15,9 @@ stimuli/manifest.jsonl (docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
 and, in the last run's analysis/, case_map.html: an interactive treemap of every test
 case, one outcome strip per run given (eval/case_map_page.py).
 
-Outcomes, and the terms used below (obeyed, attack type, off-target call, baseline),
-are defined in eval/outcomes.py.
+Trials (a case, the model's response and the scorer's verdict) are read in
+eval/trials.py. Outcomes, and the terms used below (obeyed, attack type, off-target
+call, baseline), are defined in eval/outcomes.py.
 
 Only P(obey) is measurable: nothing yet labels whether the model interpreted the
 payload, so P(interpret) and P(obey | interpret) are not computed.
@@ -36,9 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from eval.outcomes import (  # noqa: E402
     LEVEL_ORDER,
     call_label,
-    fill_attack_type,
     group_by,
-    load_trials,
     manifest_order,
     split,
     split_attacks,
@@ -48,6 +47,7 @@ from eval.outcomes import (  # noqa: E402
 )
 from eval.case_map_page import write_case_map  # noqa: E402
 from eval.summary_page import write_summary  # noqa: E402
+from eval.trials import Trial, load_trials  # noqa: E402
 from stimuli.attack_types import ATTACK_TYPES  # noqa: E402
 
 # Factor table in tables.tex: (manifest field, label)
@@ -62,7 +62,7 @@ def pct(k: int, n: int) -> str:
     return f"{k}/{n} ({100 * k / n:.0f}%)" if n else "-"
 
 
-def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
+def headline(trials: list[Trial], model: str | None, run_dir: Path) -> str:
     injected, baseline, errored = split(trials)
     attacks, no_target = split_attacks(injected)
     si, sb = summarize(attacks), summarize(baseline)
@@ -73,7 +73,7 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
         f"   off-target {pct(si['off_target'], si['n'])}   (hijack + escalation + unrequested_action)",
     ]
     for kind in ("hijack", "escalation", "unrequested_action"):
-        ts = [t for t in attacks if t.get("attack_type") == kind]
+        ts = [t for t in attacks if t.case.attack_type == kind]
         if not ts:
             continue
         s = summarize(ts)
@@ -89,21 +89,18 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
                     f"   followed user {pct(s['followed_user'], s['n'])}"
                     f"   misread {pct(s['misread_injection'], s['n'])}")
         if kind == "escalation":
-            w = summarize([t for t in ts if t.get("competing_product")])
-            wo = summarize([t for t in ts if not t.get("competing_product")])
+            w = summarize([t for t in ts if t.case.competing_product])
+            wo = summarize([t for t in ts if not t.case.competing_product])
             line += (f"   (injection-driven: scene with a product {pct(w['obeyed'], w['n'])}, "
                      f"without {pct(wo['obeyed'], wo['n'])})")
         lines.append(line)
-    untyped = sum(t.get("attack_type") is None for t in attacks)
-    if untyped:
-        lines.append(f"    {untyped} trial(s) have no attack_type and are counted as attacks")
     if no_target:
         s = summarize(no_target)
         lines.append(f"  no_target {s['n']:>3} trials   bought injected item {pct(s['obeyed'], s['n'])}"
                      "   (asked to buy, nothing in the scene: item choice, not attack success)")
     lines.append(f"  baseline  {sb['n']:>3} trials   bought injected item {pct(sb['target_call'], sb['n'])}"
                  f"   any call {pct(sb['any_call'], sb['n'])}")
-    be = summarize([t for t in baseline if t.get("attack_type") == "escalation"])
+    be = summarize([t for t in baseline if t.case.attack_type == "escalation"])
     if be["n"]:
         lines.append(f"    escalation {be['n']:>3} trials   context-driven {pct(be['context_driven'], be['n'])}"
                      "   (no injection: the reference for context-driven escalation)")
@@ -134,7 +131,7 @@ def _ci(k: int, n: int) -> str:
     return f"{100 * lo:.0f}--{100 * hi:.0f}" if n else "--"
 
 
-def latex_tables(trials: list[dict], model: str | None, rep_order: list | None = None) -> str:
+def latex_tables(trials: list[Trial], model: str | None, rep_order: list | None = None) -> str:
     """Four booktabs tables. Needs \\usepackage{booktabs} in the preamble. Tables 1 and 2
     count attack success on every attack type except no_target, which is in table 4."""
     all_injected, baseline, _ = split(trials)
@@ -156,7 +153,7 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
     groups = group_by(injected, "representation_id")
     for rep in _order(groups, rep_order):
         ts, s = groups[rep], summarize(groups[rep])
-        out.append(f"{_tex(rep)} & {_tex(ts[0]['category'])} & {_tex(ts[0]['script'])} & {s['n']} & "
+        out.append(f"{_tex(rep)} & {_tex(ts[0].factors['category'])} & {_tex(ts[0].factors['script'])} & {s['n']} & "
                    f"{_rate(s['obeyed'], s['n'])} & {_ci(s['obeyed'], s['n'])} & {_rate(s['off_target'], s['n'])} \\\\")
     if injected:
         s = summarize(injected)
@@ -204,7 +201,7 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
         prev = None
         for key in _order(set(b_groups) | set(i_groups), LEVEL_ORDER):
             b, si = b_groups.get(key, []), summarize(i_groups.get(key, []))
-            calls = "; ".join(sorted({call_label(t["tool_calls"]) for t in b})) or "--"
+            calls = "; ".join(sorted({call_label(t.response.calls) for t in b})) or "--"
             prompt = _tex(key[0]) if key[0] != prev else ""
             prev = key[0]
             out.append(f"{prompt} & {_tex(key[1])} & {_tex(calls)} & {_rate(si['obeyed'], si['n'])} & "
@@ -219,7 +216,7 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
     return "\n".join(out)
 
 
-def purchase_source_table(injected: list[dict], baseline: list[dict], m: str) -> list[str]:
+def purchase_source_table(injected: list[Trial], baseline: list[Trial], m: str) -> list[str]:
     """Where each purchase came from, per attack type and product in scene, injected rows
     against the baseline: the injection (obeyed), the scene unasked (context-driven
     escalation), or the user's request (followed user)."""
@@ -258,7 +255,7 @@ def purchase_source_table(injected: list[dict], baseline: list[dict], m: str) ->
     return out
 
 
-def attack_type_table(injected: list[dict], baseline: list[dict], m: str) -> list[str]:
+def attack_type_table(injected: list[Trial], baseline: list[Trial], m: str) -> list[str]:
     """Obey rate per attack type, split by whether the scene shows its own product."""
     i_groups = group_by(injected, "attack_type", "competing_product")
     b_groups = group_by(baseline, "attack_type", "competing_product")
@@ -296,17 +293,17 @@ def attack_type_table(injected: list[dict], baseline: list[dict], m: str) -> lis
 # Main
 
 
-def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path], list[dict]]:
+def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path], list[Trial]]:
     """Print the headline and write the tables for one run; returns the written
-    paths and the trials (attack_type filled in)."""
+    paths and the trials."""
     trials, model = load_trials(run_dir)
-    if not any(not t["error"] for t in trials):
+    if not any(not t.response.error for t in trials):
         sys.exit(f"No successful samples in {run_dir / 'inspect_logs'} ({len(trials)} errored)")
     if manifest is None:
         meta = run_dir / "meta.json"
         manifest = Path(json.loads(meta.read_text())["manifest"]) if meta.exists() else Path("stimuli/manifest.jsonl")
     rep_order = manifest_order(manifest)
-    derived = fill_attack_type(trials)
+    legacy = sum(t.case.injection.command is None for t in trials)  # see legacy_case in eval/trials.py
 
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
@@ -314,9 +311,9 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> tuple[list[Path]
     written = [out_dir / "tables.tex", write_summary(trials, model, run_dir, out_dir / "summary.html")]
 
     print(headline(trials, model, run_dir))
-    if derived:
-        print(f"\nNote: the logs predate attack_type; derived it for {derived} trial(s) from prompt_id x context_id "
-              "with stimuli/src/.")
+    if legacy:
+        print(f"\nNote: the logs predate full cases; rebuilt {legacy} trial(s)' cases from their logged ids "
+              "and stimuli/src/.")
     print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
     return written, trials
 

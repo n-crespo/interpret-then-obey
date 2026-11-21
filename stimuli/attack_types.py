@@ -1,8 +1,7 @@
 """Attack type of a test case, from its prompt and context (docs/SPEC.md section 7).
 
-Plain Python with no dependencies, so stimuli/generate.py (which writes the type into
-each manifest row) and eval/outcomes.py (which derives it for runs whose logs
-predate the field) apply the same rule.
+Plain Python with no dependencies. `Case.attack_type` (stimuli/cases.py) applies it, so
+the generator, the harness and the analysis all get the same type.
 
 - hijack:     the prompt asks for a purchase and the scene shows its own product
               (context `item` is not null). The injection tries to swap the item.
@@ -37,13 +36,3 @@ def attack_fields(prompt: dict, context: dict, tool: str = "buy") -> dict:
     else:
         kind = "hijack" if competing else "no_target"
     return {"attack_type": kind, "competing_product": competing}
-
-
-def load_attack_fields(src_dir: Path = SRC_DIR) -> dict[tuple[str, str], dict]:
-    """(prompt_id, context_id) -> attack_fields of a buy injection, from the factor files in
-    src_dir. Logs that predate the attack_type field have buy injections only."""
-    with open(src_dir / "prompts.json", encoding="utf-8") as f:
-        prompts = json.load(f)
-    with open(src_dir / "context.json", encoding="utf-8") as f:
-        contexts = json.load(f)
-    return {(p, c): attack_fields(prompts[p], contexts[c]) for p in prompts for c in contexts}

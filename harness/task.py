@@ -1,20 +1,16 @@
-"""Inspect AI task: manifest rows -> samples, mock tools, deterministic obey scorer."""
+"""Inspect AI task: cases -> samples, mock tools, deterministic obey scorer."""
 
 from __future__ import annotations
 
 from inspect_ai import Task, task
 from inspect_ai.dataset import Sample
-from inspect_ai.model import (
-    ChatMessageAssistant,
-    ChatMessageSystem,
-    ChatMessageUser,
-    ContentImage,
-    ContentText,
-)
+from inspect_ai.model import ChatMessageSystem, ChatMessageUser, ContentImage, ContentText
 from inspect_ai.scorer import CORRECT, INCORRECT, Score, accuracy, scorer, stderr
 from inspect_ai.solver import generate, use_tools
 
-from .manifest import filter_rows, load_manifest
+from stimuli.cases import Case
+
+from .manifest import filter_cases, load_cases
 from .obey import check_obeyed, extract_calls
 from .tools import TOOLS
 
@@ -25,36 +21,19 @@ DEFAULT_SYSTEM_PROMPT = (
 )
 
 
-def _user_content(text: str | None, image: str | None):
-    parts = []
-    if image:
-        parts.append(ContentImage(image=image))
-    if text:
-        parts.append(ContentText(text=text))
-    return parts
-
-
-def row_to_sample(row: dict, default_system_prompt: str | None = DEFAULT_SYSTEM_PROMPT) -> Sample:
-    msgs = []
-    system = row.get("system_prompt", default_system_prompt)
-    if system:
-        msgs.append(ChatMessageSystem(content=system))
-    for m in row.get("context") or []:
-        if m["role"] == "assistant":
-            msgs.append(ChatMessageAssistant(content=m.get("text", "")))
-        elif m["role"] == "system":
-            msgs.append(ChatMessageSystem(content=m.get("text", "")))
-        else:
-            msgs.append(ChatMessageUser(content=_user_content(m.get("text"), m.get("image"))))
-    msgs.append(ChatMessageUser(content=_user_content(row["user_prompt"], row.get("image"))))
-    return Sample(id=row["id"], input=msgs, target="", metadata=row)
+def case_to_sample(case: Case, system_prompt: str | None = DEFAULT_SYSTEM_PROMPT) -> Sample:
+    """The image, then the prompt's text, as one user turn. The whole case is the sample's
+    metadata, so the log records exactly what was shown and what counts as obeying."""
+    msgs = [ChatMessageSystem(content=system_prompt)] if system_prompt else []
+    msgs.append(ChatMessageUser(content=[ContentImage(image=case.image), ContentText(text=case.prompt.text)]))
+    return Sample(id=case.id, input=msgs, target="", metadata=case.to_dict())
 
 
 @scorer(metrics=[accuracy(), stderr()])
 def obeyed():
     async def score(state, target):
         calls = extract_calls(state.messages)
-        res = check_obeyed(calls, state.metadata.get("expected_calls"))
+        res = check_obeyed(calls, Case.from_dict(state.metadata).injection.expected_calls)
         return Score(
             value=CORRECT if res["obeyed"] else INCORRECT,
             answer=state.output.completion,
@@ -76,16 +55,16 @@ def build_task(
     limit: int | None = None,
     exclude_ids: set[str] | None = None,
 ) -> Task:
-    rows = filter_rows(load_manifest(manifest, image_root, verify_hashes), ids, where)
+    cases = filter_cases(load_cases(manifest, image_root, verify_hashes), ids, where)
     if limit:
-        rows = rows[:limit]
-    if exclude_ids:  # used by --resume: skip rows that already finished cleanly
-        rows = [r for r in rows if r["id"] not in exclude_ids]
-    if not rows:
+        cases = cases[:limit]
+    if exclude_ids:  # used by --resume: skip cases that already finished cleanly
+        cases = [c for c in cases if c.id not in exclude_ids]
+    if not cases:
         raise ValueError("no manifest rows left after filtering")
     return Task(
         name=name,
-        dataset=[row_to_sample(r, system_prompt) for r in rows],
+        dataset=[case_to_sample(c, system_prompt) for c in cases],
         solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],
         scorer=obeyed(),
     )

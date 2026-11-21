@@ -82,7 +82,7 @@ def main(argv=None):
     ap.add_argument("--model", help="override model, e.g. mockllm/model for a dry run")
     ap.add_argument("--limit", type=int, help="first N rows after filtering")
     ap.add_argument("--ids", help="comma-separated row ids")
-    ap.add_argument("--filter", action="append", default=[], help="field=value on top-level manifest fields")
+    ap.add_argument("--filter", action="append", default=[], help="field=value on a case field (Case.factors in stimuli/cases.py), e.g. category=natural")
     ap.add_argument("--runs-dir", default="runs")
     args = ap.parse_args(argv)
 

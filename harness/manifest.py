@@ -1,30 +1,19 @@
-"""Manifest loader. Provisional schema (agree final fields with persons 1/2).
+"""Manifest loader: stimuli/manifest.jsonl -> list[Case] (stimuli/cases.py).
 
-One JSON object per line (manifest.jsonl); a plain .json array also works.
-
-Required:  id (unique), user_prompt (sent verbatim as the final user turn)
-Optional:  image            path to the frame shown with user_prompt (null = text-only row)
-           image_sha256     checked against the file if present
-           context          earlier turns, e.g. a legend already in context:
-                            [{"role":"user","text":"Legend: ...","image":"legend.png"},
-                             {"role":"assistant","text":"Understood."}]
-           expected_calls   [{"name":"buy","args":{"item":"banana"}}]
-                            an arg value may also be a list of alternatives,
-                            e.g. {"item":["television","tv"]}: any one matches
-                            empty/missing = control (nothing counts as obeyed)
-           system_prompt    per-row override of the config's system prompt
-           section, mode, medium, encoding, payload_id, ...  anything else is kept
-                            as metadata and passed through to the results export.
+One `Case.to_dict()` per line, written by stimuli/generate.py. `read_cases` only parses
+them (eval uses it; the images are gitignored, so it must not need them).
+`load_cases` also resolves each image path and checks it against image_sha256: the
+harness uses it before a run.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
-import warnings
 from pathlib import Path
 
-REQUIRED = ("id", "user_prompt")
+from stimuli.cases import Case
 
 
 def sha256_file(path: Path) -> str:
@@ -47,67 +36,59 @@ def _resolve(p: str, roots: list[Path], where: str) -> str:
     raise FileNotFoundError(f"{where}: image {p!r} not found (looked in {[str(r) for r in roots]})")
 
 
-def _fix_image(item: dict, roots: list[Path], where: str, verify: bool) -> None:
-    if not item.get("image"):
-        return
-    item["image"] = _resolve(item["image"], roots, where)
-    want = item.get("image_sha256")
-    if verify and want:
-        got = sha256_file(Path(item["image"]))
-        if got != want:
-            raise ValueError(f"{where}: sha256 mismatch for {item['image']} (manifest {want[:12]}.. file {got[:12]}..)")
-    elif verify:
-        warnings.warn(f"{where}: no image_sha256 for {item['image']}", stacklevel=2)
-
-
-def load_manifest(path: str | Path, image_root: str | Path | None = None, verify_hashes: bool = True) -> list[dict]:
+def read_cases(path: str | Path) -> list[Case]:
+    """The cases in a manifest, in order. Fails on invalid JSON, a row that is not a
+    case (e.g. from a manifest written before cases existed) and duplicate ids."""
     path = Path(path)
-    text = path.read_text(encoding="utf-8")
-    if path.suffix == ".json":
-        raw = [(i + 1, r) for i, r in enumerate(json.loads(text))]
-    else:
-        raw = []
-        for n, line in enumerate(text.splitlines(), 1):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                try:
-                    raw.append((n, json.loads(line)))
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"{path}:{n}: invalid JSON ({e})") from e
+    cases, seen = [], set()
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        where = f"{path.name}:{n}"
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"{where}: invalid JSON ({e})") from e
+        try:
+            case = Case.from_dict(row)
+        except (KeyError, TypeError) as e:
+            raise ValueError(f"{where}: not a test case ({e!r}). Regenerate the manifest: just build-stimuli") from e
+        if case.id in seen:
+            raise ValueError(f"{where}: duplicate id {case.id!r}")
+        seen.add(case.id)
+        cases.append(case)
+    return cases
 
-    # relative image paths: --image-root, manifest dir, its parent (stimuli/), then repo root
+
+def load_cases(path: str | Path, image_root: str | Path | None = None, verify_hashes: bool = True) -> list[Case]:
+    """`read_cases`, with each image resolved to an absolute path and, with verify_hashes,
+    checked against its image_sha256. Relative image paths are looked up in image_root,
+    the manifest's folder, its parent (stimuli/), the repo root, then the working directory."""
+    path = Path(path)
     mdir = path.resolve().parent
     roots = [Path(image_root)] if image_root else []
     roots += [mdir, mdir.parent, mdir.parent.parent, Path.cwd()]
-
-    rows, seen = [], set()
-    for n, row in raw:
-        where = f"{path.name}:{n}"
-        missing = [k for k in REQUIRED if not row.get(k)]
-        if missing:
-            raise ValueError(f"{where}: missing required field(s) {missing}")
-        if "tools" in row:
-            raise ValueError(f"{where}: rows no longer pick tools; every row gets all of harness.tools.TOOLS. Regenerate the manifest.")
-        if row["id"] in seen:
-            raise ValueError(f"{where}: duplicate id {row['id']!r}")
-        seen.add(row["id"])
-        _fix_image(row, roots, where, verify_hashes)
-        for m in row.get("context") or []:
-            if m.get("role") not in ("user", "assistant", "system"):
-                raise ValueError(f"{where}: context role must be user/assistant/system, got {m.get('role')!r}")
-            _fix_image(m, roots, where, verify_hashes)
-        for ec in row.get("expected_calls") or []:
-            if "name" not in ec:
-                raise ValueError(f"{where}: expected_calls entry needs a 'name'")
-        rows.append(row)
-    return rows
+    out = []
+    for case in read_cases(path):
+        where = f"{path.name}: {case.id}"
+        image = _resolve(case.image, roots, where)
+        if verify_hashes:
+            if not case.image_sha256:
+                raise ValueError(f"{where}: no image_sha256")
+            got = sha256_file(Path(image))
+            if got != case.image_sha256:
+                raise ValueError(f"{where}: sha256 mismatch for {image} "
+                                 f"(manifest {case.image_sha256[:12]}.. file {got[:12]}..)")
+        out.append(dataclasses.replace(case, image=image))
+    return out
 
 
-def filter_rows(rows: list[dict], ids: list[str] | None = None, where: dict[str, str] | None = None) -> list[dict]:
-    """ids: keep only these ids. where: keep rows whose top-level field == value (string compare)."""
-    out = rows
+def filter_cases(cases: list[Case], ids: list[str] | None = None, where: dict[str, str] | None = None) -> list[Case]:
+    """ids: keep only these ids. where: keep cases whose `Case.factors()` field == value
+    (string compare), e.g. {"category": "natural"}."""
+    out = cases
     if ids:
-        out = [r for r in out if r["id"] in set(ids)]
+        out = [c for c in out if c.id in set(ids)]
     for k, v in (where or {}).items():
-        out = [r for r in out if str(r.get(k)) == v]
+        out = [c for c in out if str(c.factors().get(k)) == v]
     return out

@@ -3,8 +3,8 @@ Case map page: one interactive treemap over one or more harness runs, written by
 `analyze` in eval/analyze_results.py (case_map.html).
 
 Each test case is one block, nested prompt -> context -> representation, with one
-outcome strip per run (split by epoch when a run has several). Outcomes come from
-`outcome` in eval/outcomes.py.
+outcome strip per run (split by epoch when a run has several). Outcomes, their names
+and colours come from eval/outcomes.py.
 Prompt and context order and prompt text come from stimuli/src/; cases missing from the
 manifest are dimmed. Click a block or group header to flag it; flagged ids are listed for
 copying.
@@ -15,7 +15,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from eval.outcomes import call_label, manifest_order, outcome
+from eval.outcomes import call_label, manifest_order, outcomes_for_page
+from eval.trials import Trial
+from harness.manifest import read_cases
 from stimuli.attack_types import SRC_DIR
 
 TEMPLATE = Path(__file__).with_name("case_map_template.html")
@@ -58,44 +60,44 @@ def load_factors(src_dir: Path = SRC_DIR) -> dict:
 
 
 def manifest_ids(path: Path) -> set[str]:
-    return {json.loads(line)["id"] for line in path.read_text(encoding="utf-8").splitlines() if line.strip()}
+    return {c.id for c in read_cases(path)}
 
 
-def build_cases(runs: dict[str, list[dict]], in_manifest: set[str]) -> list[dict]:
+def build_cases(runs: dict[str, list[Trial]], in_manifest: set[str]) -> list[dict]:
     """One record per test case id seen in any run: its manifest factors, whether it is in
     the manifest, and per run label a list (by epoch) of {e, o, d, r}: epoch, outcome, tool
     call text and the start of the reply."""
     cases: dict[str, dict] = {}
     for label, trials in runs.items():
-        for t in sorted(trials, key=lambda t: (t["id"], t["epoch"])):
-            case = cases.setdefault(t["id"], {
-                **{f: t.get(f) for f in CASE_FIELDS},
-                "in_manifest": t["id"] in in_manifest,
+        for t in sorted(trials, key=lambda t: (t.id, t.epoch)):
+            case = cases.setdefault(t.id, {
+                **{f: t.factors.get(f) for f in CASE_FIELDS},
+                "in_manifest": t.id in in_manifest,
                 "runs": {},
             })
             case["runs"].setdefault(label, []).append({
-                "e": t["epoch"],
-                "o": outcome(t),
-                "d": call_label(t["tool_calls"]),
-                "r": (t.get("response") or "")[:RESPONSE_CHARS],
+                "e": t.epoch,
+                "o": t.outcome,
+                "d": call_label(t.response.calls),
+                "r": t.response.text[:RESPONSE_CHARS],
             })
     return sorted(cases.values(), key=lambda c: c["id"])
 
 
 def case_map_html(cases: list[dict], labels: list[str], factors: dict, lock: list[str]) -> str:
     """Fill the template. `lock`: attack types whose cases cannot be flagged."""
-    meta = {**factors, "runs": labels, "lock": lock, "resp_chars": RESPONSE_CHARS}
+    meta = {**factors, "runs": labels, "lock": lock, "resp_chars": RESPONSE_CHARS, "outcomes": outcomes_for_page()}
     page = TEMPLATE.read_text(encoding="utf-8")
     return page.replace("__DATA__", _js_json(cases)).replace("__META__", _js_json(meta))
 
 
-def write_case_map(runs: dict[Path, list[dict]], out: Path, manifest: Path, src_dir: Path = SRC_DIR,
+def write_case_map(runs: dict[Path, list[Trial]], out: Path, manifest: Path, src_dir: Path = SRC_DIR,
                   lock: tuple[str, ...] = ("hijack",)) -> Path:
-    """Write the page for {run dir: its trials (attack_type filled in)}, one strip per run in
+    """Write the page for {run dir: its trials}, one strip per run in
     the given order. `manifest`: the cases that are current; others are dimmed."""
     labels = run_labels(list(runs))
     factors = load_factors(src_dir)
-    seen = {t["representation_id"] for ts in runs.values() for t in ts}
+    seen = {t.case.representation.id for ts in runs.values() for t in ts}
     factors["reps"] += [r for r in manifest_order(manifest) if r not in factors["reps"] and r in seen]
     cases = build_cases(dict(zip(labels, runs.values())), manifest_ids(manifest))
     out.parent.mkdir(parents=True, exist_ok=True)
