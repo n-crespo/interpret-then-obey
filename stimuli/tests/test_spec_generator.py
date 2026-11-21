@@ -11,6 +11,7 @@ SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
 sys.path.insert(0, str(ROOT))
+from harness.manifest import read_cases  # noqa: E402
 from stimuli.generate import expand_injections, rendition_of  # noqa: E402
 
 
@@ -24,7 +25,8 @@ def test_committed_manifest_rows():
     # Reads the committed manifest directly: stimuli/images/ is gitignored, so this
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
-    rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
+    rows = [{**c.factors(), "image": c.image, "image_sha256": c.image_sha256, "expected_calls": c.injection.expected_calls}
+            for c in read_cases(MANIFEST_JSONL)]
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
     contexts = json.loads((SRC / "context.json").read_text(encoding="utf-8"))
     injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
@@ -54,8 +56,7 @@ def test_committed_manifest_rows():
     assert not {r["image_sha256"] for r in baseline} & {r["image_sha256"] for r in rows if r["category"] != "baseline"}
 
     for r in rows:
-        assert "tools" not in r, "the harness offers every tool to every row"
-        assert r["expected_calls"] == expanded[r["injection_id"]]["expected_calls"]
+        assert r["expected_calls"] == expanded[r["injection_id"]].expected_calls
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
@@ -90,7 +91,7 @@ def test_no_english_translations_in_conlang_content():
     for rep_id, rep in representations.items():
         if rep["category"] == "constructed" and rep["format"] == "text":
             for injection_id, rendition in renditions(rep, injections).items():
-                obj, content = expanded[injection_id]["object"], rendition["content"]
+                obj, content = expanded[injection_id].object, rendition["content"]
                 joined = " ".join(content).lower()
                 # None of them should contain the English sentence or the English object word
                 assert f"buy a {obj}" not in joined

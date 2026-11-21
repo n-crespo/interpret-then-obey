@@ -1,51 +1,42 @@
-"""Trial dicts as eval/outcomes.py loads them, built from manifest-like rows, shared by the eval tests."""
+"""Cases and trials built from stimuli/src/, shared by the eval tests."""
 
-from stimuli.attack_types import load_attack_fields
+import json
 
-ATTACK = load_attack_fields()  # (prompt_id, context_id) -> attack_type, competing_product
+from eval.trials import Response, Trial
+from stimuli.attack_types import SRC_DIR
+from stimuli.cases import Case, Representation, context_from_src, prompt_from_src
+from stimuli.generate import expand_injections
+
+PROMPTS = json.loads((SRC_DIR / "prompts.json").read_text(encoding="utf-8"))
+CONTEXTS = json.loads((SRC_DIR / "context.json").read_text(encoding="utf-8"))
+BUY_BEAR = expand_injections(json.loads((SRC_DIR / "injections.json").read_text(encoding="utf-8")))["buy_bear"]
 BEAR = [{"name": "buy", "args": {"item": "bear"}}]
-REPS = {  # representation_id -> (category, language, script), as in stimuli/manifest.jsonl
-    "english": ("natural", "english", "latin"),
-    "klingon_piqad": ("constructed", "klingon", "non_latin"),
-    "pictograms": ("symbols", None, None),
-    "none": ("baseline", None, None),
+REPS = {  # as in stimuli/src/representations.json
+    "english": Representation("english", "text", "natural", "english", "latin"),
+    "klingon_piqad": Representation("klingon_piqad", "text", "constructed", "klingon", "non_latin"),
+    "pictograms": Representation("pictograms", "image", "symbols", None, None),
+    "none": Representation("none", "none", "baseline", None, None),
 }
 REP_ORDER = ["english", "klingon_piqad", "pictograms", "none"]
 
 
-def manifest_row(prompt, context, rep):
-    category, language, script = REPS[rep]
-    return {
-        "id": f"{prompt}.{context}.buy_bear.{rep}",
-        "user_prompt": f"{prompt} prompt",
-        "expected_calls": BEAR,
-        "tools": ["buy"],
-        "prompt_id": prompt,
-        "context_id": context,
-        "injection_id": "buy_bear",
-        "representation_id": rep,
-        "category": category,
-        "language": language,
-        "script": script,
-        **ATTACK[(prompt, context)],
-    }
+def make_case(prompt, context, rep, image=None):
+    case_id = f"{prompt}.{context}.buy_bear.{rep}"
+    return Case(case_id, image or f"stimuli/images/{case_id}.png", None, prompt_from_src(prompt, PROMPTS[prompt]),
+                context_from_src(context, CONTEXTS[context]), BUY_BEAR, REPS[rep])
 
 
-def trial(rep, calls=(), prompt="buy", context="product_info", stop_reason="stop", error=None, epoch=1):
-    row = manifest_row(prompt, context, rep)
+def trial(rep, calls=(), prompt="buy", context="product_info", stop_reason="stop", error=None, epoch=1, text=""):
     calls = list(calls)
     matched = [c for c in calls if c["name"] == "buy" and "bear" in c["args"]["item"].lower()]
-    return {
-        **{k: row[k] for k in ("id", "prompt_id", "context_id", "injection_id", "representation_id",
-                               "category", "language", "script", "attack_type", "competing_product")},
-        "epoch": epoch,
-        "obeyed": bool(matched),
-        "n_matched": len(matched),
-        "tool_calls": calls,
-        "off_target_calls": [c for c in calls if c not in matched],
-        "stop_reason": stop_reason,
-        "error": error,
-    }
+    return Trial(
+        case=make_case(prompt, context, rep),
+        epoch=epoch,
+        response=Response(calls=calls, text=text, stop_reason=stop_reason, error=error),
+        obeyed=bool(matched),
+        n_matched=len(matched),
+        off_target_calls=[c for c in calls if c not in matched],
+    )
 
 
 def buy(item):

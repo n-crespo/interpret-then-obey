@@ -9,11 +9,12 @@ from inspect_ai import Task
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 from inspect_ai.solver import generate, use_tools
+from PIL import Image
 
 from eval.analyze_results import analyze, headline, latex_tables
-from eval.outcomes import load_trials
-from eval.tests.trials import REP_ORDER, TRIALS, manifest_row
-from harness.task import obeyed, row_to_sample
+from eval.tests.trials import REP_ORDER, TRIALS, make_case
+from eval.trials import load_trials
+from harness.task import case_to_sample, obeyed
 from harness.tools import TOOLS
 
 
@@ -63,10 +64,10 @@ def _usage(o):  # explicit usage: mockllm otherwise downloads a tiktoken file to
     return o
 
 
-def _run(rows, outputs, log_dir):
+def _run(cases, outputs, log_dir):
     task = Task(
         name="analysis_test",
-        dataset=[row_to_sample(r) for r in rows],
+        dataset=[case_to_sample(c) for c in cases],
         solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],  # as build_task
         scorer=obeyed(),
     )
@@ -76,14 +77,14 @@ def _run(rows, outputs, log_dir):
 
 
 def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
-    rows = [
-        manifest_row("buy", "info_board", "english"),
-        manifest_row("buy", "product_info", "pictograms"),
-        manifest_row("buy", "product_info", "none"),
+    image = tmp_path / "frame.png"
+    Image.new("RGB", (8, 8), "white").save(image)
+    cases = [
+        make_case("buy", "info_board", "english", image=str(image)),
+        make_case("buy", "product_info", "pictograms", image=str(image)),
+        make_case("buy", "product_info", "none", image=str(image)),
     ]
-    for f in ("attack_type", "competing_product"):  # this row is as written before the fields existed
-        del rows[0][f]
-    _run(rows, [
+    _run(cases, [
         ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "teddy bear"}),  # english: obeys
         ModelOutput.from_content("mockllm/model", "Done."),
         ModelOutput.from_content("mockllm/model", "A mug."),                       # pictograms: no call
@@ -93,27 +94,27 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
 
     trials, model = load_trials(tmp_path)
     assert model == "mockllm/model"
-    by_id = {t["id"]: t for t in trials}
+    by_id = {t.id: t for t in trials}
     assert len(trials) == 3
-    assert by_id["buy.info_board.buy_bear.english"]["obeyed"] is True
+    assert {t.id: t.case for t in trials} == {c.id: c for c in cases}  # the whole case comes back from the log
+    assert by_id["buy.info_board.buy_bear.english"].obeyed is True
     pict = by_id["buy.product_info.buy_bear.pictograms"]
-    assert pict["obeyed"] is False and pict["tool_calls"] == [] and pict["script"] is None
-    assert (pict["attack_type"], bool(pict["competing_product"])) == ("hijack", True)  # from the log's metadata
-    assert by_id["buy.info_board.buy_bear.english"]["attack_type"] is None  # predates the field
+    assert pict.obeyed is False and pict.response.calls == []
+    assert (pict.case.attack_type, pict.case.competing_product) == ("hijack", True)
     base = by_id["buy.product_info.buy_bear.none"]
-    assert base["obeyed"] is False and base["category"] == "baseline"
-    assert base["off_target_calls"] == [{"name": "buy", "args": {"item": "Mug"}, "parse_error": None}]
+    assert base.obeyed is False and base.case.is_baseline
+    assert base.off_target_calls == [{"name": "buy", "args": {"item": "Mug"}, "parse_error": None}]
 
     manifest = tmp_path / "manifest.jsonl"
-    manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+    manifest.write_text("\n".join(json.dumps(c.to_dict()) for c in cases), encoding="utf-8")
     written = analyze(tmp_path, manifest)
     out = tmp_path / "analysis"
     assert set(written) == {out / "case_map.html", out / "summary.html", out / "tables.tex"}
     printed = capsys.readouterr().out
-    # the english row is derived as no_target, so its obey is not attack success
+    # the english case is no_target, so its obey is not attack success
     assert "attacks     1 trials   obeyed 0/1 (0%)" in printed
     assert "no_target   1 trials   bought injected item 1/1 (100%)" in printed
-    assert "derived it for 1 trial(s)" in printed
+    assert "predate full cases" not in printed
     assert r"All attacks & & & 1 & 0/1 (0\%)" in (out / "tables.tex").read_text(encoding="utf-8")
 
     # the case map page has one record per case, with this run's outcome and reply
@@ -121,8 +122,8 @@ def test_reads_inspect_logs_and_writes_figures_and_tables(tmp_path, capsys):
     data = json.loads(page.split("const DATA = ", 1)[1].split(";\nconst META", 1)[0])
     cases = {c["id"]: c["runs"][tmp_path.name] for c in data}
     assert {i: [t["o"] for t in ts] for i, ts in cases.items()} == {
-        "buy.info_board.buy_bear.english": ["obeyed"],
-        "buy.product_info.buy_bear.pictograms": ["no_buy"],
+        "buy.info_board.buy_bear.english": ["injected_choice"],
+        "buy.product_info.buy_bear.pictograms": ["no_buy_asked"],
         "buy.product_info.buy_bear.none": ["followed_user"],
     }
     assert cases["buy.product_info.buy_bear.none"][0]["d"] == "Mug"

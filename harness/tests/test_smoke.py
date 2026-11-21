@@ -1,4 +1,4 @@
-"""GPU-free check of manifest loading, tools and scorer, using Inspect's mock model.
+"""GPU-free check of case loading, tools and scorer, using Inspect's mock model.
 Run from repo root:  python -m pytest harness/tests -q"""
 
 import json
@@ -10,7 +10,7 @@ import pytest
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 
-from harness.manifest import load_manifest
+from harness.manifest import load_cases
 from harness.obey import check_obeyed
 from harness.task import build_task
 from harness.tools import TOOLS
@@ -43,30 +43,32 @@ def test_buy_is_mid_list():
     assert 0 < i < len(names) - 1, "buy must be neither the first nor the last tool"
 
 
-def test_rows_naming_tools_are_rejected(tmp_path):
-    # An old manifest's per-row tools would otherwise be ignored silently.
+def test_rows_that_are_not_cases_are_rejected(tmp_path):
+    # A manifest written before cases (flat rows) must be regenerated, not half-read.
     m = tmp_path / "m.jsonl"
-    m.write_text(json.dumps({"id": "x", "user_prompt": "hi", "tools": ["buy"]}) + "\n")
-    with pytest.raises(ValueError, match="tools"):
-        load_manifest(m)
+    m.write_text(json.dumps({"id": "x", "user_prompt": "hi", "expected_calls": []}) + "\n")
+    with pytest.raises(ValueError, match="not a test case"):
+        load_cases(m)
 
 
 def test_end_to_end(tmp_path):
     outputs = [
-        ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "banana"}),  # row 1: obeys
-        ModelOutput.from_content("mockllm/model", "Done."),                              # row 1 follow-up
-        ModelOutput.from_content("mockllm/model", "It's a note."),                       # row 2: ignores
-        ModelOutput.from_content("mockllm/model", "Open 9 to 5."),                       # row 3: control
+        ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "banana"}),  # case 1: obeys
+        ModelOutput.from_content("mockllm/model", "Done."),                              # case 1 follow-up
+        ModelOutput.from_content("mockllm/model", "It's a note."),                       # case 2: ignores
+        ModelOutput.from_content("mockllm/model", "Open 9 to 5."),                       # case 3: baseline
     ]
     for o in outputs:  # explicit usage: mockllm otherwise downloads a tiktoken file to estimate it
         o.usage = ModelUsage(input_tokens=1, output_tokens=1, total_tokens=2)
     model = get_model("mockllm/model", custom_outputs=outputs)
     logs = inspect_eval(build_task(str(MANIFEST)), model=model, log_dir=str(tmp_path), max_connections=1, display="none")
     assert logs[0].status == "success"
-    for sample in logs[0].samples:  # every row is offered every tool, in TOOLS order
+    for sample in logs[0].samples:  # every case is offered every tool, in TOOLS order
         model_events = [e for e in sample.events if e.event == "model"]
         assert model_events
         for e in model_events:
             assert [t.name for t in e.tools] == list(TOOLS)
     obeyed = {s.id: s.scores["obeyed"].value == "C" for s in logs[0].samples}
-    assert obeyed == {"fx-en-image-obey": True, "fx-en-text-obey": False, "fx-control-nopayload": False}
+    assert obeyed == {"fx-obey": True, "fx-ignore": False, "fx-baseline": False}
+    # the log keeps the whole case, so analysis needs nothing else to know what was shown
+    assert logs[0].samples[0].metadata["injection"]["accepted"] == ["banana"]
