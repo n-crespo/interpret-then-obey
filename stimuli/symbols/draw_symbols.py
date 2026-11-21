@@ -51,6 +51,9 @@ CARD_EDGE = (150, 156, 168, 255)
 TV_BODY = (64, 68, 78, 255)
 TV_SCREEN = (128, 196, 232, 255)
 HAT = (34, 34, 42, 255)
+LAPTOP = (150, 156, 168, 255)
+LAPTOP_DARK = (92, 98, 110, 255)
+GIFT = (128, 64, 170, 255)
 
 
 def canvas(w: int, h: int) -> tuple[Image.Image, ImageDraw.ImageDraw]:
@@ -164,6 +167,35 @@ def draw_hat(d, cx, cy, r, mono=False):
     poly(d, [u(-0.57, 0.20), u(-0.585, 0.0), u(0.585, 0.0), u(0.57, 0.20)], fill=band)
 
 
+def draw_laptop(d, cx, cy, r, mono=False):
+    """An open laptop seen from the front: screen on a hinge, keyboard base below."""
+    body, screen, detail = (WHITE, SIGN_BLUE, SIGN_BLUE) if mono else (LAPTOP, TV_SCREEN, LAPTOP_DARK)
+    u = lambda px, py: (cx + px * r, cy + py * r)
+    rect(d, *u(-0.80, -0.78), *u(0.80, 0.34), radius=0.08 * r, fill=body)
+    rect(d, *u(-0.68, -0.66), *u(0.68, 0.24), radius=0.04 * r, fill=screen)
+    poly(d, [u(-0.84, 0.40), u(0.84, 0.40), u(1.10, 0.72), u(-1.10, 0.72)], fill=body)
+    for k in (0.50, 0.60):  # key rows
+        line(d, [u(-0.70, k), u(0.70, k)], detail, 0.05 * r)
+    line(d, [u(-0.20, 0.68), u(0.20, 0.68)], detail, 0.04 * r)  # trackpad edge
+
+
+def draw_gift_card(d, cx, cy, r, mono=False):
+    """A gift card: a flat rounded card crossed by a ribbon, with a bow where the ribbons meet."""
+    card, ribbon = (WHITE, SIGN_BLUE) if mono else (GIFT, GOLD)
+    u = lambda px, py: (cx + px * r, cy + py * r)
+    rect(d, *u(-1.0, -0.62), *u(1.0, 0.62), radius=0.12 * r, fill=card)
+    rect(d, *u(-0.52, -0.62), *u(-0.36, 0.62), fill=ribbon)  # vertical ribbon
+    rect(d, *u(-1.0, -0.08), *u(1.0, 0.08), fill=ribbon)  # horizontal ribbon
+    bx, by = u(-0.44, 0.0)
+    for sx in (-1, 1):  # bow loops
+        poly(d, [(bx, by), (bx + sx * 0.34 * r, by - 0.26 * r), (bx + sx * 0.34 * r, by + 0.10 * r)], fill=ribbon)
+    circle(d, bx, by, 0.10 * r, fill=card if mono else GOLD_DARK)
+    if mono:
+        circle(d, bx, by, 0.06 * r, fill=ribbon)
+    for k in (-0.34, 0.30):  # card number lines on the right half
+        line(d, [u(0.0, k), u(0.76, k)], ribbon if mono else CREAM, 0.05 * r)
+
+
 # --- Invented glyphs for the opaque sets. Abstract on purpose: they picture nothing.
 
 
@@ -223,14 +255,35 @@ def glyph_hat(d, x, y, size, color=INK):
     circle(d, *u(0.84, 0.30), size * 0.07, fill=color)
 
 
+def glyph_laptop(d, x, y, size, color=INK):
+    """Invented glyph standing for "laptop"."""
+    u = lambda px, py: (x + px * size, y + py * size)
+    lw = size * 0.075
+    line(d, [u(0.88, 0.14), u(0.30, 0.14), u(0.30, 0.48)], color, lw)
+    line(d, [u(0.12, 0.90), u(0.62, 0.90), u(0.62, 0.62)], color, lw)
+    circle(d, *u(0.82, 0.70), size * 0.07, fill=color)
+
+
+def glyph_gift_card(d, x, y, size, color=INK):
+    """Invented glyph standing for "gift card"."""
+    u = lambda px, py: (x + px * size, y + py * size)
+    lw = size * 0.075
+    line(d, [u(0.12, 0.40), u(0.40, 0.12), u(0.68, 0.40)], color, lw)
+    line(d, [u(0.86, 0.20), u(0.86, 0.90), u(0.36, 0.90)], color, lw)
+    circle(d, *u(0.20, 0.76), size * 0.07, fill=color)
+
+
 # Object id (as in injections.json) -> how to draw it. `emoji` is its Noto Emoji code
-# point in noto_emoji/.
+# point in noto_emoji/, or a tuple of them when no single emoji names the object.
 OBJECTS = {
     "bear": {"draw": draw_bear, "glyph": glyph_bear, "emoji": "1f43b"},
     "book": {"draw": draw_book, "glyph": glyph_book, "emoji": "1f4d5"},
     "shoe": {"draw": draw_shoe, "glyph": glyph_shoe, "emoji": "1f45e"},
     "television": {"draw": draw_television, "glyph": glyph_television, "emoji": "1f4fa"},
     "hat": {"draw": draw_hat, "glyph": glyph_hat, "emoji": "1f3a9"},
+    "laptop": {"draw": draw_laptop, "glyph": glyph_laptop, "emoji": "1f4bb"},
+    # No gift-card emoji exists: wrapped gift + credit card, set close together as one object.
+    "gift_card": {"draw": draw_gift_card, "glyph": glyph_gift_card, "emoji": ("1f381", "1f4b3")},
 }
 
 
@@ -351,13 +404,17 @@ def emoji(obj: dict, out: Path) -> None:
     (Apache-2.0; see its README for source and licence), pasted unscaled. Shown as a picture
     so the stimuli never depend on which emoji font a machine has.
     """
-    glyphs = [Image.open(NOTO / f"emoji_u{cp}.png").convert("RGBA") for cp in (obj["emoji"], "27a1", "1f6d2")]
-    gap = 40
-    w = sum(g.width for g in glyphs) + gap * (len(glyphs) - 1)
+    obj_cps = (obj["emoji"],) if isinstance(obj["emoji"], str) else obj["emoji"]
+    cps = (*obj_cps, "27a1", "1f6d2")
+    glyphs = [Image.open(NOTO / f"emoji_u{cp}.png").convert("RGBA") for cp in cps]
+    # 40px between the object, arrow and cart; 8px inside a multi-emoji object, which also
+    # keeps a two-emoji strip within the 600px limit.
+    gaps = [8] * (len(obj_cps) - 1) + [40, 40]
+    w = sum(g.width for g in glyphs) + sum(gaps)
     h = max(g.height for g in glyphs)
     strip = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     x = 0
-    for g in glyphs:
+    for g, gap in zip(glyphs, gaps + [0]):
         strip.alpha_composite(g, (x, (h - g.height) // 2))
         x += g.width + gap
     out.mkdir(parents=True, exist_ok=True)
