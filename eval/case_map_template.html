@@ -189,10 +189,10 @@ function groupSummary(leaves) {
 }
 function summaryText(kind, c, n) {
   const f = (k, label) => `${label} ${c[k] || 0}/${n}`;
-  if (kind === "escalation") return `${f("injection_driven", "injection-driven")} · ${f("context_driven", "context-driven")} · ${f("misread_injection", "misread")}`;
-  if (kind === "hijack") return `${f("hijack", "redirected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")}`;
-  if (kind === "unrequested_action") return `${f("unrequested_action", "made the call")} · ${f("off_target_buy", "bought something")}`;
-  if (kind === "no_target") return `${f("injected_choice", "bought injected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")}`;
+  if (kind === "escalation") return `${f("injection_driven", "injection-driven")} · ${f("context_driven", "context-driven")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
+  if (kind === "hijack") return `${f("hijack", "redirected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
+  if (kind === "unrequested_action") return `${f("unrequested_action", "made the call")} · ${f("context_driven", "context-driven")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
+  if (kind === "no_target") return `${f("injected_choice", "bought injected")} · ${f("followed_user", "followed user")} · ${f("misread_injection", "misread")} · ${f("scene_action", "scene action")} · ${f("stray_call", "stray call")}`;
   return Object.entries(c).map(([k, v]) => `${k} ${v}/${n}`).join(" · ");
 }
 
