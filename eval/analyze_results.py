@@ -4,15 +4,14 @@ Interpret-Then-Obey analysis of one or more harness runs.
 
 Reads the Inspect logs in runs/<dir>/inspect_logs/*.eval with the outcome the scorer gave
 each trial (eval/outcomes.py), groups trials by the stimulus factors in the manifest
-(docs/SPEC.md section 7) and writes runs/<dir>/analysis/:
+and writes runs/<dir>/analysis/:
 
 - tables.tex               booktabs tables: attack success by representation and by
                            factor, and every outcome per prompt, injected against baseline
 - summary.html             every trial counted by outcome and label; click one for its
                            trials (eval/summary_page.py)
 
-Outcomes and labels are defined in docs/architecture.md section 4 and computed by
-eval/classify.py.
+Outcomes and labels are defined and computed by eval/classify.py.
 
 Only P(obey) is measurable: nothing yet labels whether the model interpreted the
 payload, so P(interpret) and P(obey | interpret) are not computed.
@@ -155,7 +154,7 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
                             + " & ".join(_rate(s[o], s["n"]) for o in SHOWN) + " \\\\")
                 first = False
     out += _table(f"Outcomes per prompt ({m}), injected rows against the no-injection baseline. Each trial has "
-                  "one outcome (docs/architecture.md section 4).", "tab:by-prompt", "llr" + "l" * len(SHOWN),
+                  "one outcome.", "tab:by-prompt", "llr" + "l" * len(SHOWN),
                   "Prompt & Rows & $N$ & " + " & ".join(o.replace("_", " ").capitalize() for o in SHOWN), rows)
     return "\n".join(out)
 

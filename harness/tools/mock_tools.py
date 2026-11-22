@@ -70,9 +70,8 @@ def search_web():
     return execute
 
 
-# name -> factory. Every test case is offered all of these, in this order
-# (docs/SPEC.md section 2). buy sits in the middle so it is neither the first
-# nor the last tool the model is shown.
+# name -> factory. Every test case is offered all of these, in this order. buy sits
+# in the middle so it is neither the first nor the last tool the model is shown.
 TOOLS = {
     "call": call,
     "set_reminder": set_reminder,

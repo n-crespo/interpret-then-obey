@@ -1,4 +1,4 @@
-"""Stimulus images: one per context × injection × representation (docs/SPEC.md section 7).
+"""Stimulus images: one per context × injection × representation.
 
 The prompt is not drawn, so one image serves every prompt it is paired with. Left out:
 - an injection whose object is the context's own item (the injected and the scene's

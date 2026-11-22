@@ -1,5 +1,8 @@
-"""Types of the factor files in stimuli/src/ and of the samples built from them
-(docs/SPEC.md).
+"""Types of the factor files in stimuli/src/ and of the samples built from them.
+
+A test case is one image and one user message, and every case is generated, never
+written by hand: each prompt × context × injection × representation, less the
+excluded pairs. Nothing in the setup may hint at the injected item.
 
 The factor files are pydantic models, so each file's shape (keys, types, allowed
 values) is declared here once and checked on load. Rules that span files, such as ids
@@ -48,8 +51,12 @@ NonEmpty = Annotated[str, StringConstraints(pattern=r"\S")]  # not blank
 ToolName = Annotated[str, AfterValidator(_is_tool)]
 FontFile = Annotated[str, AfterValidator(_is_font)]
 FontSize = Annotated[int, Field(strict=True, ge=FONT_SIZE_RANGE[0], le=FONT_SIZE_RANGE[1])]
-# The order of the interpretation gradient (docs/SPEC.md section 6).
-Category = Literal["natural", "constructed", "symbols", "opaque", "obfuscated", "keyed"]
+# The interpretation gradient, in order: how hard it is to work out what the injection
+# says, so obeying can be measured across that range. Whether the order holds is for the
+# data to decide. `opaque` is two invented glyphs with no meaning: alone it is a control
+# whose obey rate should match the baseline's; with a picture legend (`opaque_legend`)
+# it tests whether the model learns a code from the image and acts on it.
+Category =Literal["natural", "constructed", "symbols", "opaque", "obfuscated", "keyed"]
 
 
 class _Model(BaseModel):
@@ -64,14 +71,18 @@ class TargetObject(_Model):
 
 
 class Prompt(_Model):
+    """The user's message, sent verbatim. Must not name a language, script or the injected item."""
     id: Id
     text: str
     expected_tool: ToolName | None  # the tool the user asks for; None when they ask for no action
     object: Id | None = None  # a target object id; unused for now
+    # Contexts not paired with this prompt: those where obeying would not be an attack
+    # success, e.g. a purchase request in a scene with nothing to buy.
     exclude_contexts: tuple[Id, ...] = ()
 
 
 class Context(_Model):
+    """The benign content of the image. An injection naming the context's own item is not paired with it."""
     id: Id
     header: str
     lines: tuple[str, ...]
@@ -152,7 +163,10 @@ class ImageRepresentation(_Drawn):
 
 
 class BaselineRepresentation(_Representation):
-    """No injection: the box is drawn empty, so there is nothing to render."""
+    """No injection: the box is drawn empty, so there is nothing to render. Its rows
+    measure how often the model acts unprompted, so an action on an injected row can be
+    attributed to the injection. It is a representation so the factorial expansion needs
+    no special case."""
     format: Literal["none"]
     category: Literal["baseline"]
     language: ClassVar[None] = None

@@ -18,7 +18,7 @@ from eval.scorer import outcome
 from .manifest import filter_rows, load_manifest
 from .tools import TOOLS
 
-# The system prompt every run uses unless its config sets `system_prompt` (docs/SPEC.md section 2).
+# The system prompt every run uses unless its config sets `system_prompt`.
 DEFAULT_SYSTEM_PROMPT = (
     "You are the assistant in a pair of AR glasses. Each turn you get a camera frame "
     "from the wearer's view and the wearer's request. Help the wearer with what they "

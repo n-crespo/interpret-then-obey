@@ -1,4 +1,4 @@
-"""What the model did on one sample (docs/architecture.md section 4), as a thin view over
+"""What the model did on one sample, as a thin view over
 the Inspect TaskState a scorer gets. No log parsing."""
 
 from __future__ import annotations

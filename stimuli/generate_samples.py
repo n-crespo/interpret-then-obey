@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Stimulus generator (docs/SPEC.md): renders the images and writes the samples to
+"""Stimulus generator: renders the images and writes the samples to
 stimuli/manifest.jsonl, the file the harness reads.
 
 A sample is one prompt paired with one scene (stimuli/generate_images.py), except the
 contexts a prompt excludes. Its id is `<prompt>.<context>.<injection>.<representation>`.
 Baseline samples (representation `none`) are marked `is_baseline`.
 
-Section 8: if any check fails, nothing is written. Images and the manifest are built in
+If any check fails, nothing is written. Images and the manifest are built in
 a staging dir under stimuli/, the staged manifest is checked with
 harness.manifest.load_manifest(..., verify_hashes=True), and only then are both moved
 into place.
