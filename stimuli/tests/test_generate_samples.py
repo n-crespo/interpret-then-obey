@@ -1,4 +1,4 @@
-"""The committed manifest is the factorial expansion docs/SPEC.md describes, and the
+"""The committed manifest is the full factorial expansion of the factor files, and the
 hand-written renditions are drawable and say nothing in English where they must not."""
 
 import json

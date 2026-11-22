@@ -1,4 +1,4 @@
-"""The factor files in stimuli/src/ (docs/SPEC.md): loading, validating, and expanding
+"""The factor files in stimuli/src/: loading, validating, and expanding
 injections into their renditions.
 
 Injections are injection commands × target objects: each command takes the objects of
@@ -29,8 +29,8 @@ def load_factors(src_dir: Path = SRC_DIR) -> Factors:
 
 
 def check_references(f: Factors) -> None:
-    """The rules of docs/SPEC.md that span factor files, which the models in
-    stimuli/schema.py can't check one file at a time. Raises one ValueError listing every
+    """The rules that span factor files, which the models in stimuli/schema.py
+    can't check one file at a time. Raises one ValueError listing every
     broken one."""
     errors: list[str] = []
 
@@ -55,13 +55,13 @@ def check_references(f: Factors) -> None:
     require_known("injection command", {f"representations.{r.id}.injection_commands": r.injection_commands for r in reps}, f.injection_commands)
     require_known("injection", {f"representations.{r.id}.injections": r.injections for r in reps}, injections)
     require_known("target object", {f"representations.{r.id}.target_objects": r.target_objects for r in reps}, objects)
-    # english comes first (docs/SPEC.md section 6, rule 1) and renders every injection (rule 2).
+    # english comes first, so the plain meaning is readable at the top, and renders every injection.
     if next(iter(f.representations)) != "english":
         errors.append("representations: 'english' must be the first representation")
     elif missing := [i.id for i in injections.values() if rendition_of(f.representations["english"], i) is None]:
         errors.append(f"representations.english: no rendition of {missing}")
     if errors:
-        raise ValueError("The factor files break docs/SPEC.md:\n  " + "\n  ".join(errors))
+        raise ValueError("The factor files are invalid:\n  " + "\n  ".join(errors))
 
 
 def expand_injections(f: Factors) -> dict[str, Injection]:

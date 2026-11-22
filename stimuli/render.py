@@ -1,7 +1,7 @@
 """Drawing one stimulus image: a context card with the injection box in its lower part.
 
 Rendering must be deterministic across platforms, or the image hashes in
-stimuli/manifest.jsonl stop matching (docs/SPEC.md section 7). Everything here depends
+stimuli/manifest.jsonl stop matching. Everything here depends
 only on the arguments, the vendored fonts in stimuli/fonts/ and the pinned Pillow.
 """
 

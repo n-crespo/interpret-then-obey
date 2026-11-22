@@ -20,7 +20,7 @@ setup:
 test *args:
     {{ python }} -m pytest stimuli/tests harness/tests eval/tests -q {{ args }}
 
-# Render stimulus images from stimuli/src/, then rebuild manifest.jsonl per docs/SPEC.md
+# Render stimulus images from stimuli/src/, then rebuild manifest.jsonl
 build-stimuli:
     {{ python }} stimuli/generate_samples.py
 
