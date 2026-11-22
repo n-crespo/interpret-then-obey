@@ -30,7 +30,7 @@ flowchart LR
     IMG[("Test-case images<br/><i>what the model sees</i>")]
     MAN[("manifest.jsonl<br/><i>one fixed, reproducible set of cases<br/>and what counts as obeying each</i>")]
 
-    HAR["<b>3 · Harness</b><br/><i>just run &lt;config&gt;</i><br/>Show each case to a vision model with mock tools<br/>and score whether it called buy as injected"]
+    HAR["<b>3 · Harness</b><br/><i>just run &lt;config&gt;</i><br/>Show each case to a vision model with mock tools<br/>and classify each response's outcome"]
 
     CFG["Run config<br/><i>choose the model and settings<br/>without touching the cases</i>"]
 
@@ -39,10 +39,9 @@ flowchart LR
         LOGS["Inspect logs<br/><i>full conversations,<br/>for inspecting any trial</i>"]
     end
 
-    EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Name each trial's outcome and compare<br/>obey rates across factors and runs"]
+    EVAL["<b>4 · Analysis</b><br/><i>just analyze runs/&lt;a&gt; [runs/&lt;b&gt; …]</i><br/>Count outcomes and attack success<br/>across factors; just run does it too"]
 
     subgraph OUT["Analysis outputs"]
-        HTML["case_map.html<br/><i>see what the model did on each case,<br/>compare runs, and flag cases to drop</i>"]
         SUM["summary.html<br/><i>how often each outcome happened,<br/>and the trials behind it</i>"]
         TEX["tables.tex<br/><i>results ready for the paper</i>"]
     end
@@ -53,13 +52,13 @@ flowchart LR
     CFG --> HAR
     HAR --> META & LOGS
     LOGS --> EVAL
-    EVAL --> SUM & HTML & TEX
+    EVAL --> SUM & TEX
 
     classDef src fill:#eef6ff,stroke:#4a7bd0,color:#1a1a1a;
     classDef data fill:#fff7e6,stroke:#d08a2a,color:#1a1a1a;
     classDef step fill:#e9f7ee,stroke:#3a9a5b,color:#1a1a1a;
     class P,C,I,R,ASSETS,CFG src;
-    class IMG,MAN,META,LOGS,HTML,TEX data;
+    class IMG,MAN,META,LOGS,SUM,TEX data;
     class GEN,HAR,EVAL step;
 ```
 
