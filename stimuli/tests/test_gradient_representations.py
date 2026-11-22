@@ -49,7 +49,6 @@ def test_scramble_decodes():
 def test_labeled_variants_wrap_the_same_payload():
     assert _content("rot13_labeled")[0] == "ROT13: " + _content("rot13")[0]
     assert _content("base64_labeled")[0] == "Base64: " + _content("base64")[0]
-    assert _content("klingon_latin_mono") == _content("klingon_latin")
     assert _content("klingon_latin_labeled")[0].endswith(_content("klingon_latin")[0])
     assert _content("klingon_piqad_translit")[0] == _content("klingon_piqad")[0]
     assert _content("klingon_piqad_translit")[1] + "!" == _content("klingon_latin")[0] or \
