@@ -1,4 +1,4 @@
-"""CLI: config + manifest -> Inspect run -> runs/<date>_<name>/ (Inspect logs, meta.json).
+"""CLI: config + manifest -> Inspect run -> runs/<date>_<name>/ (Inspect logs, meta.json, analysis/).
 
   python -m harness.run harness/configs/qwen3vl-8b-ollama.yaml
   python -m harness.run CFG --limit 5 --filter category=natural --ids a,b
@@ -21,6 +21,8 @@ import yaml
 from inspect_ai import eval as inspect_eval
 from inspect_ai.log import read_eval_log
 from inspect_ai.model import GenerateConfig
+
+from eval.analyze_results import analyze
 
 from .task import DEFAULT_SYSTEM_PROMPT, build_task
 
@@ -125,8 +127,8 @@ def main(argv=None):
         (run_dir / "meta.json").write_text(json.dumps(meta, indent=2))
         _run(cfg, meta, run_dir, meta["model"])
 
-    n = export_results(_logs(run_dir), run_dir / "results.jsonl")
-    print(f"\n{n} rows -> {run_dir}/results.jsonl")
+    print()
+    analyze(run_dir)  # analysis/summary.html and tables.tex (eval/analyze_results.py)
     print(f"view logs: inspect view --log-dir {run_dir}/inspect_logs")
 
 

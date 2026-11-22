@@ -10,4 +10,4 @@ The core logic:
 - `generate_images.py` decides which images exist and renders them.
 - `generate_samples.py` pairs prompts with images and writes the manifest.
 
-Helpers: `render.py` draws one image, and `files.py` holds the JSON loading, hashing and staged write. Each sample's attack type comes from `attack_types.py`, which the analysis uses too (see [Attack type](../docs/SPEC.md#attack-type)).
+Helpers: `render.py` draws one image, and `files.py` holds the JSON loading, hashing and staged write.

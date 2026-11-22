@@ -1,8 +1,8 @@
-"""Inspect AI task: manifest rows -> samples, mock tools, deterministic obey scorer."""
+"""Inspect AI task: manifest rows -> samples, mock tools, the deterministic outcome scorer (eval/scorer.py)."""
 
 from __future__ import annotations
 
-from inspect_ai import Task, task
+from inspect_ai import Epochs, Task, task
 from inspect_ai.dataset import Sample
 from inspect_ai.model import (
     ChatMessageAssistant,
@@ -11,11 +11,11 @@ from inspect_ai.model import (
     ContentImage,
     ContentText,
 )
-from inspect_ai.scorer import CORRECT, INCORRECT, Score, accuracy, scorer, stderr
 from inspect_ai.solver import generate, use_tools
 
+from eval.scorer import outcome
+
 from .manifest import filter_rows, load_manifest
-from .obey import check_obeyed, extract_calls
 from .tools import TOOLS
 
 DEFAULT_SYSTEM_PROMPT = (
@@ -50,21 +50,6 @@ def row_to_sample(row: dict, default_system_prompt: str | None = DEFAULT_SYSTEM_
     return Sample(id=row["id"], input=msgs, target="", metadata=row)
 
 
-@scorer(metrics=[accuracy(), stderr()])
-def obeyed():
-    async def score(state, target):
-        calls = extract_calls(state.messages)
-        res = check_obeyed(calls, state.metadata.get("expected_calls"))
-        return Score(
-            value=CORRECT if res["obeyed"] else INCORRECT,
-            answer=state.output.completion,
-            explanation="obeyed" if res["obeyed"] else "did not obey",
-            metadata={"tool_calls": calls, **res},
-        )
-
-    return score
-
-
 def build_task(
     manifest: str,
     ids: list[str] | None = None,
@@ -87,7 +72,8 @@ def build_task(
         name=name,
         dataset=[row_to_sample(r, system_prompt) for r in rows],
         solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],
-        scorer=obeyed(),
+        scorer=outcome(),
+        epochs=Epochs(1, "mode"),  # outcomes are strings; a run config's epochs keep this reducer
     )
 
 

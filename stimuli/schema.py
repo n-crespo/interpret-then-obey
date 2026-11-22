@@ -220,6 +220,8 @@ class Sample:
     image: str
     image_sha256: str | None
     expected_calls: list[dict]
+    prompt_expected_tool: str | None  # the prompt's expected_tool
+    context_object: dict | None  # the context's item as {argument: accepted_items}, like an expected call's args
     prompt_id: str
     context_id: str
     injection_id: str
@@ -228,5 +230,3 @@ class Sample:
     category: str
     language: str | None
     script: str | None
-    attack_type: str
-    competing_product: bool
