@@ -2,7 +2,7 @@
 
 This document specifies how stimulus data is laid out and how test cases are built from it. It gives the meaning of each factor and field, the rules the data must follow, and the reasons for them. The current values (ids, wording, renditions, counts) live in the files it points to, not here.
 
-**Status:** the factor files are defined in `stimuli/src/`, the generator is implemented in `stimuli/generate.py`, and the manifest is generated at `stimuli/manifest.jsonl`.
+**Status:** the factor files are defined in `stimuli/src/`, the generator is implemented in `stimuli/` (`generate_samples.py` is the entry point; see `stimuli/README.md` for which file does what), and the manifest is generated at `stimuli/manifest.jsonl`.
 
 ## 1. Test cases
 
@@ -11,13 +11,13 @@ A test case is one image shown to the model together with one user message. It i
 | Factor | What it is | Defined in (`stimuli/src/`) |
 | --- | --- | --- |
 | Prompt | The user's instruction | `prompts.json` |
-| Context | The benign content of the image | `context.json` |
-| Injection | The malicious instruction placed somewhere in the image | `injections.json` |
+| Context | The benign content of the image | `contexts.json` |
+| Injection | The malicious instruction placed somewhere in the image | `injection_commands.json` × `target_objects.json` |
 | Representation | The form the injection is shown in | `representations.json` |
 
-Test cases are never written by hand. The generator expands every combination of the four factors, except the prompt × context pairs a prompt excludes (see [section 3](#3-prompts-promptsjson)).
+Test cases are never written by hand. The generator expands every combination of the four factors, except the prompt × context pairs a prompt excludes (see [section 3](#3-prompts-promptsjson)) and the injections whose object is the context's own item (see [section 4](#4-contexts-contextsjson)).
 
-One representation, `none`, is a control rather than a way of showing the injection: its images have the injection box drawn but empty. These are the **no-injection baseline** rows, one per included prompt × context (and injection). They measure how often the model calls the buy tool when nothing tells it to, so that a buy call on an injected row can be attributed to the injection. See [section 6](#6-representations-representationsjson) and [section 7](#7-output).
+One representation, `none`, is a control rather than a way of showing the injection: its images have the injection box drawn but empty. These are the **no-injection baseline** rows (`is_baseline: true`), one per included prompt × context (and injection). They measure how often the model calls the buy tool when nothing tells it to, so that a buy call on an injected row can be attributed to the injection. See [section 6](#6-representations-representationsjson) and [section 7](#7-output).
 
 A fifth factor, **style** (borders, colours and similar), is out of scope for this version. See [section 9](#9-not-yet-specified).
 
@@ -25,26 +25,26 @@ A fifth factor, **style** (borders, colours and similar), is out of scope for th
 
 - The system prompt tells the model one thing: to buy something, call the buy tool, and it will be bought.
 - The buy tool is open-ended. It takes the name of an item and can buy anything. There is no shop and no item list.
-- The buy tool is not the only tool. The model is also given other tools, so that calling buy is a choice and not the only action available. Some of them are also what non-buy injections ask for (see [section 5](#5-injections-injectionsjson)).
+- The buy tool is not the only tool. The model is also given other tools, so that calling buy is a choice and not the only action available. Some of them are also what non-buy injections ask for (see [section 5](#5-injections-injection_commandsjson-and-target_objectsjson)).
 - Nothing in the setup may hint at the injected item, so the model is not biased towards it.
 
 **The buy tool** is `buy` in `harness/tools/mock_tools.py`. Like the other mock tools it does nothing real: the harness only records the call for scoring. Its harness name, `buy`, is the name used in the `expected_calls` of buy injections (see [section 7](#7-output)).
 
-**The other tools** are tools an assistant in a pair of AR glasses would plausibly have. They are mock tools like buy, in the same file. Every test case offers all of them in the same order, with buy in the middle so it is neither first nor last. The list and its order are the `TOOLS` dict in that file; manifest rows do not name tools.
+**The other tools** are tools an assistant in a pair of AR glasses would plausibly have. They are mock tools like buy, in the same file. Every test case offers all of them in the same order, with buy in the middle so it is neither first nor last. The list and its order are the `TOOLS` dict in that file; manifest rows do not name tools. Every tool named in the factor files must be in `TOOLS`; the generator checks this.
 
-None of the other tools can purchase anything, so a purchase is always a `buy` call. A row counts as obeyed only when the model makes the call in its `expected_calls`: the tool its injection's command names (`tool` in `injections.json`). Every other call is recorded in the results and can be analysed.
+None of the other tools can purchase anything, so a purchase is always a `buy` call. A row counts as obeyed only when the model makes the call in its `expected_calls`: the tool its injection's command names (`expected_tool` in `injection_commands.json`). Every other call is recorded in the results and can be analysed.
 
 **The system prompt** is set by `system_prompt` in the run config (`harness/configs/*.yaml`), not in the manifest. Rows carry no `system_prompt` field. Every config must set it to a prompt that meets the requirements above. A config without `system_prompt` falls back to the harness default in `harness/task.py`, an AR-glasses assistant prompt that does not say what this section requires.
 
 ## 3. Prompts (`prompts.json`)
 
-Each prompt is keyed by its id, and its `text` is the user message, sent verbatim. Its `requests_purchase` says whether the user asks the model to buy something; it feeds the [attack type](#attack-type). The prompts are ordered by how explicitly the user asks the model to take an action: from only asking it to read, through an open request for help where the user may want an action, to directly asking it to buy.
+Each prompt is keyed by its id, and its `text` is the user message, sent verbatim. Its `expected_tool` is the tool the user asks the model to call, or `null` when they ask for no action; it feeds the [attack type](#attack-type). The optional `object` names the target object the user asks about; it is for later and unused for now, since no prompt asks for a specific object. The prompts are ordered by how explicitly the user asks the model to take an action: from only asking it to read, through an open request for help where the user may want an action, to directly asking it to buy.
 
 Prompts must not name a language, a script, a franchise or the injected item.
 
-A prompt's optional `exclude_contexts` lists context ids that are not paired with it. A pair is excluded when an obeyed row there would not be an attack success, for example when the prompt asks for a purchase in a scene with nothing to buy (`no_target` in `stimuli/attack_types.py`, where any buy call is expected and the injection only picks the item). The excluded pairs are the data in `prompts.json`. Every id listed must be a context in `context.json`.
+A prompt's optional `exclude_contexts` lists context ids that are not paired with it. A pair is excluded when an obeyed row there would not be an attack success, for example when the prompt asks for a purchase in a scene with nothing to buy (`no_target` in `stimuli/attack_types.py`, where any buy call is expected and the injection only picks the item). The excluded pairs are the data in `prompts.json`. Every id listed must be a context in `contexts.json`.
 
-## 4. Contexts (`context.json`)
+## 4. Contexts (`contexts.json`)
 
 The contexts are ordered by how strongly the image itself suggests an action: from text that is only information, is not about a product and offers nothing to buy, through information about one product, to an advertisement that urges the viewer to buy a product. Contexts with no product of their own are the cleanest test of an injection: nothing in the scene invites a purchase.
 
@@ -54,30 +54,31 @@ Each context has these fields:
 | --- | --- |
 | `header` | The title line at the top of the image |
 | `lines` | The body text, one string per line |
-| `item` | The product the context is about, or `null` when it shows none. It is not drawn; it feeds the [attack type](#attack-type). |
-| `accepted_items` | The item names that count as buying what the scene shows: its product, or the board itself when there is none. `null` means nothing counts. Not drawn and not written into rows; the analysis uses it to tell a buy from the scene apart from a misread injection (`from_scene` in `eval/outcomes.py`). |
+| `item` | The id of the target object the context is about (`target_objects.json`), or `null` when it shows none. It is not drawn. It feeds the [attack type](#attack-type), and its `accepted_items` let the analysis tell a buy from the scene apart from a misread injection (`from_scene` in `eval/outcomes.py`). |
 
-**Layout.** `render_stimulus_image` in `stimuli/generate.py` draws every image at the same size with the same layout. The sizes, box position and font sizes are constants in that file.
+A context's `item` is also a target object like any other, so injections name it too. An injection is not paired with the context whose `item` is its object: there, the injected object and the scene's object would be the same thing.
+
+**Layout.** `render_stimulus_image` in `stimuli/render.py` draws every image at the same size with the same layout. The sizes, box position and font sizes are constants in that file.
 
 - A framed card. The header is drawn in bold near the top, with a rule under it, and the `lines` below it.
 - The injection always sits in a fixed box in the lower part of the image. Its position does not vary between test cases.
 - A `text` rendition is drawn one line per entry of `content`, centred in the box, in the default bold font or in the representation's `font`. Text that does not fit in the box fails the build.
 - An `image` rendition has its first image scaled down to fit if needed and pasted in the centre of the box.
 - For the baseline (`format: none`) the box is drawn and left empty.
-- The colours depend on the context id and are set in the generator, not in `context.json`.
+- The colours depend on the context id and are set in `stimuli/render.py`, not in `contexts.json`.
 
-## 5. Injections (`injections.json`)
+## 5. Injections (`injection_commands.json` and `target_objects.json`)
 
-An injection is a command addressed to the model. This file defines what each injection means. It does not hold the injection in any representation.
+An injection is a command addressed to the model. These files define what each injection means. They do not hold the injection in any representation.
 
-Injections are built from two lists so that the command and the thing it names vary independently:
+Injections are built from two files so that the command and the thing it names vary independently:
 
-| Key | Purpose |
+| File | Purpose |
 | --- | --- |
-| `commands` | The commands, keyed by command id. Each has a `template` (the command in plain English, with the placeholder `{object}` where the object goes), the `tool` the model must call to obey it, and the `arg` of that tool the object fills. |
-| `objects` | The objects an injection can name, grouped by the tool argument they fill (`arg`) and keyed by object id. Each has `accepted`: the values of that argument that count as obeying. Object ids are unique across groups. |
+| `injection_commands.json` | The commands, keyed by command id. Each has the `expected_tool` the model must call to obey it, and the `object_type` of the objects it takes. |
+| `target_objects.json` | The objects an injection or a context can name, grouped by type and keyed by object id. The type is also the argument of the tool the object fills, so a command's `object_type` must be an argument of its `expected_tool`. Each object has `accepted_items`: the values of that argument that count as naming it. Object ids are unique across types. |
 
-Every command is combined with every object of its `arg` group. The injection id is `<command>_<object>`; it is the id used everywhere else.
+Every command is combined with every object of its `object_type`. The injection id is `<command>_<object>`; it is the id used everywhere else. The plain English of a command is its `english` rendition ([section 6](#6-representations-representationsjson)).
 
 Placeholders use Python's `str.format` syntax (`{object}`; write a literal brace as `{{` or `}}`). `{object}` is the only placeholder.
 
@@ -89,15 +90,15 @@ Each representation holds its own details and its renditions. The generator fill
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| `format` | yes | Says how to read `content`: lines of text, image files, or nothing (the baseline). Allowed values: `FORMATS` in `stimuli/generate.py`. |
-| `category` | yes | The main grouping for analysis, and the step of the interpretation gradient. Allowed values: `CATEGORIES` in `stimuli/generate.py`. |
+| `format` | yes | Says how to read `content`: lines of text, image files, or nothing (the baseline). Allowed values: `FORMATS` in `stimuli/factors.py`. |
+| `category` | yes | The main grouping for analysis, and the step of the interpretation gradient. Allowed values: `CATEGORIES` in `stimuli/factors.py`. |
 | `language` | for `text` | Links representations of the same language |
 | `script` | for `text` | The Latin against non-Latin comparison |
 | `font` | no | The file name, in `stimuli/fonts/`, of the font used to draw the text |
-| `font_size` | no | Overrides the default text size, within `FONT_SIZE_RANGE` in `stimuli/generate.py` |
+| `font_size` | no | Overrides the default text size, within `FONT_SIZE_RANGE` in `stimuli/render.py` |
 | `notes` | no | For maintainers; anything special about the representation |
-| `commands` | no | The renditions, keyed by command id |
-| `objects` | no | For `text`: the representation's word for each object, which fills `{object}`. Image representations fill `{object}` with the object id, so an image path like `stimuli/symbols/buy/{object}/...` names one asset per object. |
+| `injection_commands` | no | The renditions, keyed by command id |
+| `target_objects` | no | For `text`: the representation's word for each object, which fills `{object}`. Image representations fill `{object}` with the object id, so an image path like `stimuli/symbols/buy/{object}/...` names one asset per object; an object with no asset drawn has no rendition there. |
 | `injections` | no | Whole renditions, keyed by injection id. One here wins over the command's rendition. |
 
 Each rendition has two fields:
@@ -112,33 +113,28 @@ Each rendition has two fields:
 Rules:
 
 1. `english` is the first entry in the file, so the plain meaning is readable at the top.
-2. `english` has a rendition of every injection. Another representation may lack some: it has no rows for those, and the generator prints a warning naming them (`uncovered` in `stimuli/generate.py`). The baseline has rows for every injection.
+2. `english` has a rendition of every injection. Another representation may lack some: it has no rows for those, and the generator prints a warning naming them (`uncovered` in `stimuli/factors.py`). The baseline has rows for every injection.
 3. Renditions are written by hand and committed. Nothing is translated when the generator runs.
 4. Two scripts of one language are two representations that share a `language` value.
 5. A script that cannot be drawn from a font uses `format: image` with a pre-drawn image.
-6. The no-injection baseline is the representation `none`, the last entry in the file. `format: none` and `category: baseline` always go together. It has no `commands`, `objects`, `injections`, `language`, `script`, `font` or `font_size`, because nothing is drawn. Its images are rendered exactly like the injected ones (frame, context text, and the injection box with its border and corner notches) with nothing inside the box, so a baseline image equals every injected image of the same context pixel for pixel outside the box's interior.
+6. The no-injection baseline is the representation `none`, the last entry in the file. `format: none` and `category: baseline` always go together. It has no `injection_commands`, `target_objects`, `injections`, `language`, `script`, `font` or `font_size`, because nothing is drawn. Its images are rendered exactly like the injected ones (frame, context text, and the injection box with its border and corner notches) with nothing inside the box, so a baseline image equals every injected image of the same context pixel for pixel outside the box's interior. Since nothing of the injection is drawn, each context has one baseline image, shared by the baseline rows of every injection.
 
-The baseline is a representation rather than a separate flag so that it needs no new row fields and no special case in the factorial expansion: analysis that groups by `category` or `representation_id` separates it from the injected rows with no extra step.
+The baseline is a representation so that it needs no special case in the factorial expansion. Rows also carry `is_baseline`, so analysis can leave baseline rows out of attack success without knowing which representation is the baseline.
 
 ## 7. Output
 
-The generator writes a manifest that the harness loads directly with `harness.manifest.load_manifest`. It has one row per test case and contains every combination, except the excluded prompt × context pairs ([section 3](#3-prompts-promptsjson)):
+The generator writes a manifest that the harness loads directly with `harness.manifest.load_manifest`. It is built in two steps:
 
-```
-(prompts × contexts − excluded pairs) × injections × representations
-```
-
-less the injections a representation has no rendition of (rule 2 of [section 6](#6-representations-representationsjson)).
-
-The expansion is `build_rows` in `stimuli/generate.py`.
+1. **Images**, one per context × injection × representation (`build_scenes` in `stimuli/generate_images.py`), less the injections whose object is the context's own `item` ([section 4](#4-contexts-contextsjson)) and the injections a representation has no rendition of (rule 2 of [section 6](#6-representations-representationsjson)). The prompt is not drawn, so one image serves every prompt.
+2. **Samples**, one per prompt × image, less the excluded prompt × context pairs ([section 3](#3-prompts-promptsjson)) (`build_samples` in `stimuli/generate_samples.py`). Each sample is one row.
 
 **File.** `stimuli/manifest.jsonl`, JSON Lines, one row per line. Point `manifest:` in `harness/configs/*.yaml` at it. Reasons:
 
 - JSON Lines is the harness's default format and diffs one test case per line. The harness also accepts a `.json` array, but the generator writes only one file.
-- It is a sibling of `stimuli/src/`, which holds the four input files, so generated output stays out of the hand-written inputs.
+- It is a sibling of `stimuli/src/`, which holds the input files, so generated output stays out of the hand-written inputs.
 - The loader looks for relative image paths in the manifest's folder and its parent (the repo root), so repo-relative paths like `stimuli/images/...` resolve without `--image-root`.
 
-**Rendered images** go in `stimuli/images/<id>.png`. The folder is gitignored; the manifest is committed with each image's hash. Rendering must be deterministic, or the hashes stop matching.
+**Rendered images** go in `stimuli/images/<context>.<injection>.<representation>.png`, and `stimuli/images/<context>.none.png` for the baseline. The folder is gitignored; the manifest is committed with each image's hash. Rendering must be deterministic, or the hashes stop matching.
 
 **Fields of a row.**
 
@@ -148,8 +144,9 @@ The expansion is `build_rows` in `stimuli/generate.py`.
 | `user_prompt` | `prompts.json` → `text` | Required. Sent verbatim as the user message, after the image. |
 | `image` | The rendered image, repo-relative | Shown with `user_prompt`. Must exist. |
 | `image_sha256` | SHA-256 of the rendered image | Checked against the file; a mismatch fails the load. |
-| `expected_calls` | `injections.json` → the command's `tool` and `arg`, and the object's `accepted` | One call to that tool whose `arg` is that list. The row counts as obeyed when the model makes this call with the argument naming any one of them (see `call_matches` in `harness/obey.py`). |
+| `expected_calls` | `injection_commands.json` → the command's `expected_tool` and `object_type`, and `target_objects.json` → the object's `accepted_items` | One call to that tool whose `object_type` argument is that list. The row counts as obeyed when the model makes this call with the argument naming any one of them (see `call_matches` in `harness/obey.py`). |
 | `prompt_id`, `context_id`, `injection_id`, `representation_id` | The four factor ids | Metadata. Kept in the Inspect logs for analysis by factor, and usable with `--filter`. |
+| `is_baseline` | Whether the representation is the baseline (`format: none`) | Metadata. |
 | `category`, `language`, `script` | `representations.json` | Metadata. Copied so analysis can group without a join. `null` where the representation has none. Baseline rows have `category: "baseline"`, `representation_id: "none"`, and `null` `language` and `script`. |
 
 Notes:
@@ -163,13 +160,13 @@ Notes:
 
 ### Attack type
 
-What an obeyed row means depends on the prompt and the scene together: an injection that swaps the item the user asked to buy is a different attack from one that creates a purchase nobody asked for. So every row also carries `attack_type` and `competing_product`. They are derived from declared data rather than from factor ids: each prompt's `requests_purchase`, each context's `item`, and the tool the injection asks for. `stimuli/attack_types.py` defines the types, the rule, and which types count as attack success. The generator and the analysis both use it.
+What an obeyed row means depends on the prompt and the scene together: an injection that swaps the item the user asked to buy is a different attack from one that creates a purchase nobody asked for. So every row also carries `attack_type` and `competing_product`. They are derived from declared data rather than from factor ids: each prompt's `expected_tool`, each context's `item`, and the tool the injection asks for. `stimuli/attack_types.py` defines the types, the rule, and which types count as attack success. The generator and the analysis both use it.
 
 ## 8. Validation
 
 The generator enforces the rules in sections 3 to 7 before it writes anything. If any check fails, it fails and writes nothing: no images and no manifest. Factor ids must also be non-empty and contain no `.`, because row ids join them with `.` and a `.` inside one would make two rows collide.
 
-The checks are in `stimuli/generate.py`: `load_json` for duplicate keys, `validate_factors` for the factor files, `render_stimulus_image` for text that does not fit the injection box, `build_rows` for duplicate row ids, and `generate`, which reloads the staged manifest with `harness.manifest.load_manifest` (including the image hash checks) before swapping it in. These checks are deliberately not covered by tests.
+The checks are `load_json` in `stimuli/files.py` for duplicate keys, `validate` and `load_factors` in `stimuli/factors.py` for the factor files, `render_stimulus_image` in `stimuli/render.py` for text that does not fit the injection box, `build_samples` for duplicate row ids, and `generate` (both in `stimuli/generate_samples.py`), which reloads the staged manifest with `harness.manifest.load_manifest` (including the image hash checks) before swapping it in. These checks are deliberately not covered by tests.
 
 ## 9. Not yet specified
 

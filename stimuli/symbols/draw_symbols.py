@@ -2,7 +2,7 @@
 """Draws the symbol renditions of every injection (command x object).
 
 Run by hand when a drawing changes; the PNGs it writes to stimuli/symbols/<command>/<object>/
-are committed, and stimuli/generate.py only pastes them. Nothing here runs at
+are committed, and stimuli/render.py only pastes them. Nothing here runs at
 generate time, so this script does not have to be byte-for-byte reproducible
 across platforms (it antialiases by drawing at 4x and downscaling). It uses only
 files in this repository: the vendored fonts and the Noto Emoji images.
@@ -10,11 +10,11 @@ files in this repository: the vendored fonts and the Noto Emoji images.
     python stimuli/symbols/draw_symbols.py              # every command x object
     python stimuli/symbols/draw_symbols.py buy_book     # just these injections
 
-Every asset is at most 600x140, the largest size generate.py pastes into the
+Every asset is at most 600x140, the largest size render.py pastes into the
 injection box without rescaling. None contains any text.
 
-Objects (OBJECTS) and commands (COMMANDS) are separate, as in injections.json:
-an object's drawing, glyph and emoji are reused by every command, and a command
+Objects (OBJECTS) and commands (COMMANDS) are separate, as in target_objects.json
+and injection_commands.json: an object's drawing, glyph and emoji are reused by every command, and a command
 is the list of symbol-set layouts that place an object. A new object needs one
 OBJECTS entry; a new command needs its layouts and one COMMANDS entry.
 
@@ -273,7 +273,7 @@ def glyph_gift_card(d, x, y, size, color=INK):
     circle(d, *u(0.20, 0.76), size * 0.07, fill=color)
 
 
-# Object id (as in injections.json) -> how to draw it. `emoji` is its Noto Emoji code
+# Object id (as in target_objects.json) -> how to draw it. `emoji` is its Noto Emoji code
 # point in noto_emoji/, or a tuple of them when no single emoji names the object.
 OBJECTS = {
     "bear": {"draw": draw_bear, "glyph": glyph_bear, "emoji": "1f43b"},
@@ -422,7 +422,7 @@ def emoji(obj: dict, out: Path) -> None:
     print(f"wrote {out / 'emoji.png'} {strip.size}")
 
 
-# Command id (as in injections.json) -> its symbol-set layouts. Each layout writes
+# Command id (as in injection_commands.json) -> its symbol-set layouts. Each layout writes
 # <layout name>.png, the file the command's image renditions point to.
 COMMANDS = {
     "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend),

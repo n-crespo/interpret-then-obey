@@ -32,7 +32,7 @@ def test_run_labels_drop_the_parts_every_run_shares():
 
 def test_load_factors_keeps_the_order_of_stimuli_src(tmp_path):
     (tmp_path / "prompts.json").write_text(json.dumps({"z": {"text": "Zed."}, "a": {"text": "Ay."}}))
-    (tmp_path / "context.json").write_text(json.dumps({"ctx2": {}, "ctx1": {}}))
+    (tmp_path / "contexts.json").write_text(json.dumps({"ctx2": {}, "ctx1": {}}))
     (tmp_path / "representations.json").write_text(json.dumps({"r2": {}, "r1": {}}))
     f = load_factors(tmp_path)
     assert ([p["id"] for p in f["prompts"]], f["contexts"], f["reps"]) == (["z", "a"], ["ctx2", "ctx1"], ["r2", "r1"])

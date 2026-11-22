@@ -52,7 +52,7 @@ def load_factors(src_dir: Path = SRC_DIR) -> dict:
     prompts = load("prompts.json")
     return {
         "prompts": [{"id": k, "text": v.get("text", "")} for k, v in prompts.items()],
-        "contexts": list(load("context.json")),
+        "contexts": list(load("contexts.json")),
         "reps": list(load("representations.json")),
     }
 

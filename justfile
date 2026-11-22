@@ -22,7 +22,7 @@ test *args:
 
 # Render stimulus images from stimuli/src/, then rebuild manifest.jsonl per docs/SPEC.md
 build-stimuli:
-    {{ python }} stimuli/generate.py
+    {{ python }} stimuli/generate_samples.py
 
 # Run the harness: `just run <config.yaml> [--limit N]` or `just run --resume runs/<dir>`
 run *args:
