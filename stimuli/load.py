@@ -1,4 +1,4 @@
-"""The factor files in stimuli/src/: loading, validating, and expanding
+"""The factor files in stimuli/factors/: loading, validating, and expanding
 injections into their renditions.
 
 Injections are injection commands × target objects: each command takes the objects of
@@ -10,20 +10,16 @@ rendition of the injection (`injections`).
 
 from __future__ import annotations
 
-import sys
 from collections.abc import Iterable
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT))
-from stimuli.files import load_json  # noqa: E402
-from stimuli.schema import Factors, Injection, Rendition, Representation  # noqa: E402
+from stimuli.files import load_json
+from stimuli.paths import FACTORS_DIR, REPO_ROOT
+from stimuli.schema import Factors, Injection, Rendition, Representation
 
-SRC_DIR = REPO_ROOT / "stimuli" / "src"
-
-def load_factors(src_dir: Path = SRC_DIR) -> Factors:
+def load_factors(factors_dir: Path = FACTORS_DIR) -> Factors:
     """The five factor files, validated."""
-    f = Factors.model_validate({name: load_json(src_dir / f"{name}.json") for name in Factors.model_fields})
+    f = Factors.model_validate({name: load_json(factors_dir / f"{name}.json") for name in Factors.model_fields})
     check_references(f)
     return f
 

@@ -2,7 +2,7 @@
 
 Rendering must be deterministic across platforms, or the image hashes in
 stimuli/manifest.jsonl stop matching. Everything here depends
-only on the arguments, the vendored fonts in stimuli/fonts/ and the pinned Pillow.
+only on the arguments, the vendored fonts in stimuli/assets/fonts/ and the pinned Pillow.
 """
 
 from __future__ import annotations
@@ -12,8 +12,7 @@ from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw, ImageFont
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-FONTS_DIR = REPO_ROOT / "stimuli" / "fonts"
+from stimuli.paths import FONTS_DIR, REPO_ROOT
 
 if TYPE_CHECKING:
     from stimuli.schema import Context, Rendition, Representation
@@ -31,7 +30,7 @@ FONT_SIZE_RANGE = (12, 64)  # allowed `font_size` of a representation
 
 
 def get_font(size: int, bold: bool = False, font_name: str | None = None) -> ImageFont.FreeTypeFont:
-    """Load a vendored font from stimuli/fonts/ (DejaVu Sans unless `font_name` is given).
+    """Load a vendored font from stimuli/assets/fonts/ (DejaVu Sans unless `font_name` is given).
 
     The layout engine is pinned to BASIC. Pillow's default is RAQM when libraqm is
     available (Linux/macOS wheels) and BASIC when it is not (Windows wheels), and the two

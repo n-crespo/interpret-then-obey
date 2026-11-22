@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 """Stimulus generator: renders the images and writes the samples to
 stimuli/manifest.jsonl, the file the harness reads.
 
-A sample is one prompt paired with one scene (stimuli/generate_images.py), except the
+A sample is one prompt paired with one scene (stimuli/scenes.py), except the
 contexts a prompt excludes. Its id is `<prompt>.<context>.<injection>.<representation>`.
 Baseline samples (representation `none`) are marked `is_baseline`.
 
@@ -22,16 +21,14 @@ import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT))
-from harness.manifest import load_manifest  # noqa: E402
-from stimuli.factors import SRC_DIR, expand_injections, load_factors, uncovered  # noqa: E402
-from stimuli.files import swap_in_dir  # noqa: E402
-from stimuli.generate_images import Scene, build_scenes, render_images  # noqa: E402
-from stimuli.schema import Factors, Sample  # noqa: E402
+from harness.manifest import load_manifest
+from stimuli.files import swap_in_dir
+from stimuli.load import expand_injections, load_factors, uncovered
+from stimuli.paths import FACTORS_DIR, STIMULI_DIR
+from stimuli.scenes import Scene, build_scenes, render_images
+from stimuli.schema import Factors, Sample
 
-STIMULI_DIR = REPO_ROOT / "stimuli"
-STAGING_PREFIX = ".generate-"  # gitignored; removed after every run
+STAGING_PREFIX = ".build-"  # gitignored; removed after every run
 
 
 def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Sample]:
@@ -69,9 +66,9 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
     return samples
 
 
-def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[Sample]:
-    print(f"Loading factor files from {src_dir}...")
-    f = load_factors(src_dir)
+def generate(factors_dir: Path = FACTORS_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[Sample]:
+    print(f"Loading factor files from {factors_dir}...")
+    f = load_factors(factors_dir)
     for rep_id, missing in uncovered(f).items():
         print(f"WARNING: representation {rep_id} has no rendition of {len(missing)} injection(s), "
               f"so no samples for them: {', '.join(missing)}", file=sys.stderr)

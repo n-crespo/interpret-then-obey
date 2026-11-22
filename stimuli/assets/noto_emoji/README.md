@@ -1,7 +1,7 @@
 # Noto Emoji glyphs
 
-Source images for every `stimuli/symbols/<command>/<object>/emoji.png`, which
-`stimuli/symbols/draw_symbols.py` assembles from them.
+Source images for every `stimuli/assets/symbols/<command>/<object>/emoji.png`, which
+`stimuli/tools/draw_symbols.py` assembles from them.
 
 Each file is named after its emoji's code point.
 
