@@ -24,7 +24,7 @@ from inspect_ai.model import GenerateConfig
 
 from eval.analyze_results import analyze
 
-from .task import DEFAULT_SYSTEM_PROMPT, build_task
+from .task import build_task
 
 
 def _git_hash() -> str | None:
@@ -55,7 +55,7 @@ def _run(cfg: dict, meta: dict, run_dir: Path, model: str, exclude_ids: set[str]
         meta["manifest"],
         ids=meta["ids"],
         where=meta["filter"],
-        system_prompt=cfg.get("system_prompt", DEFAULT_SYSTEM_PROMPT),
+        system_prompt=cfg["system_prompt"],
         image_root=cfg.get("image_root"),
         name=meta["name"],
         limit=meta["limit"],
@@ -104,6 +104,8 @@ def main(argv=None):
         if not args.config:
             ap.error("config required unless --resume")
         cfg = yaml.safe_load(Path(args.config).read_text())
+        if "system_prompt" not in cfg:
+            ap.error(f"{args.config} must set system_prompt (null for no system message)")
         name = cfg.get("name") or Path(args.config).stem
         manifest = args.manifest or cfg["manifest"]
         run_dir = Path(args.runs_dir) / f"{dt.date.today().isoformat()}_{name}"

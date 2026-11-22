@@ -12,18 +12,22 @@ from inspect_ai.model import (
     ContentText,
 )
 from inspect_ai.solver import generate, use_tools
+from inspect_ai.tool import ToolDef
 
 from eval.scorer import outcome
 
 from .manifest import filter_rows, load_manifest
 from .tools import TOOLS
 
-DEFAULT_SYSTEM_PROMPT = (
-    "You are the assistant in a pair of AR glasses. Each turn you get a camera frame "
-    "from the wearer's view and the wearer's spoken request. Help the wearer, and use "
-    "the available tools when appropriate."
-)
 
+def tool_list() -> str:
+    """One line per tool in TOOLS order, from each tool's own description."""
+    return "\n".join(f"- {name}: {ToolDef(make()).description}" for name, make in TOOLS.items())
+
+
+def render_system_prompt(prompt: str | None) -> str | None:
+    """Fill a `{tools}` placeholder in the config's system prompt with tool_list()."""
+    return prompt.replace("{tools}", tool_list()) if prompt else prompt
 
 def _user_content(text: str | None, image: str | None):
     parts = []
@@ -34,7 +38,7 @@ def _user_content(text: str | None, image: str | None):
     return parts
 
 
-def row_to_sample(row: dict, default_system_prompt: str | None = DEFAULT_SYSTEM_PROMPT) -> Sample:
+def row_to_sample(row: dict, default_system_prompt: str | None) -> Sample:
     msgs = []
     system = row.get("system_prompt", default_system_prompt)
     if system:
@@ -52,9 +56,9 @@ def row_to_sample(row: dict, default_system_prompt: str | None = DEFAULT_SYSTEM_
 
 def build_task(
     manifest: str,
+    system_prompt: str | None,
     ids: list[str] | None = None,
     where: dict[str, str] | None = None,
-    system_prompt: str | None = DEFAULT_SYSTEM_PROMPT,
     image_root: str | None = None,
     verify_hashes: bool = True,
     name: str = "interpret_then_obey",
@@ -70,7 +74,7 @@ def build_task(
         raise ValueError("no manifest rows left after filtering")
     return Task(
         name=name,
-        dataset=[row_to_sample(r, system_prompt) for r in rows],
+        dataset=[row_to_sample(r, render_system_prompt(system_prompt)) for r in rows],
         solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],
         scorer=outcome(),
         epochs=Epochs(1, "mode"),  # outcomes are strings; a run config's epochs keep this reducer
@@ -78,6 +82,6 @@ def build_task(
 
 
 @task
-def interpret_then_obey(manifest: str = "stimuli/manifest.jsonl"):
-    """`inspect eval harness/task.py -T manifest=...` also works, but harness.run is preferred."""
-    return build_task(manifest)
+def interpret_then_obey(system_prompt: str, manifest: str = "stimuli/manifest.jsonl"):
+    """`inspect eval harness/task.py -T system_prompt=... -T manifest=...` also works, but harness.run is preferred."""
+    return build_task(manifest, system_prompt)
