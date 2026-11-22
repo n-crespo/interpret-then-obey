@@ -34,5 +34,5 @@ run-dry *args:
 
 # LaTeX tables and summary.html per run -> runs/<dir>/analysis/ (`just run` writes them too): `just analyze runs/<a> [runs/<b> ...]`
 analyze +run_dirs:
-    {{ python }} eval/analyze_results.py {{ run_dirs }}
+    {{ python }} -m eval.analyze {{ run_dirs }}
 

@@ -15,8 +15,7 @@ from inspect_ai.scorer import Metric, SampleScore, Score, Scorer, Target, metric
 from inspect_ai.solver import TaskState
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # `inspect score` loads this file on its own
-from eval.classify import Classification, classify  # noqa: E402
-from eval.response import Response  # noqa: E402
+from eval.classify import Classification, Response, classify  # noqa: E402
 
 ROW_FIELDS = ("expected_calls", "prompt_expected_tool", "context_object", "is_baseline")
 
