@@ -3,7 +3,7 @@
 The prompt is not drawn, so one image serves every prompt it is paired with. Left out:
 - an injection whose object is the context's own item (the injected and the scene's
   object would be the same thing);
-- an injection the representation has no rendition of (`uncovered` in stimuli/factors.py).
+- an injection the representation has no rendition of (`uncovered` in stimuli/load.py).
 The baseline draws no injection, so it has one image per context, shared by the
 baseline scenes of every injection.
 """
@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from stimuli.factors import expand_injections, rendition_of
+from stimuli.load import expand_injections, rendition_of
 from stimuli.files import sha256_file
 from stimuli.render import render_stimulus_image
 from stimuli.schema import Factors, Rendition

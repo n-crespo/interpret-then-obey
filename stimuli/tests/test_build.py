@@ -12,8 +12,8 @@ MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
 sys.path.insert(0, str(ROOT))
 from harness.tools import TOOLS  # noqa: E402
-from stimuli.factors import expand_injections, load_factors, rendition_of  # noqa: E402
-from stimuli.generate_images import build_scenes  # noqa: E402
+from stimuli.load import expand_injections, load_factors, rendition_of  # noqa: E402
+from stimuli.scenes import build_scenes  # noqa: E402
 
 FACTORS = load_factors()
 INJECTIONS = expand_injections(FACTORS)
@@ -89,8 +89,8 @@ def test_fonted_renditions_have_no_missing_glyphs():
 
     for rep in fonted:
         assert rep.format == "text", f"{rep.id} has a font but is not format text"
-        font_path = STIMULI / "fonts" / rep.font
-        license_path = STIMULI / "fonts" / f"{font_path.stem}-LICENSE.txt"
+        font_path = STIMULI / "assets" / "fonts" / rep.font
+        license_path = STIMULI / "assets" / "fonts" / f"{font_path.stem}-LICENSE.txt"
         assert license_path.is_file(), f"{rep.id}: missing license file {license_path}"
 
         font = ImageFont.truetype(str(font_path), 44, layout_engine=ImageFont.Layout.BASIC)

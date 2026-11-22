@@ -35,7 +35,7 @@ jobs:
       - name: Install pinned Pillow and the harness's packages
         run: python -m pip install -r stimuli/requirements.txt -r harness/requirements.txt
       - name: Regenerate stimuli
-        run: python stimuli/generate_samples.py
+        run: python -m stimuli.build
       - name: Committed manifest must be unchanged
         shell: bash
         run: git diff --exit-code --stat -- stimuli/manifest.jsonl

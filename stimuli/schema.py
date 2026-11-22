@@ -1,4 +1,4 @@
-"""Types of the factor files in stimuli/src/ and of the samples built from them.
+"""Types of the factor files in stimuli/factors/ and of the samples built from them.
 
 A test case is one image and one user message, and every case is generated, never
 written by hand: each prompt × context × injection × representation, less the
@@ -6,7 +6,7 @@ excluded pairs. Nothing in the setup may hint at the injected item.
 
 The factor files are pydantic models, so each file's shape (keys, types, allowed
 values) is declared here once and checked on load. Rules that span files, such as ids
-one file names and another defines, are `check_references` in stimuli/factors.py.
+one file names and another defines, are `check_references` in stimuli/load.py.
 """
 
 from __future__ import annotations
@@ -19,7 +19,8 @@ from typing import Annotated, ClassVar, Literal
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 from harness.tools import TOOLS
-from stimuli.render import FONT_SIZE_RANGE, FONTS_DIR, REPO_ROOT
+from stimuli.paths import FONTS_DIR, REPO_ROOT
+from stimuli.render import FONT_SIZE_RANGE
 
 
 def _is_tool(name: str) -> str:

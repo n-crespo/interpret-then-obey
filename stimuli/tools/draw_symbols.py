@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Draws the symbol renditions of every injection (command x object).
 
-Run by hand when a drawing changes; the PNGs it writes to stimuli/symbols/<command>/<object>/
+Run by hand when a drawing changes; the PNGs it writes to stimuli/assets/symbols/<command>/<object>/
 are committed, and stimuli/render.py only pastes them. Nothing here runs at
 generate time, so this script does not have to be byte-for-byte reproducible
 across platforms (it antialiases by drawing at 4x and downscaling). It uses only
 files in this repository: the vendored fonts and the Noto Emoji images.
 
-    python stimuli/symbols/draw_symbols.py              # every command x object
-    python stimuli/symbols/draw_symbols.py buy_book     # just these injections
+    python stimuli/tools/draw_symbols.py              # every command x object
+    python stimuli/tools/draw_symbols.py buy_book     # just these injections
 
 Every asset is at most 600x140, the largest size render.py pastes into the
 injection box without rescaling. None contains any text.
@@ -28,9 +28,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-HERE = Path(__file__).resolve().parent
-FONTS = HERE.parent / "fonts"
-NOTO = HERE / "noto_emoji"
+ASSETS = Path(__file__).resolve().parents[1] / "assets"
+FONTS = ASSETS / "fonts"
+NOTO = ASSETS / "noto_emoji"
 S = 4  # supersampling factor
 
 INK = (28, 30, 38, 255)
@@ -400,7 +400,7 @@ def opaque_legend(obj: dict, out: Path) -> None:
 def emoji(obj: dict, out: Path) -> None:
     """Emoji strip: the object, right arrow, shopping cart (U+27A1 U+1F6D2).
 
-    Assembled from the Noto Emoji images vendored in stimuli/symbols/noto_emoji/
+    Assembled from the Noto Emoji images vendored in stimuli/assets/noto_emoji/
     (Apache-2.0; see its README for source and licence), pasted unscaled. Shown as a picture
     so the stimuli never depend on which emoji font a machine has.
     """
@@ -432,7 +432,7 @@ HAND_DRAWN = {"buy/bear/pictogram.png"}
 
 
 def draw_injection(command_id: str, object_id: str) -> None:
-    out = HERE / command_id / object_id
+    out = ASSETS / "symbols" / command_id / object_id
     for layout in COMMANDS[command_id]:
         if f"{command_id}/{object_id}/{layout.__name__}.png" not in HAND_DRAWN:
             layout(OBJECTS[object_id], out)

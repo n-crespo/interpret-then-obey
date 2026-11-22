@@ -3,7 +3,7 @@
 representation needs, plus printable ASCII. Committed so renders are identical on every
 machine; this script only documents (and repeats) how the subset was made.
 
-Usage: python make_cjk_subset.py /path/to/NotoSansCJK-Bold.ttc
+Usage: python stimuli/tools/make_cjk_subset.py /path/to/NotoSansCJK-Bold.ttc
 
 If you add a Chinese rendition, add its characters to CHARS and rerun.
 Face 2 of the Noto Sans CJK collection is the Simplified Chinese (SC) face.
@@ -14,7 +14,7 @@ from pathlib import Path
 from fontTools import subset
 
 CHARS = "买一只熊。一台张给发消息：在大门口见我带去搜索提醒打电话保存照片笔记本脑礼品卡"
-OUT = Path(__file__).with_name("NotoSansSC-subset.otf")
+OUT = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "NotoSansSC-subset.otf"
 
 src = sys.argv[1]
 opts = subset.Options()

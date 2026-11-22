@@ -20,9 +20,9 @@ setup:
 test *args:
     {{ python }} -m pytest stimuli/tests harness/tests eval/tests -q {{ args }}
 
-# Render stimulus images from stimuli/src/, then rebuild manifest.jsonl
+# Render stimulus images from stimuli/factors/, then rebuild manifest.jsonl
 build-stimuli:
-    {{ python }} stimuli/generate_samples.py
+    {{ python }} -m stimuli.build
 
 # Run the harness: `just run <config.yaml> [--limit N]` or `just run --resume runs/<dir>`
 run *args:
@@ -34,5 +34,5 @@ run-dry *args:
 
 # LaTeX tables and summary.html per run -> runs/<dir>/analysis/ (`just run` writes them too): `just analyze runs/<a> [runs/<b> ...]`
 analyze +run_dirs:
-    {{ python }} eval/analyze_results.py {{ run_dirs }}
+    {{ python }} -m eval.analyze {{ run_dirs }}
 

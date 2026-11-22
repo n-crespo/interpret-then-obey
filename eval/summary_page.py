@@ -1,6 +1,6 @@
 """
 Summary page: every trial of one run counted by outcome and by label, written by
-`analyze_run` in eval/analyze_results.py (runs/<dir>/analysis/summary.html).
+`analyze_run` in eval/analyze.py (runs/<dir>/analysis/summary.html).
 
 Outcomes and labels are the scorer's (eval/scorer.py, eval/classify.py). A trial has one
 outcome and one label per tool call, so it counts once per outcome and once under each
@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 
 from eval.classify import LABELS, OUTCOMES, label_outcome
-from eval.outcomes import call_label
+from eval.trials import call_label
 
 TEMPLATE = Path(__file__).with_name("summary_template.html")
 RESPONSE_CHARS = 280

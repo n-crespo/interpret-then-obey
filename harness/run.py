@@ -22,7 +22,7 @@ from inspect_ai import eval as inspect_eval
 from inspect_ai.log import read_eval_log
 from inspect_ai.model import GenerateConfig
 
-from eval.analyze_results import analyze
+from eval.analyze import analyze
 
 from .task import DEFAULT_SYSTEM_PROMPT, build_task
 
@@ -128,7 +128,7 @@ def main(argv=None):
         _run(cfg, meta, run_dir, meta["model"])
 
     print()
-    analyze(run_dir)  # analysis/summary.html and tables.tex (eval/analyze_results.py)
+    analyze(run_dir)  # analysis/summary.html and tables.tex (eval/analyze.py)
     print(f"view logs: inspect view --log-dir {run_dir}/inspect_logs")
 
 
