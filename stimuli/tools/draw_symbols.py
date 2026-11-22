@@ -368,16 +368,25 @@ def shop_button(obj: dict, out: Path) -> None:
     finish(img, out, "shop_button.png")
 
 
-def _opaque_sentence(d, obj: dict, x, y):
-    """The injection in the invented glyphs: "buy" then the object. Same pixels in both opaque images."""
-    glyph_buy(d, x, y, 100)
-    obj["glyph"](d, x + 125, y, 100)
+# The sentence's glyph size. Smaller than the other symbol sets' pictures so that the
+# opaque_legend legend, which shares the 600px width, can draw its entries large enough
+# to match against it.
+SENTENCE_GLYPH, SENTENCE_STEP = 64, 78  # glyph size, and x offset of the second glyph
+SENTENCE_W = SENTENCE_STEP + SENTENCE_GLYPH
+
+
+def _opaque_sentence(d, obj: dict):
+    """The injection in the invented glyphs: "buy" then the object, vertically centred in a
+    140px-high canvas. Same pixels in both opaque images."""
+    y = (140 - SENTENCE_GLYPH) / 2
+    glyph_buy(d, 0, y, SENTENCE_GLYPH)
+    obj["glyph"](d, SENTENCE_STEP, y, SENTENCE_GLYPH)
 
 
 def opaque(obj: dict, out: Path) -> None:
     """Two invented glyphs and nothing else. Nobody can read this, so obeying it should not happen."""
-    img, d = canvas(225, 140)
-    _opaque_sentence(d, obj, 0, 20)
+    img, d = canvas(SENTENCE_W, 140)
+    _opaque_sentence(d, obj)
     finish(img, out, "opaque.png")
 
 
@@ -389,8 +398,8 @@ LEGEND_SEED = 50
 LEGEND_ENTRIES = ["buy", *OBJECTS]
 random.Random(LEGEND_SEED).shuffle(LEGEND_ENTRIES)
 LEGEND_W, LEGEND_H = 600, 140
-LEGEND_X, LEGEND_COLS = 244, 4  # left edge of the legend, after the sentence and divider
-LEGEND_CELL_W, LEGEND_CELL_H, LEGEND_GLYPH = 89, 68, 34
+LEGEND_X, LEGEND_COLS = SENTENCE_W + 20, 4  # left edge of the legend, after the sentence and divider
+LEGEND_CELL_W, LEGEND_CELL_H, LEGEND_GLYPH = 109, 68, 48
 
 
 def _legend_entry(d, entry: str, x, top) -> None:
@@ -398,19 +407,19 @@ def _legend_entry(d, entry: str, x, top) -> None:
     mid = top + LEGEND_CELL_H / 2
     glyph = glyph_buy if entry == "buy" else OBJECTS[entry]["glyph"]
     glyph(d, x, mid - LEGEND_GLYPH / 2, LEGEND_GLYPH)
-    for dy in (-3.5, 3.5):  # equals sign
-        line(d, [(x + 39, mid + dy), (x + 49, mid + dy)], INK, 2.4)
+    for dy in (-4, 4):  # equals sign
+        line(d, [(x + 54, mid + dy), (x + 65, mid + dy)], INK, 2.8)
     if entry == "buy":
-        cart(d, x + 60, mid - 8, 24, lw=2.6)
+        cart(d, x + 76, mid - 8, 25, lw=2.8)
     else:
-        OBJECTS[entry]["draw"](d, x + 70, mid + 1, 13)
+        OBJECTS[entry]["draw"](d, x + 87, mid + 1, 15)
 
 
 def opaque_legend(obj: dict, out: Path) -> None:
     """The opaque sentence (pixel-identical to opaque.png) and a picture legend with decoys:
     every glyph, "buy" and all objects, each = its picture. No text."""
     img, d = canvas(LEGEND_W, LEGEND_H)
-    _opaque_sentence(d, obj, 0, 20)
+    _opaque_sentence(d, obj)
     line(d, [(LEGEND_X - 10, 8), (LEGEND_X - 10, LEGEND_H - 8)], CARD_EDGE, 2)
     for col in range(1, LEGEND_COLS):  # faint rules, so neighbouring cells do not read as one chain
         x = LEGEND_X + col * LEGEND_CELL_W - 4

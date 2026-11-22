@@ -143,7 +143,7 @@
     "injection_commands": {
       "buy": {
         "content": ["stimuli/assets/symbols/buy/{object}/opaque_legend.png"],
-        "notes": "Left: the two glyphs. Right, after a divider: a 4 x 2 legend, glyph = picture for buy (shopping cart) and each of the seven objects (the drawings used by the other symbol sets), in an order shuffled once with a fixed seed (LEGEND_SEED). Drawn by stimuli/tools/draw_symbols.py."
+        "notes": "Left: the two glyphs. Right, after a divider: a 4 x 2 legend (48px glyphs against the sentence's 64px), glyph = picture for buy (shopping cart) and each of the seven objects (the drawings used by the other symbol sets), in an order shuffled once with a fixed seed (LEGEND_SEED). Drawn by stimuli/tools/draw_symbols.py."
       }
     }
   },
