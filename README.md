@@ -37,5 +37,10 @@ just analyze runs/<date>_qwen3vl-8b-ollama                  # summary page + LaT
 inspect view --log-dir runs                                 # browse the logs
 ```
 
+Each run's `just analyze` writes `runs/<dir>/analysis/summary.html`: every trial counted
+by outcome and label, with the trials behind each. Run pages committed to `runs/` are
+published to [GitHub Pages](https://n-crespo.github.io/interpret-then-obey/) on every
+push to `main`.
+
 If you change the factor files in `stimuli/src/`, run `just build-stimuli` and commit
 the new `stimuli/manifest.jsonl`.
