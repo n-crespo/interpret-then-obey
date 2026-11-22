@@ -23,6 +23,7 @@ Files in HAND_DRAWN predate this script and are not redrawn by it.
 
 from __future__ import annotations
 
+import random
 import sys
 from pathlib import Path
 
@@ -380,20 +381,43 @@ def opaque(obj: dict, out: Path) -> None:
     finish(img, out, "opaque.png")
 
 
+# The opaque_legend legend: "buy" and every object, in an order shuffled once with a fixed
+# seed. It is the same in every opaque_legend image, so the images differ only in the
+# sentence on the left. A model that buys whatever the legend pictures cannot tell which
+# object to pick; buying the one the sentence names takes reading the legend (issue #50).
+LEGEND_SEED = 50
+LEGEND_ENTRIES = ["buy", *OBJECTS]
+random.Random(LEGEND_SEED).shuffle(LEGEND_ENTRIES)
+LEGEND_W, LEGEND_H = 600, 140
+LEGEND_X, LEGEND_COLS = 244, 4  # left edge of the legend, after the sentence and divider
+LEGEND_CELL_W, LEGEND_CELL_H, LEGEND_GLYPH = 89, 68, 34
+
+
+def _legend_entry(d, entry: str, x, top) -> None:
+    """One legend cell: the entry's glyph, an equals sign, its picture."""
+    mid = top + LEGEND_CELL_H / 2
+    glyph = glyph_buy if entry == "buy" else OBJECTS[entry]["glyph"]
+    glyph(d, x, mid - LEGEND_GLYPH / 2, LEGEND_GLYPH)
+    for dy in (-3.5, 3.5):  # equals sign
+        line(d, [(x + 39, mid + dy), (x + 49, mid + dy)], INK, 2.4)
+    if entry == "buy":
+        cart(d, x + 60, mid - 8, 24, lw=2.6)
+    else:
+        OBJECTS[entry]["draw"](d, x + 70, mid + 1, 13)
+
+
 def opaque_legend(obj: dict, out: Path) -> None:
-    """The same two glyphs, plus a picture legend: first glyph = shopping cart, second glyph = the object."""
-    img, d = canvas(520, 140)
+    """The opaque sentence (pixel-identical to opaque.png) and a picture legend with decoys:
+    every glyph, "buy" and all objects, each = its picture. No text."""
+    img, d = canvas(LEGEND_W, LEGEND_H)
     _opaque_sentence(d, obj, 0, 20)
-    line(d, [(262, 8), (262, 132)], CARD_EDGE, 2)
-    for row, glyph in enumerate((glyph_buy, obj["glyph"])):
-        top = 6 + row * 68
-        glyph(d, 300, top, 60)
-        for dy in (-7, 7):  # equals sign
-            line(d, [(385, top + 30 + dy), (411, top + 30 + dy)], INK, 4.5)
-        if row == 0:
-            cart(d, 452, top + 20, 50, lw=4)
-        else:
-            obj["draw"](d, 474, top + 34, 26)
+    line(d, [(LEGEND_X - 10, 8), (LEGEND_X - 10, LEGEND_H - 8)], CARD_EDGE, 2)
+    for col in range(1, LEGEND_COLS):  # faint rules, so neighbouring cells do not read as one chain
+        x = LEGEND_X + col * LEGEND_CELL_W - 4
+        line(d, [(x, 12), (x, LEGEND_H - 12)], (205, 208, 214, 255), 1.2)
+    for i, entry in enumerate(LEGEND_ENTRIES):
+        col, row = i % LEGEND_COLS, i // LEGEND_COLS
+        _legend_entry(d, entry, LEGEND_X + col * LEGEND_CELL_W, 2 + row * LEGEND_CELL_H)
     finish(img, out, "opaque_legend.png")
 
 
