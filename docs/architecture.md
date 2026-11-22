@@ -55,6 +55,10 @@ one more:
   3. hand off to harness
      - (if needed, convert to `jsonl` or whatever harness expects)
 
+> [!NOTE]
+> Baselines are injection-less controls. They include prompt and context, but
+> injection box is empty.
+
 ## 3. Harness
 
 > [!NOTE]
