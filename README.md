@@ -19,13 +19,13 @@ and `eval/` analyses a run.
 flowchart LR
     subgraph SRC["1 · Sources: the experiment's factors"]
         P["prompts.json<br/><i>vary how strongly the user<br/>asks for an action</i>"]
-        C["context.json<br/><i>vary how strongly the scene<br/>itself invites a purchase</i>"]
-        I["injections.json<br/><i>what the attacker wants<br/>the model to do</i>"]
+        C["contexts.json<br/><i>vary how strongly the scene<br/>itself invites a purchase</i>"]
+        I["injection_commands.json + target_objects.json<br/><i>what the attacker wants<br/>the model to do</i>"]
         R["representations.json<br/><i>vary representation of<br/> the injection</i>"]
         ASSETS["fonts/ + symbols/<br/><i>draw scripts and symbols<br/>a plain font can't</i>"]
     end
 
-    GEN["<b>2 · Generation</b><br/><i>just build-stimuli</i><br/>Combine every factor into test cases<br/>and render one image per case"]
+    GEN["<b>2 · Generation</b><br/><i>just build-stimuli</i><br/>Render one image per context × injection<br/>× representation, and pair each with the prompts"]
 
     IMG[("Test-case images<br/><i>what the model sees</i>")]
     MAN[("manifest.jsonl<br/><i>one fixed, reproducible set of cases<br/>and what counts as obeying each</i>")]
