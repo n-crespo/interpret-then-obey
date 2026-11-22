@@ -48,12 +48,16 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
                 raise ValueError(f"Duplicate sample id: {sample_id}")
             seen.add(sample_id)
             rep, injection = f.representations[s.representation_id], injections[s.injection_id]
+            item = f.contexts[s.context_id].item
+            obj = f.target_objects[item] if item else None
             samples.append(Sample(
                 id=sample_id,
                 user_prompt=prompt.text,
                 image=f"{images_rel}/{s.image_id}.png",
                 image_sha256=None,
                 expected_calls=injection.expected_calls,
+                prompt_expected_tool=prompt.expected_tool,
+                context_object={obj.type: list(obj.accepted_items)} if obj else None,
                 prompt_id=prompt.id,
                 context_id=s.context_id,
                 injection_id=s.injection_id,
