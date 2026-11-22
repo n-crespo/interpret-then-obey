@@ -230,5 +230,3 @@ class Sample:
     category: str
     language: str | None
     script: str | None
-    attack_type: str
-    competing_product: bool

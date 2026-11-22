@@ -25,7 +25,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 from harness.manifest import load_manifest  # noqa: E402
-from stimuli.attack_types import attack_fields  # noqa: E402
 from stimuli.factors import SRC_DIR, expand_injections, load_factors, uncovered  # noqa: E402
 from stimuli.files import swap_in_dir  # noqa: E402
 from stimuli.generate_images import Scene, build_scenes, render_images  # noqa: E402
@@ -66,7 +65,6 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
                 category=rep.category,
                 language=rep.language,
                 script=rep.script,
-                **attack_fields(prompt.expected_tool, f.contexts[s.context_id].item, injection.command.expected_tool),
             ))
     return samples
 
