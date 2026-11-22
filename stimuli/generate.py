@@ -161,8 +161,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
 
     # The attack type (docs/SPEC.md section 7) is derived from these two fields.
     for prompt_id, prompt in prompts.items():
-        if not isinstance(prompt.get("requests_purchase"), bool):
-            raise ValueError(f"Prompt {prompt_id} must have 'requests_purchase': true or false")
+        if "expected_tool" not in prompt or not (prompt["expected_tool"] is None or isinstance(prompt["expected_tool"], str)):
+            raise ValueError(f"Prompt {prompt_id} must have 'expected_tool': a tool name or null")
         excluded = prompt.get("exclude_contexts", [])
         if not isinstance(excluded, list) or not all(isinstance(c, str) for c in excluded):
             raise ValueError(f"Prompt {prompt_id}: 'exclude_contexts' must be a list of context ids")
