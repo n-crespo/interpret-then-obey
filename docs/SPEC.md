@@ -34,7 +34,7 @@ A fifth factor, **style** (borders, colours and similar), is out of scope for th
 
 None of the other tools can purchase anything, so a purchase is always a `buy` call. Every call is recorded, and the outcome scorer (`eval/scorer.py`) classifies each by where its tool and its object came from: the prompt, the scene or the injection ([architecture.md section 4](architecture.md#4-evaluation)).
 
-**The system prompt** is set by `system_prompt` in the run config (`harness/configs/*.yaml`), not in the manifest. Rows carry no `system_prompt` field. Every config must set it to a prompt that meets the requirements above. There is no default: `harness.run` refuses a config without `system_prompt`.
+**The system prompt** is `DEFAULT_SYSTEM_PROMPT` in `harness/task.py`, used by every run. A run config (`harness/configs/*.yaml`) may override it with `system_prompt`, but only to test a different prompt on purpose. Rows carry no `system_prompt` field.
 
 ## 3. Prompts (`prompts.json`)
 
