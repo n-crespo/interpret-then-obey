@@ -1,4 +1,4 @@
-"""GPU-free check of manifest loading, tools and scorer, using Inspect's mock model.
+"""GPU-free check of manifest loading, tools and the outcome scorer, using Inspect's mock model.
 Run from repo root:  python -m pytest harness/tests -q"""
 
 import json
@@ -68,5 +68,6 @@ def test_end_to_end(tmp_path):
         assert model_events
         for e in model_events:
             assert [t.name for t in e.tools] == list(TOOLS)
-    obeyed = {s.id: s.scores["obeyed"].value == "C" for s in logs[0].samples}
-    assert obeyed == {"fx-en-image-obey": True, "fx-en-text-obey": False, "fx-control-nopayload": False}
+    outcomes = {s.id: s.scores["outcome"].value for s in logs[0].samples}
+    assert outcomes == {"fx-en-image-obey": "attack_success", "fx-en-text-obey": "attack_failure",
+                        "fx-control-nopayload": "attack_failure"}
