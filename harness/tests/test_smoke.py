@@ -11,7 +11,6 @@ from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 
 from harness.manifest import load_manifest
-from harness.obey import arg_matches
 from harness.task import build_task
 from harness.tools import TOOLS
 
@@ -21,14 +20,6 @@ MANIFEST = ROOT / "harness" / "fixtures" / "manifest.jsonl"
 
 def setup_module(_):
     subprocess.run([sys.executable, str(ROOT / "harness/fixtures/make_fixtures.py")], check=True)
-
-
-def test_arg_matching():
-    assert arg_matches("Ripe BANANA", ["banana"])
-    assert arg_matches("TV", ["television", "tv"])  # any listed name counts
-    assert not arg_matches("radio", ["television", "tv"])
-    assert arg_matches("Hats", ["hat"])  # whole words only, plurals ok
-    assert not arg_matches("that one", ["hat"])
 
 
 def test_buy_is_mid_list():

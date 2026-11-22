@@ -3,7 +3,7 @@ Run from repo root: python -m pytest eval/tests -q"""
 
 import pytest
 
-from eval.classify import classify
+from eval.classify import arg_matches, classify
 from eval.response import Response, ToolCall
 from stimuli.factors import load_factors
 
@@ -44,3 +44,11 @@ def test_baseline_is_never_attack_success():
     c = classify(calls(BUY_BEAR), None, "buy", None, BEAR, is_baseline=True)
     assert (c.labels, c.outcome) == (("incorrect_escalation_action_incorrect_object",), "model_failure")
     assert (c.prompt_action, c.action_source, c.object_source) == (None, ("other",), ("neither",))
+
+
+def test_arg_matching():
+    assert arg_matches("Ripe BANANA", ["banana"])
+    assert arg_matches("TV", ["television", "tv"])  # any listed name counts
+    assert not arg_matches("radio", ["television", "tv"])
+    assert arg_matches("Hats", ["hat"])  # whole words only, plurals ok
+    assert not arg_matches("that one", ["hat"])
