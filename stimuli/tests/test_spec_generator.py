@@ -26,7 +26,7 @@ def test_committed_manifest_rows():
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
-    contexts = json.loads((SRC / "context.json").read_text(encoding="utf-8"))
+    contexts = json.loads((SRC / "contexts.json").read_text(encoding="utf-8"))
     injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}

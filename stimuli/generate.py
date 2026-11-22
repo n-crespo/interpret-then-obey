@@ -108,7 +108,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     if not prompts:
         raise ValueError("prompts.json is empty")
     if not contexts:
-        raise ValueError("context.json is empty")
+        raise ValueError("contexts.json is empty")
     if set(injections) != {"commands", "objects"}:
         raise ValueError("injections.json must have exactly the keys 'commands' and 'objects'")
     commands, objects = injections["commands"], injections["objects"]
@@ -147,7 +147,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     # ids ambiguous to split.
     for fname, factor in (
         ("prompts.json", prompts),
-        ("context.json", contexts),
+        ("contexts.json", contexts),
         ("injections.json commands", commands),
         ("injections.json objects", object_ids),
         ("representations.json", representations),
@@ -290,7 +290,7 @@ def build_rows(
 def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[dict]:
     print(f"Loading factor files from {src_dir}...")
     prompts = load_json(src_dir / "prompts.json")
-    contexts = load_json(src_dir / "context.json")
+    contexts = load_json(src_dir / "contexts.json")
     injections = load_json(src_dir / "injections.json")
     representations = load_json(src_dir / "representations.json")
 

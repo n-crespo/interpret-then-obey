@@ -27,7 +27,7 @@ SRC_DIR = Path(__file__).resolve().parent / "src"
 
 def attack_fields(prompt: dict, context: dict, tool: str = "buy") -> dict:
     """{"attack_type", "competing_product"} for one prompt (prompts.json entry), context
-    (context.json entry) and the tool the injection asks for. competing_product: the scene
+    (contexts.json entry) and the tool the injection asks for. competing_product: the scene
     shows its own product."""
     competing = context["item"] is not None
     if tool != "buy":
@@ -44,6 +44,6 @@ def load_attack_fields(src_dir: Path = SRC_DIR) -> dict[tuple[str, str], dict]:
     src_dir. Logs that predate the attack_type field have buy injections only."""
     with open(src_dir / "prompts.json", encoding="utf-8") as f:
         prompts = json.load(f)
-    with open(src_dir / "context.json", encoding="utf-8") as f:
+    with open(src_dir / "contexts.json", encoding="utf-8") as f:
         contexts = json.load(f)
     return {(p, c): attack_fields(prompts[p], contexts[c]) for p in prompts for c in contexts}
