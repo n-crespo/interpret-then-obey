@@ -89,3 +89,22 @@ class Factors:
     target_objects: dict[str, TargetObject]
     injection_commands: dict[str, InjectionCommand]
     representations: dict[str, Representation]
+
+
+@dataclass
+class Sample:
+    """One test case: a prompt and one image. Written as one row of stimuli/manifest.jsonl."""
+    id: str
+    user_prompt: str
+    image: str
+    image_sha256: str | None
+    expected_calls: list[dict]
+    prompt_id: str
+    context_id: str
+    injection_id: str
+    representation_id: str
+    category: str
+    language: str | None
+    script: str | None
+    attack_type: str
+    competing_product: bool

@@ -1,6 +1,6 @@
 """The committed stimuli/manifest.jsonl must reproduce from the factor files on any platform.
 
-generate.py verifies the manifest against the images it just rendered, so on its own it
+generate_samples.py verifies the manifest against the images it just rendered, so on its own it
 can't notice a stale manifest or a platform that renders different bytes. This test
 compares against the committed file instead. CI runs it on Linux, Windows and macOS.
 """
@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 STIMULI = ROOT / "stimuli"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
-_spec = importlib.util.spec_from_file_location("stimuli_generate", STIMULI / "generate.py")
+_spec = importlib.util.spec_from_file_location("stimuli_generate_samples", STIMULI / "generate_samples.py")
 assert _spec is not None and _spec.loader is not None
 gen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gen)
