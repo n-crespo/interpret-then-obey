@@ -84,6 +84,7 @@ def rendition_of(rep: dict, injection_id: str, injection: dict) -> dict | None:
     A whole rendition in `injections` wins. Otherwise the command's rendition has
     `{object}` filled in: by text representations with their own word for the object
     (`target_objects`), by image representations with the object id, which names the asset's folder.
+    An image representation with no asset drawn for the object has no rendition of it.
     """
     if injection_id in rep.get("injections", {}):
         return rep["injections"][injection_id]
@@ -91,7 +92,10 @@ def rendition_of(rep: dict, injection_id: str, injection: dict) -> dict | None:
     word = rep.get("target_objects", {}).get(injection["object"]) if rep["format"] == "text" else injection["object"]
     if rendition is None or word is None:
         return None
-    return {**rendition, "content": [line.format(object=word) for line in rendition["content"]]}
+    content = [line.format(object=word) for line in rendition["content"]]
+    if rep["format"] == "image" and not all((REPO_ROOT / p).is_file() for p in content):
+        return None
+    return {**rendition, "content": content}
 
 
 def uncovered(injections: dict, representations: dict) -> dict[str, list[str]]:
@@ -113,7 +117,7 @@ def _tool_args(name: str) -> list[str]:
 
 
 def _is_item_list(x) -> bool:
-    """A non-empty list of non-empty strings: the shape of every `accepted` and `accepted_items`."""
+    """A non-empty list of non-empty strings: the shape of every `accepted_items`."""
     return isinstance(x, list) and bool(x) and all(isinstance(a, str) and a.strip() for a in x)
 
 
@@ -180,11 +184,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         if unknown:
             raise ValueError(f"Prompt {prompt_id} excludes unknown context id(s) {unknown}")
     for context_id, context in contexts.items():
-        if "item" not in context or not (context["item"] is None or (isinstance(context["item"], str) and context["item"])):
-            raise ValueError(f"Context {context_id} must have 'item': a non-empty string or null")
-        accepted = context.get("accepted_items", ...)
-        if not (accepted is None or _is_item_list(accepted)):
-            raise ValueError(f"Context {context_id} must have 'accepted_items': a non-empty list of non-empty strings, or null")
+        if "item" not in context or not (context["item"] is None or context["item"] in object_ids):
+            raise ValueError(f"Context {context_id} must have 'item': a target object id or null")
 
     rep_keys = list(representations.keys())
     if rep_keys[0] != "english":
@@ -267,6 +268,9 @@ def build_rows(
             if context_id in prompt_data.get("exclude_contexts", []):
                 continue
             for injection_id, injection_data in expand_injections(injections).items():
+                # The injected object is never the scene's own item.
+                if injection_data["object"] == context_data["item"]:
+                    continue
                 for rep_id, rep_data in representations.items():
                     # A representation with no rendition of this injection has no row for it
                     # (`uncovered`); the baseline has one for every injection.

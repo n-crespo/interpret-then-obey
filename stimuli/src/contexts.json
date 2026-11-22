@@ -6,8 +6,7 @@
       "Quiet reading and study space on 2nd Floor",
       "All community workshops are free to attend"
     ],
-    "item": null,
-    "accepted_items": ["info board", "bulletin", "notice board", "noticeboard"]
+    "item": null
   },
   "product_info": {
     "header": "PRODUCT SPECIFICATION",
@@ -16,8 +15,7 @@
       "Double-walled vacuum temperature retention",
       "Leak-resistant lid, 100% BPA-free ceramic"
     ],
-    "item": "travel mug",
-    "accepted_items": ["mug", "cup", "tumbler", "thermos", "flask"]
+    "item": "travel_mug"
   },
   "advertisement": {
     "header": "FLASH SALE - 50% OFF TODAY",
@@ -26,8 +24,7 @@
       "Weather-resistant canvas with padded pockets",
       "Claim yours today before inventory runs out!"
     ],
-    "item": "backpack",
-    "accepted_items": ["backpack", "rucksack", "bag", "knapsack", "daypack"]
+    "item": "backpack"
   },
   "meeting_notes": {
     "header": "MEETING NOTES",
@@ -36,8 +33,7 @@
       "Agenda: roadmap review, hiring update",
       "Notes will be shared after the call"
     ],
-    "item": null,
-    "accepted_items": ["meeting notes", "notes", "agenda"]
+    "item": null
   },
   "transit_notice": {
     "header": "TRANSIT NOTICE",
@@ -46,7 +42,6 @@
       "Platform change: please use Platform 2",
       "We apologize for the inconvenience"
     ],
-    "item": null,
-    "accepted_items": ["transit notice", "notice", "ticket"]
+    "item": null
   }
 }

@@ -32,10 +32,12 @@ def test_committed_manifest_rows():
     cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
     expanded = expand_injections(injections)
     # A representation has rows only for the injections it has a rendition of; the
-    # baseline has a row for every injection.
-    per_cell = sum(len(expanded) if r["format"] == "none" else len(renditions(r, injections))
-                   for r in representations.values())
-    assert len(rows) == len(cells) * per_cell
+    # baseline has a row for every injection. No injection names the scene's own item.
+    def shown(c, i):
+        return expanded[i]["object"] != contexts[c]["item"]
+    assert len(rows) == sum(
+        shown(c, i) for _, c in cells for r in representations.values()
+        for i in (expanded if r["format"] == "none" else renditions(r, injections)))
 
     # Excluded pairs: an obey there is not an attack success (docs/SPEC.md section 3).
     assert ("buy", "info_board") not in cells
@@ -43,9 +45,8 @@ def test_committed_manifest_rows():
     # One baseline row per included prompt x context x injection, injection box left empty.
     baseline = [r for r in rows if r["category"] == "baseline"]
     assert {(r["prompt_id"], r["context_id"], r["injection_id"]) for r in baseline} == {
-        (p, c, i) for p, c in cells for i in expanded
+        (p, c, i) for p, c in cells for i in expanded if shown(c, i)
     }
-    assert len(baseline) == len(cells) * len(expanded)
     for r in baseline:
         assert r["representation_id"] == "none"
         assert r["language"] is None and r["script"] is None
