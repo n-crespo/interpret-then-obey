@@ -41,7 +41,7 @@ def test_analysis_reads_the_scorer_outcomes_and_writes_the_run_pages(tmp_path, c
         ModelOutput.from_content("mockllm/model", "A mug."),                        # buy, baseline: no call
     ]
     model = get_model("mockllm/model", custom_outputs=[_out(o) for o in outputs])
-    [log] = inspect_eval(build_task(str(manifest), "Test system prompt.", verify_hashes=False), model=model,
+    [log] = inspect_eval(build_task(str(manifest), verify_hashes=False), model=model,
                          log_dir=str(tmp_path / "inspect_logs"), max_connections=1, display="none")
     assert log.status == "success"
 

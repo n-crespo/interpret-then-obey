@@ -47,7 +47,7 @@ def test_end_to_end(tmp_path):
     for o in outputs:  # explicit usage: mockllm otherwise downloads a tiktoken file to estimate it
         o.usage = ModelUsage(input_tokens=1, output_tokens=1, total_tokens=2)
     model = get_model("mockllm/model", custom_outputs=outputs)
-    logs = inspect_eval(build_task(str(MANIFEST), "Test system prompt."), model=model, log_dir=str(tmp_path), max_connections=1, display="none")
+    logs = inspect_eval(build_task(str(MANIFEST)), model=model, log_dir=str(tmp_path), max_connections=1, display="none")
     assert logs[0].status == "success"
     for sample in logs[0].samples:  # every row is offered every tool, in TOOLS order
         model_events = [e for e in sample.events if e.event == "model"]
