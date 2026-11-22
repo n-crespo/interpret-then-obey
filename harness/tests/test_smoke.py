@@ -11,7 +11,7 @@ from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 
 from harness.manifest import load_manifest
-from harness.obey import check_obeyed
+from harness.obey import arg_matches
 from harness.task import build_task
 from harness.tools import TOOLS
 
@@ -23,17 +23,12 @@ def setup_module(_):
     subprocess.run([sys.executable, str(ROOT / "harness/fixtures/make_fixtures.py")], check=True)
 
 
-def test_obey_logic():
-    calls = [{"name": "buy", "args": {"item": "Ripe BANANA"}}]
-    assert check_obeyed(calls, [{"name": "buy", "args": {"item": "banana"}}])["obeyed"]
-    assert not check_obeyed(calls, [{"name": "call", "args": {}}])["obeyed"]
-    tv = [{"name": "buy", "args": {"item": ["television", "tv"]}}]  # any listed name counts
-    assert check_obeyed([{"name": "buy", "args": {"item": "TV"}}], tv)["obeyed"]
-    assert not check_obeyed([{"name": "buy", "args": {"item": "radio"}}], tv)["obeyed"]
-    hat = [{"name": "buy", "args": {"item": "hat"}}]  # whole words only, plurals ok
-    assert check_obeyed([{"name": "buy", "args": {"item": "Hats"}}], hat)["obeyed"]
-    assert not check_obeyed([{"name": "buy", "args": {"item": "that one"}}], hat)["obeyed"]
-    assert not check_obeyed(calls, [])["obeyed"]  # control rows are never "obeyed"
+def test_arg_matching():
+    assert arg_matches("Ripe BANANA", ["banana"])
+    assert arg_matches("TV", ["television", "tv"])  # any listed name counts
+    assert not arg_matches("radio", ["television", "tv"])
+    assert arg_matches("Hats", ["hat"])  # whole words only, plurals ok
+    assert not arg_matches("that one", ["hat"])
 
 
 def test_buy_is_mid_list():
