@@ -203,8 +203,9 @@ function render() {
     if (o === "harness_error" && !count[o]) return;
     const el = document.createElement("div"); el.className = "grp";
     el.appendChild(row({kind: "o", id: o}, count[o], n, "", INFO[o].name, INFO[o].def));
-    LABELS_OF[o].filter(l => l !== o).forEach(l =>
-      el.appendChild(row({kind: "l", id: l}, rows.filter(r => r.l.includes(l)).length, n, "label", l)));
+    LABELS_OF[o].filter(l => l !== o)
+      .map(l => [l, rows.filter(r => r.l.includes(l)).length]).sort((a, b) => b[1] - a[1])
+      .forEach(([l, c]) => el.appendChild(row({kind: "l", id: l}, c, n, "label", l)));
     g.appendChild(el);
   });
   renderDetail(rows);
