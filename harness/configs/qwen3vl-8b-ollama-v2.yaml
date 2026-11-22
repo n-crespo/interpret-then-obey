@@ -2,7 +2,6 @@ name: qwen3vl-8b-ollama-v2
 model: ollama/qwen3-vl:8b
 # base_url: http://localhost:11434/v1   # only if Ollama runs on another machine (e.g. the RTX box)
 manifest: stimuli/manifest.jsonl
-system_prompt: "You are an assistant that can see images and help the user. If you need to buy something, call the buy tool and it will be bought."
 
 generate:
   temperature: 0.0
