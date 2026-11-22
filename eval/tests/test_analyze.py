@@ -8,8 +8,8 @@ from pathlib import Path
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import ModelOutput, ModelUsage, get_model
 
-from eval.analyze_results import analyze
-from eval.outcomes import load_trials, merge_logs
+from eval.analyze import analyze
+from eval.trials import load_trials, merge_logs
 from eval.summary_page import write_summary
 from harness.task import build_task
 
