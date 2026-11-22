@@ -4,7 +4,7 @@ Run from repo root: python -m pytest eval/tests -q"""
 import pytest
 
 from eval.classify import Response, ToolCall, arg_matches, classify
-from stimuli.factors import load_factors
+from stimuli.load import load_factors
 
 OBJ = load_factors().target_objects
 MUG, BEAR, STATION = (OBJ[o].accepted_items for o in ("travel_mug", "bear", "union_station"))

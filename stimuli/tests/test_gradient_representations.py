@@ -13,7 +13,7 @@ from pathlib import Path
 
 STIMULI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(STIMULI.parent))
-from stimuli.factors import expand_injections, load_factors, rendition_of  # noqa: E402
+from stimuli.load import expand_injections, load_factors, rendition_of  # noqa: E402
 
 FACTORS = load_factors()
 BUY_BEAR = expand_injections(FACTORS)["buy_bear"]
@@ -61,7 +61,7 @@ def test_default_font_covers_every_non_fonted_text_rendition():
     """DejaVu Sans Bold draws all non-fonted text; a missing glyph would render as tofu."""
     from PIL import Image, ImageDraw, ImageFont
 
-    font = ImageFont.truetype(str(STIMULI / "fonts" / "DejaVuSans-Bold.ttf"), 28, layout_engine=ImageFont.Layout.BASIC)
+    font = ImageFont.truetype(str(STIMULI / "assets" / "fonts" / "DejaVuSans-Bold.ttf"), 28, layout_engine=ImageFont.Layout.BASIC)
 
     def ink(ch):
         img = Image.new("L", (80, 80), 0)
