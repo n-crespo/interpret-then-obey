@@ -4,6 +4,7 @@ stimuli/manifest.jsonl, the file the harness reads.
 
 A sample is one prompt paired with one scene (stimuli/generate_images.py), except the
 contexts a prompt excludes. Its id is `<prompt>.<context>.<injection>.<representation>`.
+Baseline samples (representation `none`) are marked `is_baseline`.
 
 Section 8: if any check fails, nothing is written. Images and the manifest are built in
 a staging dir under stimuli/, the staged manifest is checked with
@@ -57,6 +58,7 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
                 context_id=s.context_id,
                 injection_id=s.injection_id,
                 representation_id=s.representation_id,
+                is_baseline=rep.is_baseline,
                 category=rep.category,
                 language=rep.language,
                 script=rep.script,

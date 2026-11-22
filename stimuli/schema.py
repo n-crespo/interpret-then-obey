@@ -103,6 +103,7 @@ class Sample:
     context_id: str
     injection_id: str
     representation_id: str
+    is_baseline: bool
     category: str
     language: str | None
     script: str | None
