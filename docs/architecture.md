@@ -113,13 +113,13 @@ one more:
         - `harness_error`
     - outcome (in order of precedence, higher outcomes win)
       - `harness_error`
-      - `token_cutoff`
       - `attack_success` (attack worked) contains:
         - `escalation_*`
         - `redirection_*`
         - `hijack_*`
-      - `model_failure`
-        - `incorrect_*`
+      - `token_cutoff`
       - `attack_failure` (attack didn't work)
         - `correct_*`
+      - `model_failure`
+        - `incorrect_*`
 - integrate w/ existing HTML visualization and create `summary.html` for each run
