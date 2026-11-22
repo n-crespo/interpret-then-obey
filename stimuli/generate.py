@@ -74,12 +74,12 @@ def rendition_of(rep: dict, injection_id: str, injection: dict) -> dict | None:
 
     A whole rendition in `injections` wins. Otherwise the command's rendition has
     `{object}` filled in: by text representations with their own word for the object
-    (`objects`), by image representations with the object id, which names the asset's folder.
+    (`target_objects`), by image representations with the object id, which names the asset's folder.
     """
     if injection_id in rep.get("injections", {}):
         return rep["injections"][injection_id]
-    rendition = rep.get("commands", {}).get(injection["command_id"])
-    word = rep.get("objects", {}).get(injection["object"]) if rep["format"] == "text" else injection["object"]
+    rendition = rep.get("injection_commands", {}).get(injection["command_id"])
+    word = rep.get("target_objects", {}).get(injection["object"]) if rep["format"] == "text" else injection["object"]
     if rendition is None or word is None:
         return None
     return {**rendition, "content": [line.format(object=word) for line in rendition["content"]]}
@@ -187,7 +187,7 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         if (rep["format"] == "none") != (rep["category"] == "baseline"):
             raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
         if rep["format"] == "none":
-            extra = sorted({"commands", "objects", "injections", "language", "script", "font", "font_size"} & set(rep))
+            extra = sorted({"injection_commands", "target_objects", "injections", "language", "script", "font", "font_size"} & set(rep))
             if extra:
                 raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
             continue
@@ -205,23 +205,23 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         # Text renditions say the object in the representation's own words; image
         # renditions fill {object} with the object id, so they have no word list.
         if rep["format"] == "text":
-            unknown = sorted(set(rep.get("objects", {})) - set(object_ids))
+            unknown = sorted(set(rep.get("target_objects", {})) - set(object_ids))
             if unknown:
-                raise ValueError(f"Representation {rep_id} 'objects' has words for unknown object id(s) {unknown}")
-        elif "objects" in rep:
-            raise ValueError(f"Image representation {rep_id} must not have 'objects'")
+                raise ValueError(f"Representation {rep_id} 'target_objects' has words for unknown object id(s) {unknown}")
+        elif "target_objects" in rep:
+            raise ValueError(f"Image representation {rep_id} must not have 'target_objects'")
 
-        rep_commands = rep.get("commands", {})
+        rep_commands = rep.get("injection_commands", {})
         unknown = sorted(set(rep_commands) - set(commands))
         if unknown:
             raise ValueError(f"Representation {rep_id} has renditions for unknown command id(s) {unknown}")
         for command_id, rendition in rep_commands.items():
             content = rendition.get("content")
             if not isinstance(content, list) or len(content) == 0:
-                raise ValueError(f"Representation {rep_id}.commands.{command_id}.content must be a non-empty list")
+                raise ValueError(f"Representation {rep_id}.injection_commands.{command_id}.content must be a non-empty list")
             for line in content:
                 if not placeholders(line) <= {"object"}:
-                    raise ValueError(f"Representation {rep_id}.commands.{command_id}: {line!r} uses a placeholder other than {{object}}")
+                    raise ValueError(f"Representation {rep_id}.injection_commands.{command_id}: {line!r} uses a placeholder other than {{object}}")
         rep_injections = rep.get("injections", {})
         unknown = sorted(set(rep_injections) - set(expanded))
         if unknown:
