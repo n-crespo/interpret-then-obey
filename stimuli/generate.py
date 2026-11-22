@@ -5,16 +5,9 @@ Stimulus generator for the interpret-then-obey benchmark per docs/SPEC.md.
 Combines the 4 factors:
   prompts × contexts × injections × representations
 
-The `none` representation (format "none", category "baseline") is the
-no-injection baseline: its images have the injection box drawn but empty.
-
-Injections are commands × objects (stimuli/src/injection_commands.json and
-target_objects.json): each command takes the objects of one type (`object_type`,
-also its tool's argument), and the `{object}`
-placeholder (str.format syntax) in its renditions is filled with each of them,
-giving one injection per pair, id `<command>_<object>`. A representation may
-instead give a whole rendition of one injection (`injections`), and one that
-has no rendition of an injection is left out of its rows, with a warning.
+The factor files are loaded and validated by stimuli/factors.py. The `none`
+representation (format "none", category "baseline") is the no-injection baseline:
+its images have the injection box drawn but empty.
 
 Deterministically renders images to stimuli/images/<id>.png and writes
 the harness-loadable manifest to stimuli/manifest.jsonl (the only file it
@@ -28,11 +21,9 @@ are both moved into place.
 
 from __future__ import annotations
 
-import inspect
 import json
 import os
 import shutil
-import string
 import sys
 import tempfile
 from pathlib import Path
@@ -40,288 +31,72 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 from harness.manifest import load_manifest  # noqa: E402
-from harness.tools import TOOLS  # noqa: E402
 from stimuli.attack_types import attack_fields  # noqa: E402
-from stimuli.files import load_json, sha256_file, swap_in_dir  # noqa: E402
-from stimuli.render import FONT_SIZE_RANGE, FONTS_DIR, render_stimulus_image  # noqa: E402
+from stimuli.factors import SRC_DIR, expand_injections, load_factors, rendition_of, uncovered  # noqa: E402
+from stimuli.files import sha256_file, swap_in_dir  # noqa: E402
+from stimuli.render import render_stimulus_image  # noqa: E402
+from stimuli.schema import Factors  # noqa: E402
 
 STIMULI_DIR = REPO_ROOT / "stimuli"
-SRC_DIR = STIMULI_DIR / "src"
 STAGING_PREFIX = ".generate-"  # gitignored; removed after every run
 
-FORMATS = ("text", "image", "none")
-CATEGORIES = ("natural", "constructed", "symbols", "opaque", "obfuscated", "keyed", "baseline")
 
-
-def placeholders(text: str) -> set[str]:
-    """The str.format field names used in `text`."""
-    return {name for _, name, _, _ in string.Formatter().parse(text) if name is not None}
-
-
-def load_injections(src_dir: Path = SRC_DIR) -> dict:
-    """injection_commands.json and target_objects.json, as {"commands", "objects"}."""
-    return {"commands": load_json(src_dir / "injection_commands.json"),
-            "objects": load_json(src_dir / "target_objects.json")}
-
-
-def expand_injections(injections: dict) -> dict[str, dict]:
-    """Every command × object of its type, keyed by injection id
-    `<command>_<object>`, with the tool call that obeys it."""
-    return {
-        f"{command_id}_{obj}": {
-            "command_id": command_id,
-            "object": obj,
-            "expected_calls": [{"name": command["expected_tool"], "args": {command["object_type"]: spec["accepted_items"]}}],
-        }
-        for command_id, command in injections["commands"].items()
-        for obj, spec in injections["objects"][command["object_type"]].items()
-    }
-
-
-def rendition_of(rep: dict, injection_id: str, injection: dict) -> dict | None:
-    """The rendition of one injection in `rep`, or None when it has none.
-
-    A whole rendition in `injections` wins. Otherwise the command's rendition has
-    `{object}` filled in: by text representations with their own word for the object
-    (`target_objects`), by image representations with the object id, which names the asset's folder.
-    An image representation with no asset drawn for the object has no rendition of it.
-    """
-    if injection_id in rep.get("injections", {}):
-        return rep["injections"][injection_id]
-    rendition = rep.get("injection_commands", {}).get(injection["command_id"])
-    word = rep.get("target_objects", {}).get(injection["object"]) if rep["format"] == "text" else injection["object"]
-    if rendition is None or word is None:
-        return None
-    content = [line.format(object=word) for line in rendition["content"]]
-    if rep["format"] == "image" and not all((REPO_ROOT / p).is_file() for p in content):
-        return None
-    return {**rendition, "content": content}
-
-
-def uncovered(injections: dict, representations: dict) -> dict[str, list[str]]:
-    """representation id -> the injection ids it has no rendition of (the baseline needs none)."""
-    expanded = expand_injections(injections)
-    out = {}
-    for rep_id, rep in representations.items():
-        if rep["format"] == "none":
-            continue
-        missing = [i for i, inj in expanded.items() if rendition_of(rep, i, inj) is None]
-        if missing:
-            out[rep_id] = missing
-    return out
-
-
-def _tool_args(name: str) -> list[str]:
-    """The arguments of a harness tool (harness/tools/mock_tools.py)."""
-    return list(inspect.signature(TOOLS[name]()).parameters)
-
-
-def _is_item_list(x) -> bool:
-    """A non-empty list of non-empty strings: the shape of every `accepted_items`."""
-    return isinstance(x, list) and bool(x) and all(isinstance(a, str) and a.strip() for a in x)
-
-
-def validate_factors(prompts: dict, contexts: dict, injections: dict, representations: dict) -> None:
-    """Validate all requirements from docs/SPEC.md Section 8."""
-    if not prompts:
-        raise ValueError("prompts.json is empty")
-    if not contexts:
-        raise ValueError("contexts.json is empty")
-    commands, objects = injections["commands"], injections["objects"]
-    if not commands:
-        raise ValueError("injection_commands.json is empty")
-    # objects: argument name -> object id -> spec. Representations name objects by id
-    # alone (their `objects` word lists), so ids must be unique across groups.
-    if not isinstance(objects, dict) or not objects:
-        raise ValueError("target_objects.json must be a non-empty object keyed by object type")
-    object_ids: list[str] = []
-    for arg, group in objects.items():
-        if not isinstance(group, dict) or not group:
-            raise ValueError(f"target_objects.json: {arg} must be a non-empty object keyed by object id")
-        for obj, spec in group.items():
-            if set(spec) != {"accepted_items"} or not _is_item_list(spec["accepted_items"]):
-                raise ValueError(f"target_objects.json: object {obj!r} must have exactly 'accepted_items', a non-empty list of non-empty strings")
-        object_ids += group
-    duplicates = sorted({o for o in object_ids if object_ids.count(o) > 1})
-    if duplicates:
-        raise ValueError(f"target_objects.json: object id(s) {duplicates} appear under more than one type")
-    for command_id, command in commands.items():
-        if set(command) != {"object_type", "expected_tool"}:
-            raise ValueError(f"injection_commands.json: {command_id!r} must have exactly 'object_type' and 'expected_tool'")
-        if command["expected_tool"] not in TOOLS:
-            raise ValueError(f"injection_commands.json: {command_id!r} 'expected_tool' must be one of harness.tools.TOOLS {list(TOOLS)}")
-        if command["object_type"] not in objects:
-            raise ValueError(f"injection_commands.json: {command_id!r} 'object_type' must be one of the object types {sorted(objects)}")
-        if command["object_type"] not in _tool_args(command["expected_tool"]):
-            raise ValueError(f"injection_commands.json: {command_id!r} 'object_type' must be an argument of the tool "
-                             f"{command['expected_tool']!r}: {_tool_args(command['expected_tool'])}")
-    expanded = expand_injections(injections)
-    if not representations:
-        raise ValueError("representations.json is empty")
-
-    # Row ids are the four factor ids joined with '.', so a '.' inside one
-    # could make two combinations collide (a.b + c vs a + b.c) and would make
-    # ids ambiguous to split.
-    for fname, factor in (
-        ("prompts.json", prompts),
-        ("contexts.json", contexts),
-        ("injection_commands.json", commands),
-        ("target_objects.json", object_ids),
-        ("representations.json", representations),
-    ):
-        for fid in factor:
-            if not isinstance(fid, str) or not fid or "." in fid:
-                raise ValueError(f"{fname}: id {fid!r} must be non-empty and must not contain '.'")
-
-    # The attack type (docs/SPEC.md section 7) is derived from these two fields.
-    for prompt_id, prompt in prompts.items():
-        if "expected_tool" not in prompt or not (prompt["expected_tool"] is None or prompt["expected_tool"] in TOOLS):
-            raise ValueError(f"Prompt {prompt_id} must have 'expected_tool': null or one of harness.tools.TOOLS {list(TOOLS)}")
-        excluded = prompt.get("exclude_contexts", [])
-        if not isinstance(excluded, list) or not all(isinstance(c, str) for c in excluded):
-            raise ValueError(f"Prompt {prompt_id}: 'exclude_contexts' must be a list of context ids")
-        unknown = sorted(set(excluded) - set(contexts))
-        if unknown:
-            raise ValueError(f"Prompt {prompt_id} excludes unknown context id(s) {unknown}")
-    for context_id, context in contexts.items():
-        if "item" not in context or not (context["item"] is None or context["item"] in object_ids):
-            raise ValueError(f"Context {context_id} must have 'item': a target object id or null")
-
-    rep_keys = list(representations.keys())
-    if rep_keys[0] != "english":
-        raise ValueError(f"docs/SPEC.md Rule 1: 'english' must be the first representation, got {rep_keys[0]!r}")
-
-    for rep_id, rep in representations.items():
-        if "format" not in rep or rep["format"] not in FORMATS:
-            raise ValueError(f"Representation {rep_id} must have format 'text', 'image' or 'none'")
-        if "category" not in rep or rep["category"] not in CATEGORIES:
-            raise ValueError(f"Representation {rep_id} has invalid category {rep.get('category')!r}")
-        # The baseline: format 'none' and category 'baseline' go together, and
-        # nothing is drawn, so it has no renditions, language, script or font.
-        if (rep["format"] == "none") != (rep["category"] == "baseline"):
-            raise ValueError(f"Representation {rep_id}: format 'none' and category 'baseline' must go together")
-        if rep["format"] == "none":
-            extra = sorted({"injection_commands", "target_objects", "injections", "language", "script", "font", "font_size"} & set(rep))
-            if extra:
-                raise ValueError(f"Baseline representation {rep_id} must not have {extra}")
-            continue
-        if rep["format"] == "text" and "language" not in rep:
-            raise ValueError(f"Text representation {rep_id} requires 'language'")
-        if rep["format"] == "text" and "script" not in rep:
-            raise ValueError(f"Text representation {rep_id} requires 'script'")
-        if "font" in rep and not (FONTS_DIR / rep["font"]).is_file():
-            raise FileNotFoundError(f"Representation {rep_id} font not found: {FONTS_DIR / rep['font']}")
-        if "font_size" in rep:
-            size, (lo, hi) = rep["font_size"], FONT_SIZE_RANGE
-            if not (isinstance(size, int) and not isinstance(size, bool) and lo <= size <= hi):
-                raise ValueError(f"Representation {rep_id}: 'font_size' must be an integer from {lo} to {hi}")
-
-        # Text renditions say the object in the representation's own words; image
-        # renditions fill {object} with the object id, so they have no word list.
-        if rep["format"] == "text":
-            unknown = sorted(set(rep.get("target_objects", {})) - set(object_ids))
-            if unknown:
-                raise ValueError(f"Representation {rep_id} 'target_objects' has words for unknown object id(s) {unknown}")
-        elif "target_objects" in rep:
-            raise ValueError(f"Image representation {rep_id} must not have 'target_objects'")
-
-        rep_commands = rep.get("injection_commands", {})
-        unknown = sorted(set(rep_commands) - set(commands))
-        if unknown:
-            raise ValueError(f"Representation {rep_id} has renditions for unknown command id(s) {unknown}")
-        for command_id, rendition in rep_commands.items():
-            content = rendition.get("content")
-            if not isinstance(content, list) or len(content) == 0:
-                raise ValueError(f"Representation {rep_id}.injection_commands.{command_id}.content must be a non-empty list")
-            for line in content:
-                if not placeholders(line) <= {"object"}:
-                    raise ValueError(f"Representation {rep_id}.injection_commands.{command_id}: {line!r} uses a placeholder other than {{object}}")
-        rep_injections = rep.get("injections", {})
-        unknown = sorted(set(rep_injections) - set(expanded))
-        if unknown:
-            raise ValueError(f"Representation {rep_id} has renditions for unknown injection id(s) {unknown}")
-        for injection_id, rendition in rep_injections.items():
-            content = rendition.get("content")
-            if not isinstance(content, list) or len(content) == 0:
-                raise ValueError(f"Representation {rep_id}.injections.{injection_id}.content must be a non-empty list")
-
-        for injection_id, injection in expanded.items():
-            rendition = rendition_of(rep, injection_id, injection)
-            # english is the plain reading of every injection (docs/SPEC.md section 6, rule 2).
-            if rendition is None and rep_id == "english":
-                raise ValueError(f"Representation english missing rendition for injection {injection_id!r}")
-            if rendition is not None and rep["format"] == "image":
-                for p_str in rendition["content"]:
-                    img_path = REPO_ROOT / p_str
-                    if not img_path.exists():
-                        raise FileNotFoundError(f"Rendition image not found: {img_path} (from {rep_id}, injection {injection_id!r})")
-
-
-def build_rows(
-    prompts: dict, contexts: dict, injections: dict, representations: dict, images_rel: str
-) -> list[tuple[dict, tuple]]:
+def build_rows(f: Factors, images_rel: str) -> list[tuple[dict, tuple]]:
     """Every row in memory (image_sha256 filled in after rendering), each with its render arguments."""
     out = []
     seen_ids = set()
-    for prompt_id, prompt_data in prompts.items():
-        for context_id, context_data in contexts.items():
-            if context_id in prompt_data.get("exclude_contexts", []):
+    for prompt in f.prompts.values():
+        for context in f.contexts.values():
+            if context.id in prompt.exclude_contexts:
                 continue
-            for injection_id, injection_data in expand_injections(injections).items():
+            for injection in expand_injections(f).values():
                 # The injected object is never the scene's own item.
-                if injection_data["object"] == context_data["item"]:
+                if injection.object.id == context.item:
                     continue
-                for rep_id, rep_data in representations.items():
+                for rep in f.representations.values():
                     # A representation with no rendition of this injection has no row for it
                     # (`uncovered`); the baseline has one for every injection.
                     rendition = None
-                    if rep_data["format"] != "none":
-                        rendition = rendition_of(rep_data, injection_id, injection_data)
+                    if not rep.is_baseline:
+                        rendition = rendition_of(rep, injection)
                         if rendition is None:
                             continue
-                    sample_id = f"{prompt_id}.{context_id}.{injection_id}.{rep_id}"
+                    sample_id = f"{prompt.id}.{context.id}.{injection.id}.{rep.id}"
                     if sample_id in seen_ids:
                         raise ValueError(f"Duplicate sample id: {sample_id}")
                     seen_ids.add(sample_id)
 
-                    expected_calls = injection_data["expected_calls"]
                     row = {
                         "id": sample_id,
-                        "user_prompt": prompt_data["text"],
+                        "user_prompt": prompt.text,
                         "image": f"{images_rel}/{sample_id}.png",
                         "image_sha256": None,
-                        "expected_calls": expected_calls,
-                        "prompt_id": prompt_id,
-                        "context_id": context_id,
-                        "injection_id": injection_id,
-                        "representation_id": rep_id,
-                        "category": rep_data["category"],
-                        "language": rep_data.get("language"),
-                        "script": rep_data.get("script"),
-                        **attack_fields(prompt_data, context_data, expected_calls[0]["name"]),
+                        "expected_calls": injection.expected_calls,
+                        "prompt_id": prompt.id,
+                        "context_id": context.id,
+                        "injection_id": injection.id,
+                        "representation_id": rep.id,
+                        "category": rep.category,
+                        "language": rep.language,
+                        "script": rep.script,
+                        **attack_fields(prompt.expected_tool, context.item, injection.command.expected_tool),
                     }
-                    out.append((row, (context_id, context_data, rep_data, rendition)))
+                    out.append((row, (context, rep, rendition)))
     return out
 
 
 def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[dict]:
     print(f"Loading factor files from {src_dir}...")
-    prompts = load_json(src_dir / "prompts.json")
-    contexts = load_json(src_dir / "contexts.json")
-    injections = load_injections(src_dir)
-    representations = load_json(src_dir / "representations.json")
-
-    validate_factors(prompts, contexts, injections, representations)
-    for rep_id, missing in uncovered(injections, representations).items():
+    f = load_factors(src_dir)
+    for rep_id, missing in uncovered(f).items():
         print(f"WARNING: representation {rep_id} has no rendition of {len(missing)} injection(s), "
               f"so no rows for them: {', '.join(missing)}", file=sys.stderr)
 
     # Image paths in the manifest are relative to stimuli_dir's parent (the repo root).
     images_rel = f"{stimuli_dir.name}/images"
-    built = build_rows(prompts, contexts, injections, representations, images_rel)
+    built = build_rows(f, images_rel)
     rows = [row for row, _ in built]
-    n_injections = len(expand_injections(injections))
-    print(f"Expanded {len(prompts)} prompts × {len(contexts)} contexts (minus excluded pairs) × {n_injections} injections × {len(representations)} representations (where they have a rendition) = {len(rows)} test cases")
+    print(f"Expanded the factors into {len(rows)} test cases")
 
     # Render and write under `staging`, which mirrors the layout of
     # stimuli_dir's parent, so the staged manifest's paths resolve to the

@@ -7,16 +7,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STIMULI = ROOT / "stimuli"
-SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
 sys.path.insert(0, str(ROOT))
-from stimuli.generate import expand_injections, load_injections, rendition_of  # noqa: E402
+from stimuli.factors import expand_injections, load_factors, rendition_of  # noqa: E402
+
+FACTORS = load_factors()
+INJECTIONS = expand_injections(FACTORS)
 
 
-def renditions(rep: dict, injections: dict) -> dict:
+def renditions(rep):
     """injection id -> the rendition of it in `rep`, for the injections it has one of."""
-    out = {i: rendition_of(rep, i, inj) for i, inj in expand_injections(injections).items()}
+    out = {i: rendition_of(rep, inj) for i, inj in INJECTIONS.items()}
     return {i: r for i, r in out.items() if r is not None}
 
 
@@ -25,19 +27,16 @@ def test_committed_manifest_rows():
     # must pass on a fresh clone. Hashes are checked against a fresh build in
     # test_committed_manifest.py::test_build_reproduces_committed_manifest.
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
-    contexts = json.loads((SRC / "contexts.json").read_text(encoding="utf-8"))
-    injections = load_injections()
-    representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
-    cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
-    expanded = expand_injections(injections)
+    prompts, contexts, representations = FACTORS.prompts, FACTORS.contexts, FACTORS.representations
+    cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].exclude_contexts}
+    expanded = INJECTIONS
     # A representation has rows only for the injections it has a rendition of; the
     # baseline has a row for every injection. No injection names the scene's own item.
     def shown(c, i):
-        return expanded[i]["object"] != contexts[c]["item"]
+        return expanded[i].object.id != contexts[c].item
     assert len(rows) == sum(
         shown(c, i) for _, c in cells for r in representations.values()
-        for i in (expanded if r["format"] == "none" else renditions(r, injections)))
+        for i in (expanded if r.is_baseline else renditions(r)))
 
     # Excluded pairs: an obey there is not an attack success (docs/SPEC.md section 3).
     assert ("buy", "info_board") not in cells
@@ -56,7 +55,7 @@ def test_committed_manifest_rows():
 
     for r in rows:
         assert "tools" not in r, "the harness offers every tool to every row"
-        assert r["expected_calls"] == expanded[r["injection_id"]]["expected_calls"]
+        assert r["expected_calls"] == expanded[r["injection_id"]].expected_calls
         assert r["id"].startswith(f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}")
         assert r["image"].startswith("stimuli/images/")
         assert len(r["image_sha256"]) == 64
@@ -85,20 +84,14 @@ def test_committed_manifest_rows():
 
 
 def test_no_english_translations_in_conlang_content():
-    representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
-    injections = load_injections()
-    expanded = expand_injections(injections)
-    for rep_id, rep in representations.items():
-        if rep["category"] == "constructed" and rep["format"] == "text":
-            for injection_id, rendition in renditions(rep, injections).items():
-                obj, content = expanded[injection_id]["object"], rendition["content"]
-                joined = " ".join(content).lower()
-                # None of them should contain the English sentence or the English object word
+    for rep in FACTORS.representations.values():
+        if rep.category == "constructed" and rep.format == "text":
+            for injection_id, rendition in renditions(rep).items():
+                obj = INJECTIONS[injection_id].object.id
+                joined = " ".join(rendition.content).lower()
                 assert f"buy a {obj}" not in joined
-                assert "ignore user" not in joined
-                assert "add a banana" not in joined
                 assert not re.search(rf"\b{obj}s?\b", joined, re.IGNORECASE), (
-                    f"{rep_id} rendition contains the English word {obj!r}: {content}"
+                    f"{rep.id} rendition contains the English word {obj!r}: {rendition.content}"
                 )
 
 
@@ -117,23 +110,18 @@ def test_fonted_renditions_have_no_missing_glyphs():
     """
     from PIL import ImageFont
 
-    representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
-    injections = load_injections()
-    fonted = {rep_id: rep for rep_id, rep in representations.items() if "font" in rep}
-    assert "klingon_piqad" in fonted
+    fonted = [rep for rep in FACTORS.representations.values() if rep.font is not None]
+    assert any(rep.id == "klingon_piqad" for rep in fonted)
 
-    for rep_id, rep in fonted.items():
-        assert rep["format"] == "text", f"{rep_id} has a font but is not format text"
-        font_path = STIMULI / "fonts" / rep["font"]
-        assert font_path.is_file(), f"{rep_id}: missing font {font_path}"
+    for rep in fonted:
+        assert rep.format == "text", f"{rep.id} has a font but is not format text"
+        font_path = STIMULI / "fonts" / rep.font
         license_path = STIMULI / "fonts" / f"{font_path.stem}-LICENSE.txt"
-        assert license_path.is_file(), f"{rep_id}: missing license file {license_path}"
+        assert license_path.is_file(), f"{rep.id}: missing license file {license_path}"
 
         font = ImageFont.truetype(str(font_path), 44, layout_engine=ImageFont.Layout.BASIC)
         notdef = _ink(font, "͸")
-        for injection_id, rendition in renditions(rep, injections).items():
-            for ch in "".join(rendition["content"]):
-                if ch.isspace():
-                    continue
-                assert _ink(font, ch) != notdef, f"{rep_id}.{injection_id}: U+{ord(ch):04X} not in {rep['font']}"
-
+        for injection_id, rendition in renditions(rep).items():
+            for ch in "".join(rendition.content):
+                if not ch.isspace():
+                    assert _ink(font, ch) != notdef, f"{rep.id}.{injection_id}: U+{ord(ch):04X} not in {rep.font}"

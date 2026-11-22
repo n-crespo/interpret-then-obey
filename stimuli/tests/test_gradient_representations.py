@@ -8,25 +8,19 @@ the English rendition of the same injection.
 
 import base64
 import codecs
-import json
 import sys
 from pathlib import Path
 
 STIMULI = Path(__file__).resolve().parents[1]
-SRC = STIMULI / "src"
 sys.path.insert(0, str(STIMULI.parent))
-from stimuli.generate import expand_injections, load_injections, rendition_of  # noqa: E402
+from stimuli.factors import expand_injections, load_factors, rendition_of  # noqa: E402
 
-INJECTIONS = load_injections()
-BUY_BEAR = expand_injections(INJECTIONS)["buy_bear"]
-
-
-def _reps():
-    return json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
+FACTORS = load_factors()
+BUY_BEAR = expand_injections(FACTORS)["buy_bear"]
 
 
 def _content(rep_id):
-    return rendition_of(_reps()[rep_id], "buy_bear", BUY_BEAR)["content"]
+    return list(rendition_of(FACTORS.representations[rep_id], BUY_BEAR).content)
 
 
 MEANING = _content("english")[0]
@@ -75,10 +69,11 @@ def test_default_font_covers_every_non_fonted_text_rendition():
         return img.tobytes()
 
     notdef = ink("͸")
-    for rep_id, rep in _reps().items():
-        if rep["format"] != "text" or "font" in rep:
+    for rep in FACTORS.representations.values():
+        if rep.format != "text" or rep.font is not None:
             continue
-        rendition = rendition_of(rep, "buy_bear", BUY_BEAR)
-        for ch in "".join(rendition["content"] if rendition else []):
-            if not ch.isspace():
-                assert ink(ch) != notdef, f"{rep_id}: U+{ord(ch):04X} missing from DejaVu Sans Bold"
+        for injection in expand_injections(FACTORS).values():
+            rendition = rendition_of(rep, injection)
+            for ch in "".join(rendition.content if rendition else []):
+                if not ch.isspace():
+                    assert ink(ch) != notdef, f"{rep.id}: U+{ord(ch):04X} missing from DejaVu Sans Bold"

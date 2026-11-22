@@ -8,11 +8,15 @@ only on the arguments, the vendored fonts in stimuli/fonts/ and the pinned Pillo
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FONTS_DIR = REPO_ROOT / "stimuli" / "fonts"
+
+if TYPE_CHECKING:
+    from stimuli.schema import Context, Rendition, Representation
 
 WIDTH, HEIGHT = 720, 460
 INJECTION_BOX_TOP = 265
@@ -54,10 +58,9 @@ PALETTES = {
 
 def render_stimulus_image(
     image_path: Path,
-    context_id: str,
-    context: dict,
-    representation: dict,
-    rendition: dict | None,
+    context: Context,
+    representation: Representation,
+    rendition: Rendition | None,
 ) -> None:
     """Render a stimulus image combining context content and the injection rendition.
 
@@ -65,9 +68,9 @@ def render_stimulus_image(
     empty injection box is drawn exactly as for an injected image, and nothing is put in
     the box, so the two differ only inside it.
     """
-    if context_id not in PALETTES:
-        raise ValueError(f"Context {context_id!r} has no palette in stimuli/render.py PALETTES")
-    bg_color, border_color, accent_color, box_bg, box_border = PALETTES[context_id]
+    if context.id not in PALETTES:
+        raise ValueError(f"Context {context.id!r} has no palette in stimuli/render.py PALETTES")
+    bg_color, border_color, accent_color, box_bg, box_border = PALETTES[context.id]
 
     img = Image.new("RGB", (WIDTH, HEIGHT), color=bg_color)
     draw = ImageDraw.Draw(img)
@@ -80,11 +83,11 @@ def render_stimulus_image(
     header_font = get_font(size=22, bold=True)
     body_font = get_font(size=18, bold=False)
 
-    header = context.get("header", "NOTICE")
+    header = context.header
     draw.text((45, 42), header, fill=accent_color, font=header_font)
     draw.line([(45, 74), (WIDTH - 45, 74)], fill=border_color, width=2)
 
-    for i, line in enumerate(context.get("lines", [])):
+    for i, line in enumerate(context.lines):
         draw.text((45, 95 + (i * 38)), line, fill=(30, 30, 35), font=body_font)
 
     # 3. Injection Box (Lower Inset Area)
@@ -102,14 +105,14 @@ def render_stimulus_image(
     draw.line([(WIDTH - 40, INJECTION_BOX_BOTTOM - 15), (WIDTH - 40 - 15, INJECTION_BOX_BOTTOM)], fill=accent_color, width=2)
 
     # 4. Render Injection Payload (nothing for the baseline)
-    if representation["format"] == "none":
+    if representation.is_baseline:
         pass
-    elif representation["format"] == "text":
-        content = rendition["content"]
-        if "font" in representation:
-            inj_font = get_font(size=representation.get("font_size", SCRIPT_FONT_SIZE), font_name=representation["font"])
+    elif representation.format == "text":
+        content = rendition.content
+        if representation.font is not None:
+            inj_font = get_font(size=representation.font_size or SCRIPT_FONT_SIZE, font_name=representation.font)
         else:
-            inj_font = get_font(size=representation.get("font_size", INJECTION_FONT_SIZE), bold=True)
+            inj_font = get_font(size=representation.font_size or INJECTION_FONT_SIZE, bold=True)
         total_text_h = len(content) * 44
         box_h = INJECTION_BOX_BOTTOM - INJECTION_BOX_TOP
         start_y = INJECTION_BOX_TOP + max(20, (box_h - total_text_h) // 2)
@@ -132,9 +135,9 @@ def render_stimulus_image(
             start_x = max(50, (WIDTH - text_w) // 2)
             draw.text((start_x, start_y + (idx * 44)), line, fill=(20, 20, 25), font=inj_font)
 
-    elif representation["format"] == "image":
+    elif representation.format == "image":
         # Load and paste pre-drawn asset centered in injection box
-        asset_path = REPO_ROOT / rendition["content"][0]
+        asset_path = REPO_ROOT / rendition.content[0]
         asset_img = Image.open(asset_path).convert("RGBA")
 
         box_w = WIDTH - 80
