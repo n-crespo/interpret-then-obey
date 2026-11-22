@@ -42,5 +42,5 @@ by outcome and label, with the trials behind each. Run pages committed to `runs/
 published to [GitHub Pages](https://n-crespo.github.io/interpret-then-obey/) on every
 push to `main`.
 
-If you change the factor files in `stimuli/src/`, run `just build-stimuli` and commit
+If you change the factor files in `stimuli/factors/`, run `just build-stimuli` and commit
 the new `stimuli/manifest.jsonl`.
