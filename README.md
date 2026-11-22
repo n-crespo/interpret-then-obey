@@ -80,6 +80,14 @@ Run `just` with no arguments to list recipes and what each does. They run from t
 
 Arguments after a recipe pass straight through to the script; `just run --help` lists the harness's flags.
 
+> [!NOTE]
+> Inspect run logs with:
+>
+> ```bash
+> # from repo root
+> inspect view --log-dir runs
+> ```
+
 ### A real model run
 
 ```bash
