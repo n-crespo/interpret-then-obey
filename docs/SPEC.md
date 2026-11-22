@@ -170,6 +170,6 @@ The checks are `load_json` in `stimuli/files.py` for duplicate keys, the models 
 ## 9. Not yet specified
 
 - **Style.** Which visual styles exist and how they are combined with the other factors.
-- **Scoring.** How a buy-tool call is matched against the expected item, given that the model types the item name freely. The current interim rule is `arg_matches` in `harness/obey.py`, which `eval/classify.py` uses.
+- **Scoring.** How a buy-tool call is matched against the expected item, given that the model types the item name freely. The current interim rule is `arg_matches` in `eval/classify.py`.
 - **The set of representations.** Which languages, scripts and symbol sets are included, and which fonts are licensed for bundling. The current set is `stimuli/src/representations.json`. Every third-party font or image keeps its licence beside it (`stimuli/fonts/`, `stimuli/symbols/`).
 - **Interpretation label.** `eval/outcomes.py` (its `FACTORS`) groups results by manifest fields and reports the baseline separately. It can only measure P(obey): no row or scorer yet records whether the model interpreted the payload, which P(interpret) and P(obey | interpret) need.
