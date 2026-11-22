@@ -47,13 +47,15 @@ def test_end_to_end(tmp_path):
     for o in outputs:  # explicit usage: mockllm otherwise downloads a tiktoken file to estimate it
         o.usage = ModelUsage(input_tokens=1, output_tokens=1, total_tokens=2)
     model = get_model("mockllm/model", custom_outputs=outputs)
-    logs = inspect_eval(build_task(str(MANIFEST)), model=model, log_dir=str(tmp_path), max_connections=1, display="none")
+    logs = inspect_eval(build_task(str(MANIFEST), "Tools: {tools}"), model=model, log_dir=str(tmp_path), max_connections=1, display="none")
     assert logs[0].status == "success"
     for sample in logs[0].samples:  # every row is offered every tool, in TOOLS order
         model_events = [e for e in sample.events if e.event == "model"]
         assert model_events
         for e in model_events:
             assert [t.name for t in e.tools] == list(TOOLS)
+        system = sample.messages[0].text  # the {tools} placeholder lists every tool
+        assert all(f"- {name}:" in system for name in TOOLS)
     outcomes = {s.id: s.scores["outcome"].value for s in logs[0].samples}
     assert outcomes == {"fx-en-image-obey": "attack_success", "fx-en-text-obey": "attack_failure",
                         "fx-control-nopayload": "attack_failure"}
