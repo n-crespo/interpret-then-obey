@@ -11,15 +11,12 @@ from __future__ import annotations
 import inspect
 import string
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Annotated, ClassVar, Literal, Union
+from typing import Annotated, ClassVar, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 from harness.tools import TOOLS
-from stimuli.render import FONT_SIZE_RANGE, FONTS_DIR
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
+from stimuli.render import FONT_SIZE_RANGE, FONTS_DIR, REPO_ROOT
 
 
 def _is_tool(name: str) -> str:
@@ -34,12 +31,12 @@ def _is_font(name: str) -> str:
     return name
 
 
-def tool_args(name: str) -> list[str]:
+def _tool_args(name: str) -> list[str]:
     """The arguments of a harness tool (harness/tools/mock_tools.py)."""
     return list(inspect.signature(TOOLS[name]()).parameters)
 
 
-def placeholders(text: str) -> set[str]:
+def _placeholders(text: str) -> set[str]:
     """The str.format field names used in `text`."""
     return {name for _, name, _, _ in string.Formatter().parse(text) if name is not None}
 
@@ -88,9 +85,8 @@ class InjectionCommand(_Model):
 
     @model_validator(mode="after")
     def _object_type_is_a_tool_argument(self) -> InjectionCommand:
-        if self.object_type not in tool_args(self.expected_tool):
-            raise ValueError(f"object_type {self.object_type!r} must be an argument of the tool "
-                             f"{self.expected_tool!r}: {tool_args(self.expected_tool)}")
+        if self.object_type not in (args := _tool_args(self.expected_tool)):
+            raise ValueError(f"object_type {self.object_type!r} must be an argument of the tool {self.expected_tool!r}: {args}")
         return self
 
 
@@ -102,7 +98,7 @@ class Rendition(_Model):
     @classmethod
     def _only_object_placeholder(cls, content: tuple[str, ...]) -> tuple[str, ...]:
         for line in content:
-            if not placeholders(line) <= {"object"}:
+            if not _placeholders(line) <= {"object"}:
                 raise ValueError(f"{line!r} uses a placeholder other than {{object}}")
         return content
 
@@ -120,27 +116,28 @@ class _Representation(_Model):
         return self.format == "none"
 
 
-class TextRepresentation(_Representation):
+class _Drawn(_Representation):
+    """A representation that draws the injection, from renditions of its commands or whole ones."""
+    category: Category
+    injection_commands: dict[Id, Rendition] = {}
+    injections: dict[Id, Rendition] = {}  # whole renditions
+
+
+class TextRepresentation(_Drawn):
     """Lines of text. Says the object in its own words (`target_objects`)."""
     format: Literal["text"]
-    category: Category
     language: str
     script: str
     font: FontFile | None = None
     font_size: FontSize | None = None
-    injection_commands: dict[Id, Rendition] = {}
     target_objects: dict[Id, str] = {}  # object id -> word
-    injections: dict[Id, Rendition] = {}  # whole renditions
 
 
-class ImageRepresentation(_Representation):
+class ImageRepresentation(_Drawn):
     """Image files. Fills `{object}` with the object id, which names the asset's folder."""
     format: Literal["image"]
-    category: Category
     language: str | None = None
     script: str | None = None
-    injection_commands: dict[Id, Rendition] = {}
-    injections: dict[Id, Rendition] = {}  # whole renditions
     font: ClassVar[None] = None
     font_size: ClassVar[None] = None
     target_objects: ClassVar[dict[str, str]] = {}
@@ -167,9 +164,7 @@ class BaselineRepresentation(_Representation):
     injections: ClassVar[dict[str, Rendition]] = {}
 
 
-Representation = Annotated[
-    Union[TextRepresentation, ImageRepresentation, BaselineRepresentation], Field(discriminator="format"),
-]
+Representation = Annotated[TextRepresentation | ImageRepresentation | BaselineRepresentation, Field(discriminator="format")]
 
 
 class Factors(_Model):
@@ -184,6 +179,11 @@ class Factors(_Model):
     @classmethod
     def _ids_from_keys(cls, files: dict) -> dict:
         """Give each entry its key as `id`, and each target object its group as `type`."""
+        def add(where: str, spec: dict, key: str, value: str) -> dict:
+            if key in spec:
+                raise ValueError(f"{where} must not have {key!r}: the file's layout gives it")
+            return {**spec, key: value}
+
         objects: dict = {}
         for kind, group in files["target_objects"].items():
             if not group:
@@ -191,15 +191,9 @@ class Factors(_Model):
             for oid, spec in group.items():
                 if oid in objects:
                     raise ValueError(f"target object id {oid!r} appears under more than one type")
-                if "type" in spec:
-                    raise ValueError(f"target_objects.json: {oid!r} must not have 'type'; its group is its type")
-                objects[oid] = {**spec, "type": kind}
+                objects[oid] = add(f"target_objects.json: {oid!r}", spec, "type", kind)
         files = {**files, "target_objects": objects}
-        for name, entries in files.items():
-            for k, v in entries.items():
-                if "id" in v:
-                    raise ValueError(f"{name}.json: {k!r} must not have 'id'; its key is its id")
-        return {name: {k: {**v, "id": k} for k, v in entries.items()} for name, entries in files.items()}
+        return {name: {k: add(f"{name}.json: {k!r}", v, "id", k) for k, v in entries.items()} for name, entries in files.items()}
 
 
 @dataclass(frozen=True)

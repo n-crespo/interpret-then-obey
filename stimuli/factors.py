@@ -21,12 +21,9 @@ from stimuli.schema import Factors, Injection, Rendition, Representation  # noqa
 
 SRC_DIR = REPO_ROOT / "stimuli" / "src"
 
-FILES = ("prompts", "contexts", "target_objects", "injection_commands", "representations")
-
-
 def load_factors(src_dir: Path = SRC_DIR) -> Factors:
     """The five factor files, validated."""
-    f = Factors.model_validate({name: load_json(src_dir / f"{name}.json") for name in FILES})
+    f = Factors.model_validate({name: load_json(src_dir / f"{name}.json") for name in Factors.model_fields})
     check_references(f)
     return f
 
@@ -38,8 +35,9 @@ def check_references(f: Factors) -> None:
     errors: list[str] = []
 
     def require_known(what: str, refs: dict[str, Iterable[str]], known: Iterable[str]) -> None:
+        known = set(known)
         for where, names in refs.items():
-            if bad := sorted(set(names) - set(known)):
+            if bad := sorted(set(names) - known):
                 errors.append(f"{where}: unknown {what} {bad}")
 
     objects, reps = f.target_objects, f.representations.values()
