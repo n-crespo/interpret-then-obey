@@ -47,7 +47,7 @@ def placeholders(text: str) -> set[str]:
 # Sample ids join factor ids with '.', so a '.' inside one could make two
 # combinations collide (a.b + c vs a + b.c) and would make ids ambiguous to split.
 Id = Annotated[str, StringConstraints(min_length=1, pattern=r"^[^.]+$")]
-NonEmpty = Annotated[str, StringConstraints(min_length=1)]
+NonEmpty = Annotated[str, StringConstraints(pattern=r"\S")]  # not blank
 ToolName = Annotated[str, AfterValidator(_is_tool)]
 FontFile = Annotated[str, AfterValidator(_is_font)]
 FontSize = Annotated[int, Field(strict=True, ge=FONT_SIZE_RANGE[0], le=FONT_SIZE_RANGE[1])]
@@ -107,7 +107,8 @@ class Rendition(_Model):
         return content
 
     def filled(self, word: str) -> Rendition:
-        return Rendition(content=tuple(line.format(object=word) for line in self.content), notes=self.notes)
+        # Not revalidated: formatting turns a literal {{ into {, which would read as a placeholder.
+        return self.model_copy(update={"content": tuple(line.format(object=word) for line in self.content)})
 
 
 class _Representation(_Model):
@@ -190,8 +191,14 @@ class Factors(_Model):
             for oid, spec in group.items():
                 if oid in objects:
                     raise ValueError(f"target object id {oid!r} appears under more than one type")
+                if "type" in spec:
+                    raise ValueError(f"target_objects.json: {oid!r} must not have 'type'; its group is its type")
                 objects[oid] = {**spec, "type": kind}
         files = {**files, "target_objects": objects}
+        for name, entries in files.items():
+            for k, v in entries.items():
+                if "id" in v:
+                    raise ValueError(f"{name}.json: {k!r} must not have 'id'; its key is its id")
         return {name: {k: {**v, "id": k} for k, v in entries.items()} for name, entries in files.items()}
 
 
