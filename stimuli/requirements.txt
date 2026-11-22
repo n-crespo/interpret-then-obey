@@ -1,3 +1,5 @@
 # Pinned so re-rendered PNGs are byte-identical and match image_sha256 in the manifest.
 # Bumping this means re-running `just build-stimuli` and committing the new manifest (images are gitignored).
 pillow==13.0.0
+# Validates the factor files (stimuli/schema.py); inspect-ai depends on it too.
+pydantic>=2.4  # StringConstraints

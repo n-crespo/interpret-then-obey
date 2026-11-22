@@ -6,7 +6,7 @@ Stimulus data laid out as described in [docs/SPEC.md](../docs/SPEC.md): the fact
 
 The core logic:
 
-- `factors.py` loads and validates the factor files into the types in `schema.py`, and expands injections.
+- `factors.py` loads the factor files into the pydantic models in `schema.py`, which check each file; it then checks the references between files and expands injections.
 - `generate_images.py` decides which images exist and renders them.
 - `generate_samples.py` pairs prompts with images and writes the manifest.
 

@@ -84,14 +84,14 @@ Placeholders use Python's `str.format` syntax (`{object}`; write a literal brace
 
 ## 6. Representations (`representations.json`)
 
-A representation is a way of showing an injection: a natural language, a constructed language, a script, symbols such as road signs, or text that must be decoded by rule (a cipher, with or without its key printed). Together they form an interpretation gradient: they vary how hard it is to work out what the injection says, so that obeying can be measured across that range rather than only where the model cannot read the injection at all. The order intended is the order of `CATEGORIES`; the data decide whether it holds.
+A representation is a way of showing an injection: a natural language, a constructed language, a script, symbols such as road signs, or text that must be decoded by rule (a cipher, with or without its key printed). Together they form an interpretation gradient: they vary how hard it is to work out what the injection says, so that obeying can be measured across that range rather than only where the model cannot read the injection at all. The order intended is the order of `Category` in `stimuli/schema.py`; the data decide whether it holds.
 
 Each representation holds its own details and its renditions. The generator fills `{object}` in a command's rendition to get the rendition of each injection; a representation may instead give a whole rendition of one injection, which is needed when the object cannot be swapped on its own (base64, for example).
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| `format` | yes | Says how to read `content`: lines of text, image files, or nothing (the baseline). Allowed values: `FORMATS` in `stimuli/factors.py`. |
-| `category` | yes | The main grouping for analysis, and the step of the interpretation gradient. Allowed values: `CATEGORIES` in `stimuli/factors.py`. |
+| `format` | yes | Says how to read `content`: lines of text, image files, or nothing (the baseline). Allowed values: the `format` union of representation models in `stimuli/schema.py`. |
+| `category` | yes | The main grouping for analysis, and the step of the interpretation gradient. Allowed values: `Category` in `stimuli/schema.py`, or the baseline's own. |
 | `language` | for `text` | Links representations of the same language |
 | `script` | for `text` | The Latin against non-Latin comparison |
 | `font` | no | The file name, in `stimuli/fonts/`, of the font used to draw the text |
@@ -166,7 +166,7 @@ What an obeyed row means depends on the prompt and the scene together: an inject
 
 The generator enforces the rules in sections 3 to 7 before it writes anything. If any check fails, it fails and writes nothing: no images and no manifest. Factor ids must also be non-empty and contain no `.`, because row ids join them with `.` and a `.` inside one would make two rows collide.
 
-The checks are `load_json` in `stimuli/files.py` for duplicate keys, `validate` and `load_factors` in `stimuli/factors.py` for the factor files, `render_stimulus_image` in `stimuli/render.py` for text that does not fit the injection box, `build_samples` for duplicate row ids, and `generate` (both in `stimuli/generate_samples.py`), which reloads the staged manifest with `harness.manifest.load_manifest` (including the image hash checks) before swapping it in. These checks are deliberately not covered by tests.
+The checks are `load_json` in `stimuli/files.py` for duplicate keys, the models in `stimuli/schema.py` and `check_references` in `stimuli/factors.py` for the factor files, `render_stimulus_image` in `stimuli/render.py` for text that does not fit the injection box, `build_samples` for duplicate row ids, and `generate` (both in `stimuli/generate_samples.py`), which reloads the staged manifest with `harness.manifest.load_manifest` (including the image hash checks) before swapping it in. These checks are deliberately not covered by tests.
 
 ## 9. Not yet specified
 
