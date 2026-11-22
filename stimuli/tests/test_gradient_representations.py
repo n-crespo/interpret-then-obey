@@ -15,9 +15,9 @@ from pathlib import Path
 STIMULI = Path(__file__).resolve().parents[1]
 SRC = STIMULI / "src"
 sys.path.insert(0, str(STIMULI.parent))
-from stimuli.generate import expand_injections, rendition_of  # noqa: E402
+from stimuli.generate import expand_injections, load_injections, rendition_of  # noqa: E402
 
-INJECTIONS = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
+INJECTIONS = load_injections()
 BUY_BEAR = expand_injections(INJECTIONS)["buy_bear"]
 
 

@@ -11,7 +11,7 @@ SRC = STIMULI / "src"
 MANIFEST_JSONL = STIMULI / "manifest.jsonl"
 
 sys.path.insert(0, str(ROOT))
-from stimuli.generate import expand_injections, rendition_of  # noqa: E402
+from stimuli.generate import expand_injections, load_injections, rendition_of  # noqa: E402
 
 
 def renditions(rep: dict, injections: dict) -> dict:
@@ -27,7 +27,7 @@ def test_committed_manifest_rows():
     rows = [json.loads(line) for line in MANIFEST_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
     prompts = json.loads((SRC / "prompts.json").read_text(encoding="utf-8"))
     contexts = json.loads((SRC / "contexts.json").read_text(encoding="utf-8"))
-    injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
+    injections = load_injections()
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
     cells = {(p, c) for p in prompts for c in contexts if c not in prompts[p].get("exclude_contexts", [])}
     expanded = expand_injections(injections)
@@ -85,7 +85,7 @@ def test_committed_manifest_rows():
 
 def test_no_english_translations_in_conlang_content():
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
-    injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
+    injections = load_injections()
     expanded = expand_injections(injections)
     for rep_id, rep in representations.items():
         if rep["category"] == "constructed" and rep["format"] == "text":
@@ -117,7 +117,7 @@ def test_fonted_renditions_have_no_missing_glyphs():
     from PIL import ImageFont
 
     representations = json.loads((SRC / "representations.json").read_text(encoding="utf-8"))
-    injections = json.loads((SRC / "injections.json").read_text(encoding="utf-8"))
+    injections = load_injections()
     fonted = {rep_id: rep for rep_id, rep in representations.items() if "font" in rep}
     assert "klingon_piqad" in fonted
 

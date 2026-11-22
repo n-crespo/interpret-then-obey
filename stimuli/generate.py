@@ -8,8 +8,9 @@ Combines the 4 factors:
 The `none` representation (format "none", category "baseline") is the
 no-injection baseline: its images have the injection box drawn but empty.
 
-Injections are commands × objects (stimuli/src/injections.json): each command
-takes the objects of one group (its tool argument), and the `{object}`
+Injections are commands × objects (stimuli/src/injection_commands.json and
+target_objects.json): each command takes the objects of one type (`object_type`,
+also its tool's argument), and the `{object}`
 placeholder (str.format syntax) in its renditions is filled with each of them,
 giving one injection per pair, id `<command>_<object>`. A representation may
 instead give a whole rendition of one injection (`injections`), and one that
@@ -55,17 +56,23 @@ def placeholders(text: str) -> set[str]:
     return {name for _, name, _, _ in string.Formatter().parse(text) if name is not None}
 
 
+def load_injections(src_dir: Path = SRC_DIR) -> dict:
+    """injection_commands.json and target_objects.json, as {"commands", "objects"}."""
+    return {"commands": load_json(src_dir / "injection_commands.json"),
+            "objects": load_json(src_dir / "target_objects.json")}
+
+
 def expand_injections(injections: dict) -> dict[str, dict]:
-    """Every command × object of its group in injections.json, keyed by injection id
+    """Every command × object of its type, keyed by injection id
     `<command>_<object>`, with the tool call that obeys it."""
     return {
         f"{command_id}_{obj}": {
             "command_id": command_id,
             "object": obj,
-            "expected_calls": [{"name": command["tool"], "args": {command["arg"]: spec["accepted"]}}],
+            "expected_calls": [{"name": command["expected_tool"], "args": {command["object_type"]: spec["accepted_items"]}}],
         }
         for command_id, command in injections["commands"].items()
-        for obj, spec in injections["objects"][command["arg"]].items()
+        for obj, spec in injections["objects"][command["object_type"]].items()
     }
 
 
@@ -109,35 +116,31 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
         raise ValueError("prompts.json is empty")
     if not contexts:
         raise ValueError("contexts.json is empty")
-    if set(injections) != {"commands", "objects"}:
-        raise ValueError("injections.json must have exactly the keys 'commands' and 'objects'")
     commands, objects = injections["commands"], injections["objects"]
     if not commands:
-        raise ValueError("injections.json: 'commands' is empty")
+        raise ValueError("injection_commands.json is empty")
     # objects: argument name -> object id -> spec. Representations name objects by id
     # alone (their `objects` word lists), so ids must be unique across groups.
     if not isinstance(objects, dict) or not objects:
-        raise ValueError("injections.json: 'objects' must be a non-empty object keyed by argument name")
+        raise ValueError("target_objects.json must be a non-empty object keyed by object type")
     object_ids: list[str] = []
     for arg, group in objects.items():
         if not isinstance(group, dict) or not group:
-            raise ValueError(f"injections.json: objects.{arg} must be a non-empty object keyed by object id")
+            raise ValueError(f"target_objects.json: {arg} must be a non-empty object keyed by object id")
         for obj, spec in group.items():
-            if set(spec) != {"accepted"} or not _is_item_list(spec["accepted"]):
-                raise ValueError(f"injections.json: object {obj!r} must have exactly 'accepted', a non-empty list of non-empty strings")
+            if set(spec) != {"accepted_items"} or not _is_item_list(spec["accepted_items"]):
+                raise ValueError(f"target_objects.json: object {obj!r} must have exactly 'accepted_items', a non-empty list of non-empty strings")
         object_ids += group
     duplicates = sorted({o for o in object_ids if object_ids.count(o) > 1})
     if duplicates:
-        raise ValueError(f"injections.json: object id(s) {duplicates} appear in more than one group")
+        raise ValueError(f"target_objects.json: object id(s) {duplicates} appear under more than one type")
     for command_id, command in commands.items():
-        if set(command) != {"template", "tool", "arg"}:
-            raise ValueError(f"injections.json: command {command_id!r} must have exactly 'template', 'tool' and 'arg'")
-        if placeholders(command["template"]) != {"object"}:
-            raise ValueError(f"injections.json: command {command_id!r} 'template' must use the placeholder {{object}} and no other")
-        if not isinstance(command["tool"], str) or not command["tool"]:
-            raise ValueError(f"injections.json: command {command_id!r} 'tool' must be a tool name")
-        if command["arg"] not in objects:
-            raise ValueError(f"injections.json: command {command_id!r} 'arg' must be one of the object groups {sorted(objects)}")
+        if set(command) != {"object_type", "expected_tool"}:
+            raise ValueError(f"injection_commands.json: {command_id!r} must have exactly 'object_type' and 'expected_tool'")
+        if not isinstance(command["expected_tool"], str) or not command["expected_tool"]:
+            raise ValueError(f"injection_commands.json: {command_id!r} 'expected_tool' must be a tool name")
+        if command["object_type"] not in objects:
+            raise ValueError(f"injection_commands.json: {command_id!r} 'object_type' must be one of the object types {sorted(objects)}")
     expanded = expand_injections(injections)
     if not representations:
         raise ValueError("representations.json is empty")
@@ -148,8 +151,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for fname, factor in (
         ("prompts.json", prompts),
         ("contexts.json", contexts),
-        ("injections.json commands", commands),
-        ("injections.json objects", object_ids),
+        ("injection_commands.json", commands),
+        ("target_objects.json", object_ids),
         ("representations.json", representations),
     ):
         for fid in factor:
@@ -291,7 +294,7 @@ def generate(src_dir: Path = SRC_DIR, stimuli_dir: Path = STIMULI_DIR) -> list[d
     print(f"Loading factor files from {src_dir}...")
     prompts = load_json(src_dir / "prompts.json")
     contexts = load_json(src_dir / "contexts.json")
-    injections = load_json(src_dir / "injections.json")
+    injections = load_injections(src_dir)
     representations = load_json(src_dir / "representations.json")
 
     validate_factors(prompts, contexts, injections, representations)
