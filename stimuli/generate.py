@@ -28,6 +28,7 @@ are both moved into place.
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import shutil
@@ -39,6 +40,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 from harness.manifest import load_manifest  # noqa: E402
+from harness.tools import TOOLS  # noqa: E402
 from stimuli.attack_types import attack_fields  # noqa: E402
 from stimuli.files import load_json, sha256_file, swap_in_dir  # noqa: E402
 from stimuli.render import FONT_SIZE_RANGE, FONTS_DIR, render_stimulus_image  # noqa: E402
@@ -105,6 +107,11 @@ def uncovered(injections: dict, representations: dict) -> dict[str, list[str]]:
     return out
 
 
+def _tool_args(name: str) -> list[str]:
+    """The arguments of a harness tool (harness/tools/mock_tools.py)."""
+    return list(inspect.signature(TOOLS[name]()).parameters)
+
+
 def _is_item_list(x) -> bool:
     """A non-empty list of non-empty strings: the shape of every `accepted` and `accepted_items`."""
     return isinstance(x, list) and bool(x) and all(isinstance(a, str) and a.strip() for a in x)
@@ -137,10 +144,13 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
     for command_id, command in commands.items():
         if set(command) != {"object_type", "expected_tool"}:
             raise ValueError(f"injection_commands.json: {command_id!r} must have exactly 'object_type' and 'expected_tool'")
-        if not isinstance(command["expected_tool"], str) or not command["expected_tool"]:
-            raise ValueError(f"injection_commands.json: {command_id!r} 'expected_tool' must be a tool name")
+        if command["expected_tool"] not in TOOLS:
+            raise ValueError(f"injection_commands.json: {command_id!r} 'expected_tool' must be one of harness.tools.TOOLS {list(TOOLS)}")
         if command["object_type"] not in objects:
             raise ValueError(f"injection_commands.json: {command_id!r} 'object_type' must be one of the object types {sorted(objects)}")
+        if command["object_type"] not in _tool_args(command["expected_tool"]):
+            raise ValueError(f"injection_commands.json: {command_id!r} 'object_type' must be an argument of the tool "
+                             f"{command['expected_tool']!r}: {_tool_args(command['expected_tool'])}")
     expanded = expand_injections(injections)
     if not representations:
         raise ValueError("representations.json is empty")
@@ -161,8 +171,8 @@ def validate_factors(prompts: dict, contexts: dict, injections: dict, representa
 
     # The attack type (docs/SPEC.md section 7) is derived from these two fields.
     for prompt_id, prompt in prompts.items():
-        if "expected_tool" not in prompt or not (prompt["expected_tool"] is None or isinstance(prompt["expected_tool"], str)):
-            raise ValueError(f"Prompt {prompt_id} must have 'expected_tool': a tool name or null")
+        if "expected_tool" not in prompt or not (prompt["expected_tool"] is None or prompt["expected_tool"] in TOOLS):
+            raise ValueError(f"Prompt {prompt_id} must have 'expected_tool': null or one of harness.tools.TOOLS {list(TOOLS)}")
         excluded = prompt.get("exclude_contexts", [])
         if not isinstance(excluded, list) or not all(isinstance(c, str) for c in excluded):
             raise ValueError(f"Prompt {prompt_id}: 'exclude_contexts' must be a list of context ids")
