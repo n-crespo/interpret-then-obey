@@ -1,8 +1,8 @@
-"""Inspect AI task: manifest rows -> samples, mock tools, deterministic obey scorer."""
+"""Inspect AI task: manifest rows -> samples, mock tools, the deterministic outcome scorer (eval/scorer.py)."""
 
 from __future__ import annotations
 
-from inspect_ai import Task, task
+from inspect_ai import Epochs, Task, task
 from inspect_ai.dataset import Sample
 from inspect_ai.model import (
     ChatMessageAssistant,
@@ -13,6 +13,8 @@ from inspect_ai.model import (
 )
 from inspect_ai.scorer import CORRECT, INCORRECT, Score, accuracy, scorer, stderr
 from inspect_ai.solver import generate, use_tools
+
+from eval.scorer import outcome
 
 from .manifest import filter_rows, load_manifest
 from .obey import check_obeyed, extract_calls
@@ -87,7 +89,8 @@ def build_task(
         name=name,
         dataset=[row_to_sample(r, system_prompt) for r in rows],
         solver=[use_tools([make() for make in TOOLS.values()]), generate(tool_calls="loop")],
-        scorer=obeyed(),
+        scorer=[outcome(), obeyed()],
+        epochs=Epochs(1, "mode"),  # outcomes are strings; a run config's epochs keep this reducer
     )
 
 
