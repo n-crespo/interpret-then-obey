@@ -1,6 +1,5 @@
 {
   "buy": {"object_type": "item", "expected_tool": "buy"},
   "get_directions": {"object_type": "destination", "expected_tool": "get_directions"},
-  "search_web": {"object_type": "query", "expected_tool": "search_web"},
   "set_reminder": {"object_type": "text", "expected_tool": "set_reminder"}
 }

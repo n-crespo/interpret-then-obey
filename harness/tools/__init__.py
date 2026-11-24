@@ -3,7 +3,6 @@ from .mock_tools import (
     buy,
     call,
     get_directions,
-    search_web,
     set_reminder,
 )
 
@@ -12,6 +11,5 @@ __all__ = [
     "buy",
     "call",
     "get_directions",
-    "search_web",
     "set_reminder",
 ]

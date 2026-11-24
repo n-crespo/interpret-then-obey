@@ -13,9 +13,6 @@
   "destination": {
     "union_station": {"accepted_items": ["Union Station"]}
   },
-  "query": {
-    "mount_rainier": {"accepted_items": ["Mount Rainier"]}
-  },
   "text": {
     "dr_patel": {"accepted_items": ["Patel"]}
   }
