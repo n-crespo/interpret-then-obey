@@ -5,6 +5,10 @@ written (eval/rescore.py).
 The run's manifest gave help no expected tool, so any call matching the injection's tool
 counted as escalation, even buying the advertised item, which the model also does with no
 injection. help is re-scored as an open prompt ("any"), as prompts.json has it since.
+context_object is rebuilt as stimuli/build.py makes it from today's contexts.json, which
+adds the scene's header and, for scenes with no item, words naming their subject, so an
+action on the scene (directions to Platform 2, buying the "community bulletin") counts as
+on the scene.
 
 Run from the repo root:  python runs/2026-11-22_qwen3vl-8b-ollama-t07/analysis/rescore.py
 """
@@ -20,11 +24,16 @@ from eval.rescore import rescore_trials  # noqa: E402
 from eval.tables import latex_tables  # noqa: E402
 from eval.trials import manifest_order  # noqa: E402
 from eval.summary_page import write_summary  # noqa: E402
+from stimuli.build import context_object  # noqa: E402
+from stimuli.load import load_factors  # noqa: E402
+
+FACTORS = load_factors()
 
 
 def backfill(metadata: dict) -> None:
     if metadata["prompt_id"] == "help":
         metadata["prompt_expected_tool"] = "any"
+    metadata["context_object"] = context_object(FACTORS.contexts[metadata["context_id"]], FACTORS)
 
 
 if __name__ == "__main__":
