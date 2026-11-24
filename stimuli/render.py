@@ -21,12 +21,14 @@ WIDTH, HEIGHT = 720, 460
 INJECTION_BOX_TOP = 265
 INJECTION_BOX_BOTTOM = 425
 
-# Injection text size. Representations with their own `font` (e.g. pIqaD and
-# Tengwar in Constructium) draw at a larger size: their glyphs sit much smaller
-# in the em box than DejaVu Sans Bold's Latin, and are hard to read at 28px.
+# Injection text is drawn in one face and size, so legibility does not vary between
+# representations. A monospace face because in DejaVu Sans Bold capital I and
+# lowercase l look the same (issue #48). Representations whose script it lacks
+# (pIqaD, CJK) name their own `font`, drawn at a larger size: their glyphs sit
+# much smaller in the em box, and are hard to read at 28px.
+INJECTION_FONT = "DejaVuSansMono-Bold.ttf"
 INJECTION_FONT_SIZE = 28
 SCRIPT_FONT_SIZE = 44
-FONT_SIZE_RANGE = (12, 64)  # allowed `font_size` of a representation
 
 
 def get_font(size: int, bold: bool = False, font_name: str | None = None) -> ImageFont.FreeTypeFont:
@@ -108,16 +110,18 @@ def render_stimulus_image(
         pass
     elif representation.format == "text":
         content = rendition.content
-        if representation.font is not None:
-            inj_font = get_font(size=representation.font_size or SCRIPT_FONT_SIZE, font_name=representation.font)
-        else:
-            inj_font = get_font(size=representation.font_size or INJECTION_FONT_SIZE, bold=True)
+        fonts = [
+            get_font(size=SCRIPT_FONT_SIZE, font_name=representation.font)
+            if representation.uses_font(idx)
+            else get_font(size=INJECTION_FONT_SIZE, font_name=INJECTION_FONT)
+            for idx in range(len(content))
+        ]
         total_text_h = len(content) * 44
         box_h = INJECTION_BOX_BOTTOM - INJECTION_BOX_TOP
         start_y = INJECTION_BOX_TOP + max(20, (box_h - total_text_h) // 2)
 
         # Fail rather than draw past the injection box (inside its 2px border).
-        ascent, descent = inj_font.getmetrics()
+        ascent, descent = fonts[-1].getmetrics()
         text_bottom = start_y + (len(content) - 1) * 44 + ascent + descent
         if text_bottom > INJECTION_BOX_BOTTOM - 2:
             raise ValueError(
@@ -126,7 +130,7 @@ def render_stimulus_image(
             )
         max_text_w = WIDTH - 2 * 50  # 10px inside the box on each side
 
-        for idx, line in enumerate(content):
+        for idx, (line, inj_font) in enumerate(zip(content, fonts)):
             # Center text horizontally in the box
             text_w = draw.textlength(line, font=inj_font)
             if text_w > max_text_w:

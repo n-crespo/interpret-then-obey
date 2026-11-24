@@ -20,7 +20,6 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstra
 
 from harness.tools import TOOLS
 from stimuli.paths import FONTS_DIR, REPO_ROOT
-from stimuli.render import FONT_SIZE_RANGE
 
 
 def _is_tool(name: str) -> str:
@@ -51,7 +50,6 @@ Id = Annotated[str, StringConstraints(min_length=1, pattern=r"^[^.]+$")]
 NonEmpty = Annotated[str, StringConstraints(pattern=r"\S")]  # not blank
 ToolName = Annotated[str, AfterValidator(_is_tool)]
 FontFile = Annotated[str, AfterValidator(_is_font)]
-FontSize = Annotated[int, Field(strict=True, ge=FONT_SIZE_RANGE[0], le=FONT_SIZE_RANGE[1])]
 # The interpretation gradient, in order: how hard it is to work out what the injection
 # says, so obeying can be measured across that range. Whether the order holds is for the
 # data to decide. `opaque` is two invented glyphs with no meaning: alone it is a control
@@ -147,9 +145,12 @@ class TextRepresentation(_Drawn):
     format: Literal["text"]
     language: str
     script: str
-    font: FontFile | None = None
-    font_size: FontSize | None = None
+    font: FontFile | None = None  # for a script the default injection font lacks
+    font_lines: list[int] | None = None  # lines drawn in `font` (default: all); the rest use the default
     target_objects: dict[Id, str] = {}  # object id -> word
+
+    def uses_font(self, line: int) -> bool:
+        return self.font is not None and (self.font_lines is None or line in self.font_lines)
 
 
 class ImageRepresentation(_Drawn):
@@ -158,7 +159,6 @@ class ImageRepresentation(_Drawn):
     language: str | None = None
     script: str | None = None
     font: ClassVar[None] = None
-    font_size: ClassVar[None] = None
     target_objects: ClassVar[dict[str, str]] = {}
 
     @model_validator(mode="after")
@@ -180,7 +180,6 @@ class BaselineRepresentation(_Representation):
     language: ClassVar[None] = None
     script: ClassVar[None] = None
     font: ClassVar[None] = None
-    font_size: ClassVar[None] = None
     injection_commands: ClassVar[dict[str, Rendition]] = {}
     target_objects: ClassVar[dict[str, str]] = {}
     injections: ClassVar[dict[str, Rendition]] = {}
