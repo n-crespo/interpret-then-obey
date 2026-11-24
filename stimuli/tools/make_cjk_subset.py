@@ -13,7 +13,7 @@ from pathlib import Path
 
 from fontTools import subset
 
-CHARS = "买一只熊。一台张给发消息：在大门口见我带去搜索提醒打电话保存照片笔记本脑礼品卡"
+CHARS = "买一只熊。一台张给发消息：在大门口见我带去搜索提醒打电话保存照片笔记本脑礼品卡双鞋视"
 OUT = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "NotoSansSC-subset.otf"
 
 src = sys.argv[1]

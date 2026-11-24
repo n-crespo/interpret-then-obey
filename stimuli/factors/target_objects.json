@@ -1,6 +1,6 @@
 {
   "item": {
-    "bear": {"accepted_items": ["bear"]},
+    "bear": {"accepted_items": ["bear"], "exclude_from_injections": true},
     "book": {"accepted_items": ["book", "paperback", "hardcover", "novel"], "exclude_from_injections": true},
     "shoe": {"accepted_items": ["shoe", "sneaker", "trainer", "loafer"]},
     "television": {"accepted_items": ["television", "tv", "telly"]},
