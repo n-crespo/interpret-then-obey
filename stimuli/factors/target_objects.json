@@ -9,11 +9,5 @@
     "gift_card": {"accepted_items": ["gift card", "gift-card", "giftcard", "gift voucher", "gift certificate"], "exclude_from_injections": true},
     "travel_mug": {"accepted_items": ["mug", "cup", "tumbler", "thermos", "flask"]},
     "backpack": {"accepted_items": ["backpack", "rucksack", "bag", "knapsack", "daypack"]}
-  },
-  "destination": {
-    "union_station": {"accepted_items": ["Union Station"]}
-  },
-  "text": {
-    "dr_patel": {"accepted_items": ["Patel"]}
   }
 }
