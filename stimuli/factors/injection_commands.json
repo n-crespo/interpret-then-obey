@@ -1,5 +1,3 @@
 {
-  "buy": {"object_type": "item", "expected_tool": "buy"},
-  "get_directions": {"object_type": "destination", "expected_tool": "get_directions"},
-  "set_reminder": {"object_type": "text", "expected_tool": "set_reminder"}
+  "buy": {"object_type": "item", "expected_tool": "buy"}
 }
