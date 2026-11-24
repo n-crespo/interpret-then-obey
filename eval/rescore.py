@@ -2,20 +2,27 @@
 manifest rows lack a field the scorer reads or record a value it now reads differently.
 
 The logs are read, never written. `backfill(metadata)` edits each sample's manifest row
-before scoring; a run's own analysis/rescore.py says what it changes and why.
+before scoring, and the optional `edit(sample)` the rest of the sample (its messages, say);
+a run's own analysis/rescore.py says what it changes and why.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from eval.scorer import outcome
 from eval.trials import _stop_reason, _trial, merge_logs
 
+if TYPE_CHECKING:
+    from inspect_ai.log import EvalSample
 
-def rescore_trials(run_dir: Path, backfill: Callable[[dict], None]) -> tuple[list[dict], str | None]:
-    """Like eval.trials.load_trials, but with each sample re-scored after `backfill`."""
+
+def rescore_trials(
+    run_dir: Path, backfill: Callable[[dict], None], edit: Callable[[EvalSample], None] | None = None
+) -> tuple[list[dict], str | None]:
+    """Like eval.trials.load_trials, but with each sample re-scored after `backfill` and `edit`."""
     from inspect_ai import score
     from inspect_ai.analysis import SampleColumn, SampleScores, SampleSummary, samples_df
     from inspect_ai.log import read_eval_log
@@ -26,6 +33,8 @@ def rescore_trials(run_dir: Path, backfill: Callable[[dict], None]) -> tuple[lis
         log = read_eval_log(str(path))
         for sample in log.samples or []:
             backfill(sample.metadata)
+            if edit is not None:
+                edit(sample)
         scored = score(log, outcome(), action="overwrite", display="none")
         df = samples_df(scored, columns=columns, quiet=True)
         per_log.append([_trial(rec, path.name) for rec in df.to_dict("records")])
