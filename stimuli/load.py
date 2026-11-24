@@ -38,7 +38,7 @@ def check_references(f: Factors) -> None:
 
     objects, reps = f.target_objects, f.representations.values()
     types = {o.type for o in objects.values()}
-    injections = expand_injections(f)
+    injections = expand_injections(f, include_excluded=True)
     # A command takes the objects of one target object type.
     require_known("target object type", {f"injection_commands.{c.id}.object_type": [c.object_type] for c in f.injection_commands.values()}, types)
     # A prompt's object is a target object.
@@ -60,12 +60,13 @@ def check_references(f: Factors) -> None:
         raise ValueError("The factor files are invalid:\n  " + "\n  ".join(errors))
 
 
-def expand_injections(f: Factors) -> dict[str, Injection]:
-    """Every command × target object of its type, keyed by injection id `<command>_<object>`."""
+def expand_injections(f: Factors, include_excluded: bool = False) -> dict[str, Injection]:
+    """Every command × target object of its type, keyed by injection id `<command>_<object>`.
+    Target objects marked exclude_from_injections make none unless `include_excluded`."""
     out = {}
     for command in f.injection_commands.values():
         for obj in f.target_objects.values():
-            if obj.type == command.object_type:
+            if obj.type == command.object_type and (include_excluded or not obj.exclude_from_injections):
                 inj = Injection(command, obj)
                 out[inj.id] = inj
     return out
