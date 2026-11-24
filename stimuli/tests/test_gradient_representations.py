@@ -83,6 +83,32 @@ def test_labeled_variants_wrap_the_same_payload():
             assert c["a1z26_key"][:-1] == c["a1z26"]
 
 
+LATIN_TWINS = {"russian_latin": "russian", "greek_latin": "greek", "mandarin_pinyin": "mandarin"}
+
+
+def test_latin_twins_render_the_same_injections_as_their_originals():
+    """A Latin twin changes only the script, so it covers exactly its original's injections."""
+    injections = expand_injections(FACTORS, include_excluded=True).values()
+    for twin, original in LATIN_TWINS.items():
+        covered = {r: {i.id for i in injections if _content(r, i)} for r in (twin, original)}
+        assert covered[twin] == covered[original], twin
+        assert FACTORS.representations[twin].language == FACTORS.representations[original].language
+
+
+def test_latin_twins_transliterate_their_originals():
+    """Russian (BGN/PCGN) and Greek (ELOT 743, unaccented) romanize letter by letter."""
+    cyr = dict(zip("а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш ы э ю я".split(),
+                   "a b v g d e zh z i y k l m n o p r s t u f kh ts ch sh y e yu ya".split()))
+    grk = dict(zip("α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ ς τ υ φ χ ψ ω ά έ ή ί ό ύ ώ".split(),
+                   "a v g d e z i th i k l m n x o p r s s t y f ch ps o a e i i o y o".split()))
+    for twin, table in (("russian_latin", cyr), ("greek_latin", grk)):
+        for inj in expand_injections(FACTORS, include_excluded=True).values():
+            if not (src := _content(LATIN_TWINS[twin], inj)):
+                continue
+            want = "".join(table.get(ch, ch) for ch in src[0].lower().replace("ου", "ou").replace("ού", "ou"))
+            assert _content(twin, inj)[0].lower() == want, (twin, inj.id)
+
+
 def test_default_font_covers_every_line_it_draws():
     """The default injection font draws every line not in a representation's own font; a missing glyph would render as tofu."""
     from PIL import Image, ImageDraw
