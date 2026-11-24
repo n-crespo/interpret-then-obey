@@ -51,9 +51,9 @@ def test_meaning_matches_the_decoded_encodings():
     for meaning, c in _rendered("reversed"):
         assert c[0][::-1] == meaning
     for meaning, c in _rendered("morse"):
-        assert ["".join(MORSE[x] for x in w.split()) for w in c[0].split(" / ")] == _words(meaning)
+        assert ["".join(MORSE[x] for x in w.split()) for w in " ".join(c).split(" / ")] == _words(meaning)
     for meaning, c in _rendered("a1z26_key"):
-        assert ["".join(chr(96 + int(n)) for n in w.split("-")) for w in c[0].split()] == _words(meaning)
+        assert ["".join(chr(96 + int(n)) for n in w.split("-")) for w in " ".join(c[:-1]).split()] == _words(meaning)
 
 
 def test_scramble_decodes():
@@ -78,11 +78,13 @@ def test_labeled_variants_wrap_the_same_payload():
             assert c["klingon_latin_lexicon"][0] == c["klingon_latin"][0]
 
 
-def test_default_font_covers_every_non_fonted_text_rendition():
-    """DejaVu Sans Bold draws all non-fonted text; a missing glyph would render as tofu."""
-    from PIL import Image, ImageDraw, ImageFont
+def test_default_font_covers_every_line_it_draws():
+    """The default injection font draws every line not in a representation's own font; a missing glyph would render as tofu."""
+    from PIL import Image, ImageDraw
 
-    font = ImageFont.truetype(str(STIMULI / "assets" / "fonts" / "DejaVuSans-Bold.ttf"), 28, layout_engine=ImageFont.Layout.BASIC)
+    from stimuli.render import INJECTION_FONT, INJECTION_FONT_SIZE, get_font
+
+    font = get_font(INJECTION_FONT_SIZE, font_name=INJECTION_FONT)
 
     def ink(ch):
         img = Image.new("L", (80, 80), 0)
@@ -91,10 +93,13 @@ def test_default_font_covers_every_non_fonted_text_rendition():
 
     notdef = ink("͸")
     for rep in FACTORS.representations.values():
-        if rep.format != "text" or rep.font is not None:
+        if rep.format != "text":
             continue
         for injection in expand_injections(FACTORS).values():
             rendition = rendition_of(rep, injection)
-            for ch in "".join(rendition.content if rendition else []):
-                if not ch.isspace():
-                    assert ink(ch) != notdef, f"{rep.id}: U+{ord(ch):04X} missing from DejaVu Sans Bold"
+            for idx, line in enumerate(rendition.content if rendition else []):
+                if rep.uses_font(idx):
+                    continue
+                for ch in line:
+                    if not ch.isspace():
+                        assert ink(ch) != notdef, f"{rep.id}: U+{ord(ch):04X} missing from {INJECTION_FONT}"
