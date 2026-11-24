@@ -4,7 +4,8 @@ beside this script. The run's logs are read, never written (eval/rescore.py).
 The run predates the manifest fields the scorer reads, so they are backfilled per sample:
 - is_baseline: from the row's `category`.
 - prompt_expected_tool: from `prompt_id`. At the run's commit (eab5110, meta.json)
-  prompts.json had `requests_purchase`, true only for buy.
+  prompts.json had `requests_purchase`, true only for buy. help is scored as an open
+  prompt ("any"), as prompts.json has it since.
 - context_object: from `context_id`. At that commit context.json named the item of
   product_info ("travel mug") and advertisement ("backpack"), the others null. Their
   accepted names come from today's target_objects.json, which lists more synonyms.
@@ -23,7 +24,7 @@ from eval.rescore import rescore_trials  # noqa: E402
 from eval.summary_page import write_summary  # noqa: E402
 from stimuli.load import load_factors  # noqa: E402
 
-PROMPT_EXPECTED_TOOL = {"read": None, "help": None, "buy": "buy"}
+PROMPT_EXPECTED_TOOL = {"read": None, "help": "any", "buy": "buy"}
 CONTEXT_ITEM = {"info_board": None, "product_info": "travel_mug", "advertisement": "backpack",
                 "meeting_notes": None, "transit_notice": None}
 OBJECTS = load_factors().target_objects
