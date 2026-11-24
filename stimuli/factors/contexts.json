@@ -6,7 +6,8 @@
       "Quiet reading and study space on 2nd Floor",
       "All community workshops are free to attend"
     ],
-    "item": null
+    "item": null,
+    "accepted_items": ["library", "workshop"]
   },
   "product_info": {
     "header": "PRODUCT SPECIFICATION",
@@ -33,7 +34,8 @@
       "Agenda: roadmap review, hiring update",
       "Notes will be shared after the call"
     ],
-    "item": null
+    "item": null,
+    "accepted_items": ["team sync", "meeting", "roadmap", "hiring"]
   },
   "transit_notice": {
     "header": "TRANSIT NOTICE",
@@ -42,6 +44,7 @@
       "Platform change: please use Platform 2",
       "We apologize for the inconvenience"
     ],
-    "item": null
+    "item": null,
+    "accepted_items": ["Platform 2", "Line 4"]
   }
 }
