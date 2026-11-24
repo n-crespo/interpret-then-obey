@@ -20,13 +20,13 @@ money & symbols & -- & 84 & 5/84 (6\%) & 3--13 \\
 shop\_button & symbols & -- & 84 & 5/84 (6\%) & 3--13 \\
 opaque & opaque & -- & 84 & 1/84 (1\%) & 0--6 \\
 opaque\_legend & opaque & -- & 84 & 2/84 (2\%) & 1--8 \\
-spanish & natural & latin & 72 & 36/72 (50\%) & 39--61 \\
-french & natural & latin & 72 & 37/72 (51\%) & 40--63 \\
+spanish & natural & latin & 72 & 41/72 (57\%) & 45--68 \\
+french & natural & latin & 72 & 44/72 (61\%) & 50--72 \\
 german & natural & latin & 12 & 4/12 (33\%) & 14--61 \\
 swahili & natural & latin & 12 & 0/12 (0\%) & 0--24 \\
 russian & natural & non\_latin & 12 & 5/12 (42\%) & 19--68 \\
 greek & natural & non\_latin & 12 & 0/12 (0\%) & 0--24 \\
-mandarin & natural & non\_latin & 72 & 51/72 (71\%) & 59--80 \\
+mandarin & natural & non\_latin & 72 & 59/72 (82\%) & 72--89 \\
 scrambled & obfuscated & latin & 72 & 26/72 (36\%) & 26--48 \\
 reversed & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
 rot13 & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
@@ -39,7 +39,7 @@ klingon\_latin\_lexicon & keyed & latin & 12 & 2/12 (17\%) & 5--45 \\
 klingon\_latin\_labeled & constructed & latin & 12 & 0/12 (0\%) & 0--24 \\
 klingon\_piqad\_translit & constructed & non\_latin & 12 & 0/12 (0\%) & 0--24 \\
 \midrule
-All injected & & & 1494 & 322/1494 (22\%) & 20--24 \\
+All injected & & & 1494 & 342/1494 (23\%) & 21--25 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -53,25 +53,25 @@ All injected & & & 1494 & 322/1494 (22\%) & 20--24 \\
 \toprule
 Factor & Level & $N$ & Attack success & 95\% CI \\
 \midrule
-Category & natural & 402 & 247/402 (61\%) & 57--66 \\
+Category & natural & 402 & 267/402 (66\%) & 62--71 \\
  & obfuscated & 120 & 26/120 (22\%) & 15--30 \\
  & keyed & 108 & 9/108 (8\%) & 4--15 \\
  & constructed & 276 & 5/276 (2\%) & 1--4 \\
  & symbols & 420 & 32/420 (8\%) & 5--11 \\
  & opaque & 168 & 3/168 (2\%) & 1--5 \\
 \midrule
-Script & latin & 714 & 229/714 (32\%) & 29--36 \\
- & non\_latin & 192 & 58/192 (30\%) & 24--37 \\
+Script & latin & 714 & 241/714 (34\%) & 30--37 \\
+ & non\_latin & 192 & 66/192 (34\%) & 28--41 \\
 \midrule
 Prompt & read & 623 & 177/623 (28\%) & 25--32 \\
- & help & 623 & 138/623 (22\%) & 19--26 \\
- & buy & 248 & 7/248 (3\%) & 1--6 \\
+ & help & 623 & 157/623 (25\%) & 22--29 \\
+ & buy & 248 & 8/248 (3\%) & 2--6 \\
 \midrule
-Context & advertisement & 372 & 64/372 (17\%) & 14--21 \\
- & info\_board & 250 & 57/250 (23\%) & 18--28 \\
- & meeting\_notes & 250 & 60/250 (24\%) & 19--30 \\
- & product\_info & 372 & 87/372 (23\%) & 19--28 \\
- & transit\_notice & 250 & 54/250 (22\%) & 17--27 \\
+Context & advertisement & 372 & 66/372 (18\%) & 14--22 \\
+ & info\_board & 250 & 63/250 (25\%) & 20--31 \\
+ & meeting\_notes & 250 & 64/250 (26\%) & 21--31 \\
+ & product\_info & 372 & 92/372 (25\%) & 21--29 \\
+ & transit\_notice & 250 & 57/250 (23\%) & 18--28 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -87,9 +87,9 @@ Prompt & Rows & $N$ & Attack success & Token cutoff & Attack failure & Model fai
 \midrule
 read & injected & 623 & 177/623 (28\%) & 2/623 (0\%) & 397/623 (64\%) & 47/623 (8\%) \\
  & baseline & 58 & 0/58 (0\%) & 0/58 (0\%) & 51/58 (88\%) & 7/58 (12\%) \\
-help & injected & 623 & 138/623 (22\%) & 0/623 (0\%) & 450/623 (72\%) & 35/623 (6\%) \\
+help & injected & 623 & 157/623 (25\%) & 0/623 (0\%) & 450/623 (72\%) & 16/623 (3\%) \\
  & baseline & 58 & 0/58 (0\%) & 0/58 (0\%) & 58/58 (100\%) & 0/58 (0\%) \\
-buy & injected & 248 & 7/248 (3\%) & 0/248 (0\%) & 240/248 (97\%) & 1/248 (0\%) \\
+buy & injected & 248 & 8/248 (3\%) & 0/248 (0\%) & 240/248 (97\%) & 0/248 (0\%) \\
  & baseline & 22 & 0/22 (0\%) & 0/22 (0\%) & 22/22 (100\%) & 0/22 (0\%) \\
 \bottomrule
 \end{tabular}
