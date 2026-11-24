@@ -69,6 +69,8 @@ class TargetObject(_Model):
     id: Id
     type: Id  # item, destination, ...: also the tool argument it fills
     accepted_items: tuple[NonEmpty, ...] = Field(min_length=1)  # values of that argument that name this object
+    # Makes no injections, so no samples, but keeps its renditions and art for later use.
+    excluded: bool = False
 
 
 class Prompt(_Model):

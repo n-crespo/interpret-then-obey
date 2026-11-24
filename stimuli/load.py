@@ -61,11 +61,12 @@ def check_references(f: Factors) -> None:
 
 
 def expand_injections(f: Factors) -> dict[str, Injection]:
-    """Every command × target object of its type, keyed by injection id `<command>_<object>`."""
+    """Every command × target object of its type, keyed by injection id `<command>_<object>`.
+    Excluded target objects make none."""
     out = {}
     for command in f.injection_commands.values():
         for obj in f.target_objects.values():
-            if obj.type == command.object_type:
+            if obj.type == command.object_type and not obj.excluded:
                 inj = Injection(command, obj)
                 out[inj.id] = inj
     return out
