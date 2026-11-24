@@ -1,6 +1,6 @@
 name: stimuli determinism
 
-# Re-renders every stimulus on each OS and fails if the committed manifest
+# Re-renders every stimulus on Linux and Windows and fails if the committed manifest
 # (and so any image_sha256) would change.
 
 on:
@@ -22,7 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # No macOS: its Pillow wheel matches Linux's, and on a private repo its
+        # minutes count 10x.
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -2,7 +2,7 @@
 
 stimuli/build.py verifies the manifest against the images it just rendered, so on its own it
 can't notice a stale manifest or a platform that renders different bytes. This test
-compares against the committed file instead. CI runs it on Linux, Windows and macOS.
+compares against the committed file instead. CI runs it on Linux and Windows.
 """
 
 import re
