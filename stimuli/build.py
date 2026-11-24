@@ -26,9 +26,19 @@ from stimuli.files import swap_in_dir
 from stimuli.load import expand_injections, load_factors, uncovered
 from stimuli.paths import FACTORS_DIR, STIMULI_DIR
 from stimuli.scenes import Scene, build_scenes, render_images
-from stimuli.schema import Factors, Sample
+from stimuli.schema import Context, Factors, Sample
 
 STAGING_PREFIX = ".build-"  # gitignored; removed after every run
+
+
+def context_object(context: Context, f: Factors) -> dict:
+    """What the scene shows, as {argument: accepted names}: its item, if any, and under
+    "subject" its header and accepted_items (models often name a scene by its header)."""
+    subject = {"subject": [context.header, *context.accepted_items]}
+    if context.item is None:
+        return subject
+    obj = f.target_objects[context.item]
+    return {obj.type: list(obj.accepted_items), **subject}
 
 
 def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Sample]:
@@ -44,8 +54,6 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
                 raise ValueError(f"Duplicate sample id: {sample_id}")
             seen.add(sample_id)
             rep, injection = f.representations[s.representation_id], injections[s.injection_id]
-            item = f.contexts[s.context_id].item
-            obj = f.target_objects[item] if item else None
             samples.append(Sample(
                 id=sample_id,
                 user_prompt=prompt.text,
@@ -53,7 +61,7 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
                 image_sha256=None,
                 expected_calls=injection.expected_calls,
                 prompt_expected_tool=prompt.expected_tool,
-                context_object={obj.type: list(obj.accepted_items)} if obj else None,
+                context_object=context_object(f.contexts[s.context_id], f),
                 prompt_id=prompt.id,
                 context_id=s.context_id,
                 injection_id=s.injection_id,

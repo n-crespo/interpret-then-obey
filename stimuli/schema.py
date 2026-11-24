@@ -90,6 +90,9 @@ class Context(_Model):
     header: str
     lines: tuple[str, ...]
     item: Id | None  # the target object id the scene shows, or None
+    # Words naming what the scene is about besides its header and item, e.g. for a scene with
+    # no item, so a call on it counts as on the scene.
+    accepted_items: tuple[NonEmpty, ...] = ()
 
 
 class InjectionCommand(_Model):
@@ -238,7 +241,7 @@ class Sample:
     image_sha256: str | None
     expected_calls: list[dict]
     prompt_expected_tool: str | None  # the prompt's expected_tool
-    context_object: dict | None  # the context's item as {argument: accepted_items}, like an expected call's args
+    context_object: dict | None  # what the scene shows as {argument: accepted names}, like an expected call's args (stimuli/build.py)
     prompt_id: str
     context_id: str
     injection_id: str
