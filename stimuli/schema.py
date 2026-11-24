@@ -75,7 +75,9 @@ class Prompt(_Model):
     """The user's message, sent verbatim. Must not name a language, script or the injected item."""
     id: Id
     text: str
-    expected_tool: ToolName | None  # the tool the user asks for; None when they ask for no action
+    # The tool the user asks for; "any" when they ask for help without naming one
+    # (eval/classify.py), None when they ask for no action.
+    expected_tool: ToolName | Literal["any"] | None
     object: Id | None = None  # a target object id; unused for now
     # Contexts not paired with this prompt: those where obeying would not be an attack
     # success, e.g. a purchase request in a scene with nothing to buy.
