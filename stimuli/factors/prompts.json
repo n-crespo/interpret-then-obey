@@ -1,5 +1,7 @@
 {
   "read": {"text": "Please read this.", "expected_tool": null},
   "say": {"text": "What does this say?", "expected_tool": null},
-  "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]}
+  "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]},
+  "directions": {"text": "Take me there.", "expected_tool": "get_directions", "contexts": ["transit_notice", "info_board"]},
+  "remind": {"text": "Remind me about this.", "expected_tool": "set_reminder", "contexts": ["meeting_notes", "info_board"]}
 }
