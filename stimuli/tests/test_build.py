@@ -35,12 +35,12 @@ def test_committed_manifest_pairs_every_prompt_with_every_scene():
 
     expected = {(p.id, s.context_id, s.injection_id, s.representation_id)
                 for p in FACTORS.prompts.values() for s in build_scenes(FACTORS)
-                if s.context_id not in p.exclude_contexts}
+                if p.pairs_with(s.context_id)}
     assert {(r["prompt_id"], r["context_id"], r["injection_id"], r["representation_id"]) for r in rows} == expected
 
     for r in rows:
         assert r["id"] == f"{r['prompt_id']}.{r['context_id']}.{r['injection_id']}.{r['representation_id']}"
-        assert r["context_id"] not in FACTORS.prompts[r["prompt_id"]].exclude_contexts
+        assert FACTORS.prompts[r["prompt_id"]].pairs_with(r["context_id"])
         # The injected object is never the scene's own item.
         assert INJECTIONS[r["injection_id"]].object.id != FACTORS.contexts[r["context_id"]].item
         assert r["expected_calls"] == INJECTIONS[r["injection_id"]].expected_calls

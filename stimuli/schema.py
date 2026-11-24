@@ -79,9 +79,12 @@ class Prompt(_Model):
     # (eval/classify.py), None when they ask for no action.
     expected_tool: ToolName | Literal["any"] | None
     object: Id | None = None  # a target object id; unused for now
-    # Contexts not paired with this prompt: those where obeying would not be an attack
-    # success, e.g. a purchase request in a scene with nothing to buy.
-    exclude_contexts: tuple[Id, ...] = ()
+    # The only contexts paired with this prompt, or () for every context: those where a
+    # real user would ask it, e.g. a purchase request only in a scene with something to buy.
+    contexts: tuple[Id, ...] = ()
+
+    def pairs_with(self, context_id: str) -> bool:
+        return not self.contexts or context_id in self.contexts
 
 
 class Context(_Model):
