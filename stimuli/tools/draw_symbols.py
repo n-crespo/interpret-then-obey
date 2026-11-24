@@ -11,7 +11,7 @@ files in this repository: the vendored fonts and the Noto Emoji images.
     python stimuli/tools/draw_symbols.py buy_book     # just these injections
 
 Every asset is at most 600x140, the largest size render.py pastes into the
-injection box without rescaling. None contains any text.
+injection box without rescaling. Only opaque_legend_text contains words (its legend's).
 
 Objects (OBJECTS) and commands (COMMANDS) are separate, as in target_objects.json
 and injection_commands.json: an object's drawing, glyph and emoji are reused by every command, and a command
@@ -430,6 +430,45 @@ def opaque_legend(obj: dict, out: Path) -> None:
     finish(img, out, "opaque_legend.png")
 
 
+# The opaque_legend_text legend: the same entries in the same order as opaque_legend's,
+# each glyph = its English word. "television" does not fit a 4 x 2 grid of words in the
+# 600px width at a readable size, so the words sit in a 3 x 3 grid (one cell empty) with
+# each column as wide as its longest word.
+TEXT_LEGEND_COLS, TEXT_LEGEND_CELL_H, TEXT_LEGEND_GLYPH, TEXT_LEGEND_FONT = 3, 45, 40, 15
+TEXT_LEGEND_EQ, TEXT_LEGEND_GAP = 22, 12  # width of the glyph-to-word "=" span, gap between columns
+
+
+def _legend_word(entry: str) -> str:
+    return entry.replace("_", " ")
+
+
+def opaque_legend_text(obj: dict, out: Path) -> None:
+    """The opaque sentence (pixel-identical to opaque.png) and a text legend with the
+    same decoys as opaque_legend: every glyph, "buy" and all objects, each = its English word."""
+    font = ImageFont.truetype(str(FONTS / "DejaVuSans-Bold.ttf"), TEXT_LEGEND_FONT * S, layout_engine=ImageFont.Layout.BASIC)
+    cols = [LEGEND_ENTRIES[c::TEXT_LEGEND_COLS] for c in range(TEXT_LEGEND_COLS)]
+    col_w = [TEXT_LEGEND_GLYPH + TEXT_LEGEND_EQ + max(font.getlength(_legend_word(e)) for e in col) / S for col in cols]
+    assert LEGEND_X + sum(col_w) + TEXT_LEGEND_GAP * (TEXT_LEGEND_COLS - 1) <= LEGEND_W, "text legend too wide"
+    img, d = canvas(LEGEND_W, LEGEND_H)
+    _opaque_sentence(d, obj)
+    line(d, [(LEGEND_X - 10, 8), (LEGEND_X - 10, LEGEND_H - 8)], CARD_EDGE, 2)
+    top0 = (LEGEND_H - len(cols[0]) * TEXT_LEGEND_CELL_H) / 2
+    x = LEGEND_X
+    for c, col in enumerate(cols):
+        if c:  # faint rule between columns, as in opaque_legend
+            line(d, [(x - TEXT_LEGEND_GAP / 2, 12), (x - TEXT_LEGEND_GAP / 2, LEGEND_H - 12)], (205, 208, 214, 255), 1.2)
+        for row, entry in enumerate(col):
+            mid = top0 + (row + 0.5) * TEXT_LEGEND_CELL_H
+            glyph = glyph_buy if entry == "buy" else OBJECTS[entry]["glyph"]
+            glyph(d, x, mid - TEXT_LEGEND_GLYPH / 2, TEXT_LEGEND_GLYPH)
+            ex = x + TEXT_LEGEND_GLYPH + 5
+            for dy in (-3.5, 3.5):  # equals sign
+                line(d, [(ex, mid + dy), (ex + 9, mid + dy)], INK, 2.6)
+            d.text(((ex + 16) * S, mid * S), _legend_word(entry), font=font, fill=INK, anchor="lm")
+        x += col_w[c] + TEXT_LEGEND_GAP
+    finish(img, out, "opaque_legend_text.png")
+
+
 def emoji(obj: dict, out: Path) -> None:
     """Emoji strip: the object, right arrow, shopping cart (U+27A1 U+1F6D2).
 
@@ -458,7 +497,7 @@ def emoji(obj: dict, out: Path) -> None:
 # Command id (as in injection_commands.json) -> its symbol-set layouts. Each layout writes
 # <layout name>.png, the file the command's image renditions point to.
 COMMANDS = {
-    "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend),
+    "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend, opaque_legend_text),
 }
 
 HAND_DRAWN = {"buy/bear/pictogram.png"}

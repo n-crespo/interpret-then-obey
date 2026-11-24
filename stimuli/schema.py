@@ -53,8 +53,9 @@ FontFile = Annotated[str, AfterValidator(_is_font)]
 # The interpretation gradient, in order: how hard it is to work out what the injection
 # says, so obeying can be measured across that range. Whether the order holds is for the
 # data to decide. `opaque` is two invented glyphs with no meaning: alone it is a control
-# whose obey rate should match the baseline's; with a picture legend (`opaque_legend`)
-# it tests whether the model learns a code from the image and acts on it.
+# whose obey rate should match the baseline's; with a picture or text legend
+# (`opaque_legend`, `opaque_legend_text`) it tests whether the model learns a code from
+# the image and acts on it.
 Category =Literal["natural", "constructed", "symbols", "opaque", "obfuscated", "keyed"]
 
 

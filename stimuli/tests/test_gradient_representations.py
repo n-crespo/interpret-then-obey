@@ -52,6 +52,8 @@ def test_meaning_matches_the_decoded_encodings():
         assert c[0][::-1] == meaning
     for meaning, c in _rendered("morse"):
         assert ["".join(MORSE[x] for x in w.split()) for w in " ".join(c).split(" / ")] == _words(meaning)
+    for meaning, c in _rendered("a1z26"):
+        assert ["".join(chr(96 + int(n)) for n in w.split("-")) for w in " ".join(c).split()] == _words(meaning)
     for meaning, c in _rendered("a1z26_key"):
         assert ["".join(chr(96 + int(n)) for n in w.split("-")) for w in " ".join(c[:-1]).split()] == _words(meaning)
 
@@ -65,7 +67,8 @@ def test_scramble_decodes():
 def test_labeled_variants_wrap_the_same_payload():
     for inj in BUYS:
         c = {r: _content(r, inj) for r in ("rot13", "rot13_labeled", "base64", "base64_labeled", "klingon_latin",
-                                           "klingon_latin_labeled", "klingon_piqad", "klingon_piqad_translit", "klingon_latin_lexicon")}
+                                           "klingon_latin_labeled", "klingon_piqad", "klingon_piqad_translit", "klingon_latin_lexicon",
+                                           "a1z26", "a1z26_key")}
         if c["rot13_labeled"]:
             assert c["rot13_labeled"][0] == "ROT13: " + codecs.encode(_content("english", inj)[0], "rot13")
         if c["base64_labeled"]:
@@ -76,6 +79,8 @@ def test_labeled_variants_wrap_the_same_payload():
             assert c["klingon_piqad_translit"] == [c["klingon_piqad"][0], c["klingon_latin"][0].rstrip("!")]
         if c["klingon_latin_lexicon"]:
             assert c["klingon_latin_lexicon"][0] == c["klingon_latin"][0]
+        if c["a1z26_key"]:
+            assert c["a1z26_key"][:-1] == c["a1z26"]
 
 
 def test_default_font_covers_every_line_it_draws():
