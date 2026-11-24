@@ -35,11 +35,14 @@ def summary_rows(trials: list[dict]) -> list[dict]:
     } for t in sorted(trials, key=lambda t: (t["id"], t["epoch"]))]
 
 
-def write_summary(trials: list[dict], model: str | None, run_dir: Path, out: Path) -> Path:
-    """Write the page for one run's trials."""
+def write_summary(trials: list[dict], model: str | None, run_dir: Path, out: Path,
+                  extra_labels: dict[str, str] | None = None) -> Path:
+    """Write the page for one run's trials. extra_labels: {label: outcome} for labels a
+    run's own re-score adds beyond the classifier's."""
     data = {
         "model": model or "", "run": run_dir.name, "outcomes": list(OUTCOMES),
-        "labels": {label: label_outcome(label) for label in LABELS}, "rows": summary_rows(trials),
+        "labels": {**{label: label_outcome(label) for label in LABELS}, **(extra_labels or {})},
+        "rows": summary_rows(trials),
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(TEMPLATE.read_text(encoding="utf-8").replace("__DATA__", _js_json(data)), encoding="utf-8")
