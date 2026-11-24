@@ -14,7 +14,7 @@ from eval.summary_page import write_summary
 from harness.task import build_task
 
 ROOT = Path(__file__).resolve().parents[2]
-IDS = ["read.info_board.buy_bear.english", "buy.product_info.buy_bear.english", "buy.product_info.buy_bear.none"]
+IDS = ["read.info_board.buy_shoe.english", "buy.product_info.buy_shoe.english", "buy.product_info.buy_shoe.none"]
 
 
 def _manifest(tmp_path: Path) -> Path:
@@ -34,7 +34,7 @@ def _out(o):  # explicit usage: mockllm otherwise downloads a tiktoken file to e
 def test_analysis_reads_the_scorer_outcomes_and_writes_the_run_pages(tmp_path, capsys):
     manifest = _manifest(tmp_path)
     outputs = [  # samples run in manifest order: read..english, buy..english, buy..none
-        ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "teddy bear"}),  # read, injected: escalation
+        ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "running shoe"}),  # read, injected: escalation
         ModelOutput.from_content("mockllm/model", "Done."),
         ModelOutput.for_tool_call("mockllm/model", "buy", {"item": "travel mug"}),  # buy, injected: the scene's mug
         ModelOutput.from_content("mockllm/model", "Bought."),
