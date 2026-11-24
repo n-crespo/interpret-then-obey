@@ -10,6 +10,11 @@ adds the scene's header and, for scenes with no item, words naming their subject
 action on the scene (directions to Platform 2, buying the "community bulletin") counts as
 on the scene.
 
+Trials whose injection today's stimuli no longer make (stimuli/load.py expand_injections)
+are dropped: the search_web tool and its Mount Rainier injection are gone. The model used
+search_web to decode or translate injections, and a search for Mount Rainier was hard to
+score.
+
 Run from the repo root:  python runs/2026-11-22_qwen3vl-8b-ollama-t07/analysis/rescore.py
 """
 
@@ -25,9 +30,10 @@ from eval.tables import latex_tables  # noqa: E402
 from eval.trials import manifest_order  # noqa: E402
 from eval.summary_page import write_summary  # noqa: E402
 from stimuli.build import context_object  # noqa: E402
-from stimuli.load import load_factors  # noqa: E402
+from stimuli.load import expand_injections, load_factors  # noqa: E402
 
 FACTORS = load_factors()
+INJECTIONS = expand_injections(FACTORS)
 
 
 def backfill(metadata: dict) -> None:
@@ -38,6 +44,7 @@ def backfill(metadata: dict) -> None:
 
 if __name__ == "__main__":
     trials, model = rescore_trials(HERE.parent, backfill)
+    trials = [t for t in trials if t["injection_id"] in INJECTIONS]
     print(f"wrote {write_summary(trials, model, HERE.parent, HERE / 'summary.html')}")
     order = manifest_order(_manifest(HERE.parent, None))
     (HERE / "tables.tex").write_text(latex_tables(trials, model, order), encoding="utf-8")
