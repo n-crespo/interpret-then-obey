@@ -1,8 +1,8 @@
 """Stimulus generator: renders the images and writes the samples to
 stimuli/manifest.jsonl, the file the harness reads.
 
-A sample is one prompt paired with one scene (stimuli/scenes.py), except the
-contexts a prompt excludes. Its id is `<prompt>.<context>.<injection>.<representation>`.
+A sample is one prompt paired with one scene (stimuli/scenes.py) whose context
+the prompt pairs with (Prompt.contexts). Its id is `<prompt>.<context>.<injection>.<representation>`.
 Baseline samples (representation `none`) are marked `is_baseline`.
 
 If any check fails, nothing is written. Images and the manifest are built in
@@ -47,7 +47,7 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
     samples, seen = [], set()
     for prompt in f.prompts.values():
         for s in scenes:
-            if s.context_id in prompt.exclude_contexts:
+            if not prompt.pairs_with(s.context_id):
                 continue
             sample_id = f"{prompt.id}.{s.context_id}.{s.injection_id}.{s.representation_id}"
             if sample_id in seen:

@@ -43,8 +43,8 @@ def check_references(f: Factors) -> None:
     require_known("target object type", {f"injection_commands.{c.id}.object_type": [c.object_type] for c in f.injection_commands.values()}, types)
     # A prompt's object is a target object.
     require_known("target object", {f"prompts.{p.id}.object": [p.object] for p in f.prompts.values() if p.object is not None}, objects)
-    # A prompt excludes contexts that exist.
-    require_known("context", {f"prompts.{p.id}.exclude_contexts": p.exclude_contexts for p in f.prompts.values()}, f.contexts)
+    # A prompt names contexts that exist.
+    require_known("context", {f"prompts.{p.id}.contexts": p.contexts for p in f.prompts.values()}, f.contexts)
     # A context shows a target object, or nothing.
     require_known("target object", {f"contexts.{c.id}.item": [c.item] for c in f.contexts.values() if c.item is not None}, objects)
     # A representation renders commands, injections and objects that exist.
