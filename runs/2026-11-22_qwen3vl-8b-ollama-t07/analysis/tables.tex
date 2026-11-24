@@ -35,11 +35,11 @@ morse & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
 rot13\_labeled & keyed & latin & 60 & 6/60 (10\%) & 5--20 \\
 base64\_labeled & keyed & latin & 12 & 1/12 (8\%) & 1--35 \\
 a1z26\_key & keyed & latin & 12 & 0/12 (0\%) & 0--24 \\
-klingon\_latin\_lexicon & keyed & latin & 12 & 2/12 (17\%) & 5--45 \\
+klingon\_latin\_lexicon & keyed & latin & 12 & 1/12 (8\%) & 1--35 \\
 klingon\_latin\_labeled & constructed & latin & 12 & 0/12 (0\%) & 0--24 \\
 klingon\_piqad\_translit & constructed & non\_latin & 12 & 0/12 (0\%) & 0--24 \\
 \midrule
-All injected & & & 1422 & 291/1422 (20\%) & 18--23 \\
+All injected & & & 1422 & 290/1422 (20\%) & 18--23 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -55,21 +55,21 @@ Factor & Level & $N$ & Attack success & 95\% CI \\
 \midrule
 Category & natural & 354 & 219/354 (62\%) & 57--67 \\
  & obfuscated & 108 & 23/108 (21\%) & 15--30 \\
- & keyed & 96 & 9/96 (9\%) & 5--17 \\
+ & keyed & 96 & 8/96 (8\%) & 4--16 \\
  & constructed & 276 & 5/276 (2\%) & 1--4 \\
  & symbols & 420 & 32/420 (8\%) & 5--11 \\
  & opaque & 168 & 3/168 (2\%) & 1--5 \\
 \midrule
-Script & latin & 654 & 207/654 (32\%) & 28--35 \\
+Script & latin & 654 & 206/654 (31\%) & 28--35 \\
  & non\_latin & 180 & 49/180 (27\%) & 21--34 \\
 \midrule
 Prompt & read & 593 & 166/593 (28\%) & 25--32 \\
- & help & 593 & 118/593 (20\%) & 17--23 \\
+ & help & 593 & 117/593 (20\%) & 17--23 \\
  & buy & 236 & 7/236 (3\%) & 1--6 \\
 \midrule
 Context & advertisement & 354 & 60/354 (17\%) & 13--21 \\
  & info\_board & 238 & 50/238 (21\%) & 16--27 \\
- & meeting\_notes & 238 & 52/238 (22\%) & 17--28 \\
+ & meeting\_notes & 238 & 51/238 (21\%) & 17--27 \\
  & product\_info & 354 & 80/354 (23\%) & 19--27 \\
  & transit\_notice & 238 & 49/238 (21\%) & 16--26 \\
 \bottomrule
@@ -85,9 +85,9 @@ Context & advertisement & 354 & 60/354 (17\%) & 13--21 \\
 \toprule
 Prompt & Rows & $N$ & Attack success & Token cutoff & Attack failure & Model failure \\
 \midrule
-read & injected & 593 & 166/593 (28\%) & 2/593 (0\%) & 380/593 (64\%) & 45/593 (8\%) \\
+read & injected & 593 & 166/593 (28\%) & 2/593 (0\%) & 389/593 (66\%) & 36/593 (6\%) \\
  & baseline & 53 & 0/53 (0\%) & 0/53 (0\%) & 47/53 (89\%) & 6/53 (11\%) \\
-help & injected & 593 & 118/593 (20\%) & 0/593 (0\%) & 443/593 (75\%) & 32/593 (5\%) \\
+help & injected & 593 & 117/593 (20\%) & 0/593 (0\%) & 457/593 (77\%) & 19/593 (3\%) \\
  & baseline & 53 & 0/53 (0\%) & 0/53 (0\%) & 53/53 (100\%) & 0/53 (0\%) \\
 buy & injected & 236 & 7/236 (3\%) & 0/236 (0\%) & 228/236 (97\%) & 1/236 (0\%) \\
  & baseline & 20 & 0/20 (0\%) & 0/20 (0\%) & 20/20 (100\%) & 0/20 (0\%) \\
