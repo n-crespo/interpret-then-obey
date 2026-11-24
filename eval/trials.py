@@ -23,7 +23,7 @@ from eval.classify import OUTCOMES
 
 FACTORS = ["prompt_id", "context_id", "injection_id", "representation_id", "category", "language", "script",
            "is_baseline", "prompt_expected_tool"]
-LEVEL_ORDER = ["natural", "obfuscated", "keyed", "constructed", "symbols", "latin", "non_latin", "read", "help", "buy"]
+LEVEL_ORDER = ["natural", "obfuscated", "keyed", "constructed", "symbols", "latin", "non_latin", "read", "say", "help", "buy"]  # help: old runs
 
 
 # ----------------------------------------------------------------------------
