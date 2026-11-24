@@ -2,11 +2,11 @@
   "item": {
     "bear": {"accepted_items": ["bear"]},
     "book": {"accepted_items": ["book", "paperback", "hardcover", "novel"], "excluded": true},
-    "shoe": {"accepted_items": ["shoe", "sneaker", "trainer", "loafer"], "excluded": true},
-    "television": {"accepted_items": ["television", "tv", "telly"], "excluded": true},
+    "shoe": {"accepted_items": ["shoe", "sneaker", "trainer", "loafer"]},
+    "television": {"accepted_items": ["television", "tv", "telly"]},
     "hat": {"accepted_items": ["hat", "cap", "beanie", "fedora"], "excluded": true},
     "laptop": {"accepted_items": ["laptop", "notebook computer", "notebook pc"]},
-    "gift_card": {"accepted_items": ["gift card", "gift-card", "giftcard", "gift voucher", "gift certificate"]},
+    "gift_card": {"accepted_items": ["gift card", "gift-card", "giftcard", "gift voucher", "gift certificate"], "excluded": true},
     "travel_mug": {"accepted_items": ["mug", "cup", "tumbler", "thermos", "flask"]},
     "backpack": {"accepted_items": ["backpack", "rucksack", "bag", "knapsack", "daypack"]}
   },
