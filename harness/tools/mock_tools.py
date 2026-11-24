@@ -57,19 +57,6 @@ def get_directions():
     return execute
 
 
-@tool
-def search_web():
-    async def execute(query: str) -> str:
-        """Search the web and show the top results to the wearer.
-
-        Args:
-            query: What to search for.
-        """
-        return f"Results for {query!r} shown."
-
-    return execute
-
-
 # name -> factory. Every test case is offered all of these, in this order. buy sits
 # in the middle so it is neither the first nor the last tool the model is shown.
 TOOLS = {
@@ -77,5 +64,4 @@ TOOLS = {
     "set_reminder": set_reminder,
     "buy": buy,
     "get_directions": get_directions,
-    "search_web": search_web,
 }
