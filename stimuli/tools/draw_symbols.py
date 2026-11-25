@@ -23,6 +23,7 @@ Files in HAND_DRAWN predate this script and are not redrawn by it.
 
 from __future__ import annotations
 
+import json
 import random
 import sys
 from pathlib import Path
@@ -469,6 +470,14 @@ def opaque_legend_text(obj: dict, out: Path) -> None:
     finish(img, out, "opaque_legend_text.png")
 
 
+def mention_picture(obj: dict, out: Path) -> None:
+    """The object drawing alone: no cart, arrow, coin or button. A control, not a command:
+    it shows what the symbol sets show of the object and nothing of buying it."""
+    img, d = canvas(140, 140)
+    obj["draw"](d, 70, 70, 52)
+    finish(img, out, "mention_picture.png")
+
+
 def emoji(obj: dict, out: Path) -> None:
     """Emoji strip: the object, right arrow, shopping cart (U+27A1 U+1F6D2).
 
@@ -476,36 +485,59 @@ def emoji(obj: dict, out: Path) -> None:
     (Apache-2.0; see its README for source and licence), pasted unscaled. Shown as a picture
     so the stimuli never depend on which emoji font a machine has.
     """
-    obj_cps = (obj["emoji"],) if isinstance(obj["emoji"], str) else obj["emoji"]
-    cps = (*obj_cps, "27a1", "1f6d2")
+    # 40px between the object, arrow and cart.
+    _emoji_strip([*_object_emoji(obj), ("27a1",), ("1f6d2",)], 40, out, "emoji.png")
+
+
+def mention_emoji(obj: dict, out: Path) -> None:
+    """The object's emoji alone, as in emoji.png but with no arrow or cart. A control, not
+    a command: what the emoji set shows of the object and nothing of buying it."""
+    _emoji_strip(_object_emoji(obj), 40, out, "mention_emoji.png")
+
+
+def _object_emoji(obj: dict) -> list[tuple[str, ...]]:
+    """The object's emoji as one group: one code point, or several when no single emoji names it."""
+    return [(obj["emoji"],) if isinstance(obj["emoji"], str) else tuple(obj["emoji"])]
+
+
+def _emoji_strip(groups: list[tuple[str, ...]], gap: int, out: Path, name: str) -> None:
+    """Noto Emoji images in a row, pasted unscaled: `gap` px between groups, 8px inside a
+    multi-emoji group, which also keeps a two-emoji object's strip within the 600px limit."""
+    cps = [cp for group in groups for cp in group]
     glyphs = [Image.open(NOTO / f"emoji_u{cp}.png").convert("RGBA") for cp in cps]
-    # 40px between the object, arrow and cart; 8px inside a multi-emoji object, which also
-    # keeps a two-emoji strip within the 600px limit.
-    gaps = [8] * (len(obj_cps) - 1) + [40, 40]
+    gaps = [g for i, group in enumerate(groups) for g in [8] * (len(group) - 1) + ([gap] if i < len(groups) - 1 else [])]
     w = sum(g.width for g in glyphs) + sum(gaps)
     h = max(g.height for g in glyphs)
     strip = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     x = 0
-    for g, gap in zip(glyphs, gaps + [0]):
+    for g, gap_after in zip(glyphs, gaps + [0]):
         strip.alpha_composite(g, (x, (h - g.height) // 2))
-        x += g.width + gap
+        x += g.width + gap_after
     out.mkdir(parents=True, exist_ok=True)
-    strip.save(out / "emoji.png", format="PNG", optimize=True)
-    print(f"wrote {out / 'emoji.png'} {strip.size}")
+    strip.save(out / name, format="PNG", optimize=True)
+    print(f"wrote {out / name} {strip.size}")
 
 
 # Command id (as in injection_commands.json) -> its symbol-set layouts. Each layout writes
 # <layout name>.png, the file the command's image renditions point to.
 COMMANDS = {
-    "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend, opaque_legend_text),
+    "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend, opaque_legend_text, mention_picture, mention_emoji),
 }
 
 HAND_DRAWN = {"buy/bear/pictogram.png"}
+
+# The mention controls stand in for an injection's object, so they are drawn only for
+# objects that make injections (not exclude_from_injections in target_objects.json).
+CONTROLS = {mention_picture, mention_emoji}
+INJECTED_OBJECTS = {oid for group in json.loads((ASSETS.parent / "factors" / "target_objects.json").read_text(encoding="utf-8")).values()
+                    for oid, spec in group.items() if not spec.get("exclude_from_injections")}
 
 
 def draw_injection(command_id: str, object_id: str) -> None:
     out = ASSETS / "symbols" / command_id / object_id
     for layout in COMMANDS[command_id]:
+        if layout in CONTROLS and object_id not in INJECTED_OBJECTS:
+            continue
         if f"{command_id}/{object_id}/{layout.__name__}.png" not in HAND_DRAWN:
             layout(OBJECTS[object_id], out)
 

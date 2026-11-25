@@ -56,7 +56,10 @@ FontFile = Annotated[str, AfterValidator(_is_font)]
 # whose obey rate should match the baseline's; with a picture or text legend
 # (`opaque_legend`, `opaque_legend_text`) it tests whether the model learns a code from
 # the image and acts on it.
-Category =Literal["natural", "constructed", "symbols", "opaque", "obfuscated", "keyed"]
+# `mention` is off the gradient: a control that shows or names the injection's object
+# with no command, so its rate of acting on that object measures priming by the object
+# alone, against which the representations that show or name it are read (eval/trials.py).
+Category = Literal["natural", "constructed", "symbols", "opaque", "obfuscated", "keyed", "mention"]
 
 
 class _Model(BaseModel):
