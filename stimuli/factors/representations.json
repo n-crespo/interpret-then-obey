@@ -789,6 +789,17 @@
       }
     }
   },
+  "mention_emoji": {
+    "format": "image",
+    "category": "mention",
+    "notes": "Control: the object's emoji from the emoji set, alone, with no arrow or cart. Its buy rate is priming by the emoji alone, to read emoji against (mention_picture uses the drawing the other symbol sets use, not the emoji).",
+    "injection_commands": {
+      "buy": {
+        "content": ["stimuli/assets/symbols/buy/{object}/mention_emoji.png"],
+        "notes": "The Noto Emoji image(s) emoji.png starts with, unscaled. Drawn by stimuli/tools/draw_symbols.py."
+      }
+    }
+  },
   "none": {
     "format": "none",
     "category": "baseline",
