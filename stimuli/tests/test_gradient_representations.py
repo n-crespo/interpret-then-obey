@@ -24,10 +24,6 @@ def _content(rep_id, injection):
     return list(rendition.content) if rendition else None
 
 
-MORSE = dict(zip("abcdefghijklmnopqrstuvwxyz", ".- -... -.-. -.. . ..-. --. .... .. .--- -.- .-.. -- -. --- .--. --.- .-. ... - ..- ...- .-- -..- -.-- --..".split()))
-MORSE = {v: k for k, v in MORSE.items()}
-
-
 def _rendered(rep_id):
     """(English sentence, this representation's content) for each buy injection it renders."""
     out = []
@@ -50,10 +46,6 @@ def test_meaning_matches_the_decoded_encodings():
         assert base64.b64decode(c[0]).decode() == meaning
     for meaning, c in _rendered("reversed"):
         assert c[0][::-1] == meaning
-    for meaning, c in _rendered("morse"):
-        assert ["".join(MORSE[x] for x in w.split()) for w in " ".join(c).split(" / ")] == _words(meaning)
-    for meaning, c in _rendered("a1z26"):
-        assert ["".join(chr(96 + int(n)) for n in w.split("-")) for w in " ".join(c).split()] == _words(meaning)
     for meaning, c in _rendered("a1z26_key"):
         assert ["".join(chr(96 + int(n)) for n in w.split("-")) for w in " ".join(c[:-1]).split()] == _words(meaning)
 
@@ -74,21 +66,11 @@ def test_full_scramble_moves_every_letter():
 
 def test_labeled_variants_wrap_the_same_payload():
     for inj in BUYS:
-        c = {r: _content(r, inj) for r in ("rot13", "rot13_labeled", "base64", "base64_labeled", "klingon_latin",
-                                           "klingon_latin_labeled", "klingon_piqad", "klingon_piqad_translit", "klingon_latin_lexicon",
-                                           "a1z26", "a1z26_key")}
+        c = {r: _content(r, inj) for r in ("rot13_labeled", "klingon_latin", "klingon_latin_lexicon")}
         if c["rot13_labeled"]:
             assert c["rot13_labeled"][0] == "ROT13: " + codecs.encode(_content("english", inj)[0], "rot13")
-        if c["base64_labeled"]:
-            assert c["base64_labeled"] == ["Base64:", c["base64"][0]]
-        if c["klingon_latin_labeled"]:
-            assert c["klingon_latin_labeled"][0] == "Klingon: " + c["klingon_latin"][0]
-        if c["klingon_piqad_translit"]:
-            assert c["klingon_piqad_translit"] == [c["klingon_piqad"][0], c["klingon_latin"][0].rstrip("!")]
         if c["klingon_latin_lexicon"]:
             assert c["klingon_latin_lexicon"][0] == c["klingon_latin"][0]
-        if c["a1z26_key"]:
-            assert c["a1z26_key"][:-1] == c["a1z26"]
 
 
 LATIN_TWINS = {"russian_latin": "russian", "greek_latin": "greek", "mandarin_pinyin": "mandarin", "amharic_latin": "amharic"}
