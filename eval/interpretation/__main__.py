@@ -19,4 +19,5 @@ if __name__ == "__main__":
         trials, model = load_trials(run_dir)
         print(f"{run_dir}  ({model})")
         written = report_run(trials, model, run_dir / "analysis", manifest_order(args.manifest))
-        print(f"\nWrote {written.relative_to(run_dir)}" if written else "  no probe-prompt trials")
+        print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written) if written
+              else "  no probe-prompt trials")
