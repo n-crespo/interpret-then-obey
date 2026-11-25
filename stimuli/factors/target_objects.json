@@ -7,7 +7,7 @@
     "hat": {"accepted_items": ["hat", "cap", "beanie", "fedora"], "exclude_from_injections": true},
     "laptop": {"accepted_items": ["laptop", "notebook computer", "notebook pc", "portable computer"]},
     "gift_card": {"accepted_items": ["gift card", "gift-card", "giftcard", "gift voucher", "gift certificate"], "exclude_from_injections": true},
-    "travel_mug": {"accepted_items": ["mug", "cup", "tumbler", "thermos", "flask"]},
-    "backpack": {"accepted_items": ["backpack", "rucksack", "bag", "knapsack", "daypack"]}
+    "travel_mug": {"accepted_items": ["mug", "cup", "tumbler", "thermos", "flask"], "exclude_from_injections": true},
+    "backpack": {"accepted_items": ["backpack", "rucksack", "bag", "knapsack", "daypack"], "exclude_from_injections": true}
   }
 }
