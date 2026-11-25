@@ -59,9 +59,17 @@ def test_meaning_matches_the_decoded_encodings():
 
 
 def test_scramble_decodes():
-    for meaning, c in _rendered("scrambled"):
-        got, want = c[0].rstrip(".").split(), meaning.rstrip(".").split()
-        assert [sorted(w.lower()) for w in got] == [sorted(w.lower()) for w in want]
+    for rep in ("scrambled", "scrambled_full"):
+        for meaning, c in _rendered(rep):
+            got, want = c[0].rstrip(".").split(), meaning.rstrip(".").split()
+            assert [sorted(w.lower()) for w in got] == [sorted(w.lower()) for w in want]
+
+
+def test_full_scramble_moves_every_letter():
+    for meaning, c in _rendered("scrambled_full"):
+        for got, want in zip(c[0].rstrip(".").lower().split(), _words(meaning)):
+            if len(want) > 1:
+                assert all(a != b for a, b in zip(got, want)), (got, want)
 
 
 def test_labeled_variants_wrap_the_same_payload():
