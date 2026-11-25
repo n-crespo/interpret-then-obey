@@ -22,9 +22,9 @@ from dataclasses import asdict
 from pathlib import Path
 
 from harness.manifest import load_manifest
-from stimuli.files import swap_in_dir
+from stimuli.files import sha256_file, swap_in_dir
 from stimuli.load import expand_injections, load_factors, uncovered
-from stimuli.paths import FACTORS_DIR, STIMULI_DIR
+from stimuli.paths import FACTORS_DIR, REPO_ROOT, STIMULI_DIR
 from stimuli.scenes import Scene, build_scenes, render_images
 from stimuli.schema import Context, Factors, Sample
 
@@ -39,6 +39,28 @@ def context_object(context: Context, f: Factors) -> dict:
         return subject
     obj = f.target_objects[context.item]
     return {obj.type: list(obj.accepted_items), **subject}
+
+
+def context_turns(rep) -> list[dict] | None:
+    """A representation's earlier turns in the harness's `context` format, each image with
+    its sha256 so the harness verifies it like the scene's."""
+    if not rep.context_turns:
+        return None
+    turns = []
+    for t in rep.context_turns:
+        turn = {"role": t.role, "text": t.text}
+        if t.image:
+            turn |= {"image": t.image, "image_sha256": sha256_file(REPO_ROOT / t.image)}
+        turns.append(turn)
+    return turns
+
+
+def manifest_row(s: Sample) -> dict:
+    """One manifest line. `context` only on rows that have earlier turns."""
+    row = asdict(s)
+    if row["context"] is None:
+        del row["context"]
+    return row
 
 
 def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Sample]:
@@ -70,6 +92,7 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
                 category=rep.category,
                 language=rep.language,
                 script=rep.script,
+                context=context_turns(rep),
             ))
     return samples
 
@@ -99,7 +122,7 @@ def generate(factors_dir: Path = FACTORS_DIR, stimuli_dir: Path = STIMULI_DIR) -
         staged_manifest = staging / stimuli_dir.name / "manifest.jsonl"
         with open(staged_manifest, "w", encoding="utf-8", newline="\n") as out:
             for s in samples:
-                out.write(json.dumps(asdict(s)) + "\n")
+                out.write(json.dumps(manifest_row(s)) + "\n")
 
         print("Verifying manifest with harness.manifest.load_manifest(..., verify_hashes=True)...")
         loaded = load_manifest(staged_manifest, image_root=staging, verify_hashes=True)

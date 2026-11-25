@@ -128,6 +128,24 @@ class Rendition(_Model):
         return self.model_copy(update={"content": tuple(line.format(object=word) for line in self.content)})
 
 
+class ContextTurn(_Model):
+    """An earlier turn of the conversation, before the scene (the harness's `context`): for
+    example a legend already in context. The final turn is always the prompt and the scene."""
+    role: Literal["user", "assistant"]
+    text: str | None = None
+    image: str | None = None  # path from the repo root; a committed asset, not rendered
+
+    @model_validator(mode="after")
+    def _has_content(self) -> ContextTurn:
+        if not self.text and not self.image:
+            raise ValueError("a context turn needs text, an image or both")
+        if self.image and not (REPO_ROOT / self.image).is_file():
+            raise ValueError(f"image not found: {REPO_ROOT / self.image}")
+        if self.image and self.role != "user":
+            raise ValueError("only user turns can carry an image")
+        return self
+
+
 class _Representation(_Model):
     id: Id
     notes: str | None = None
@@ -142,6 +160,8 @@ class _Drawn(_Representation):
     category: Category
     injection_commands: dict[Id, Rendition] = {}
     injections: dict[Id, Rendition] = {}  # whole renditions
+    # Turns sent before the scene, the same for every sample of the representation.
+    context_turns: tuple[ContextTurn, ...] = ()
 
 
 class TextRepresentation(_Drawn):
@@ -187,6 +207,7 @@ class BaselineRepresentation(_Representation):
     injection_commands: ClassVar[dict[str, Rendition]] = {}
     target_objects: ClassVar[dict[str, str]] = {}
     injections: ClassVar[dict[str, Rendition]] = {}
+    context_turns: ClassVar[tuple] = ()
 
 
 Representation = Annotated[TextRepresentation | ImageRepresentation | BaselineRepresentation, Field(discriminator="format")]
@@ -255,3 +276,6 @@ class Sample:
     category: str
     language: str | None
     script: str | None
+    # Earlier turns ({role, text, image, image_sha256}), or None: the row is the scene alone.
+    # Left out of the manifest row when None (stimuli/build.py).
+    context: list[dict] | None = None

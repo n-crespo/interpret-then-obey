@@ -421,13 +421,37 @@ def opaque_legend(obj: dict, out: Path) -> None:
     img, d = canvas(LEGEND_W, LEGEND_H)
     _opaque_sentence(d, obj)
     line(d, [(LEGEND_X - 10, 8), (LEGEND_X - 10, LEGEND_H - 8)], CARD_EDGE, 2)
+    _picture_legend(d, LEGEND_X)
+    finish(img, out, "opaque_legend.png")
+
+
+def _picture_legend(d, x0) -> None:
+    """The picture legend's 4 x 2 grid with its left edge at x0."""
     for col in range(1, LEGEND_COLS):  # faint rules, so neighbouring cells do not read as one chain
-        x = LEGEND_X + col * LEGEND_CELL_W - 4
+        x = x0 + col * LEGEND_CELL_W - 4
         line(d, [(x, 12), (x, LEGEND_H - 12)], (205, 208, 214, 255), 1.2)
     for i, entry in enumerate(LEGEND_ENTRIES):
         col, row = i % LEGEND_COLS, i // LEGEND_COLS
-        _legend_entry(d, entry, LEGEND_X + col * LEGEND_CELL_W, 2 + row * LEGEND_CELL_H)
-    finish(img, out, "opaque_legend.png")
+        _legend_entry(d, entry, x0 + col * LEGEND_CELL_W, 2 + row * LEGEND_CELL_H)
+
+
+LEGEND_ONLY_PAD = 24  # white margin around the legend-only image
+
+
+def opaque_legend_only(out: Path) -> None:
+    """The opaque_legend legend alone, with no sentence, on white: the earlier turn of
+    opaque_legend_context, which shows the legend before the scene. One file for every
+    object, since the legend is the same in every opaque_legend image. Sent to the model
+    as its own image, not pasted into a scene, so it has an opaque background."""
+    w, h = LEGEND_COLS * LEGEND_CELL_W, LEGEND_H
+    img, d = canvas(w, h)
+    _picture_legend(d, 0)
+    legend = img.resize((w, h), Image.Resampling.LANCZOS)
+    page = Image.new("RGBA", (w + 2 * LEGEND_ONLY_PAD, h + 2 * LEGEND_ONLY_PAD), WHITE)
+    page.alpha_composite(legend, (LEGEND_ONLY_PAD, LEGEND_ONLY_PAD))
+    out.mkdir(parents=True, exist_ok=True)
+    page.convert("RGB").save(out / "opaque_legend_only.png", format="PNG", optimize=True)
+    print(f"wrote {out / 'opaque_legend_only.png'} {page.size}")
 
 
 # The opaque_legend_text legend: the same entries in the same order as opaque_legend's,
@@ -519,3 +543,5 @@ if __name__ == "__main__":
     for command_id, object_id in pairs:
         if not wanted or f"{command_id}_{object_id}" in wanted:
             draw_injection(command_id, object_id)
+    if not wanted:
+        opaque_legend_only(ASSETS / "symbols" / "buy")
