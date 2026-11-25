@@ -45,7 +45,7 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
     """Every sample; image_sha256 is filled in after rendering."""
     injections = expand_injections(f)
     samples, seen = [], set()
-    for prompt in f.prompts.values():
+    for prompt in (p for p in f.prompts.values() if p.enabled):
         for s in scenes:
             if not prompt.pairs_with(s.context_id):
                 continue
