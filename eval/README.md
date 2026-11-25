@@ -9,5 +9,6 @@ and labels, and `scorer.py` runs it as an Inspect scorer during every run.
 Probe prompts (`PROBE_PROMPTS` in `interpretation/__init__.py`) ask what the image says
 and never ask for a tool, so they are left out of attack success. `interpretation/` scores
 their replies for whether the model recovered the payload; `just analyze` prints it and
-writes `interpretation.tex`, or run `python -m eval.interpretation runs/<dir>`. It reads
+writes `interpretation.tex` and `interpretation.html` (every reply in full, to check the
+keyword match), or run `python -m eval.interpretation runs/<dir>`. It reads
 the full replies from `runs/<dir>/inspect_logs/`, which summary.html cuts short.

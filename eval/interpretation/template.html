@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interpretation</title>
+<!-- Filled in by eval/interpretation/page.py -->
+<style>
+:root {
+  color-scheme: light;
+  --background: #f4f3f0;
+  --card: #fcfcfb;
+  --secondary: #ecebe7;
+  --border: #d6d5cf;
+  --ring: #6e6d68;
+  --foreground: #0b0b0b;
+  --muted-foreground: #6a6964;
+  --ok: #0e6b34;
+  --bad: #b92d2c;
+  --mark: #fbe7a1;
+  --control: #8a8983;
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --c5: #e87ba4; --c6: #008300; --c7: #6250d6; --c8: #e34948;
+  --radius: 8px;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --background: #121211; --card: #1a1a19; --secondary: #252523; --border: #3a3a37; --ring: #9a9992;
+    --foreground: #f0efec; --muted-foreground: #9a9992; --ok: #2f9e55; --bad: #e66767; --mark: #5c4a12; --control: #8f8e88;
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181; --c6: #0ca30c; --c7: #9085e9; --c8: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #121211; --card: #1a1a19; --secondary: #252523; --border: #3a3a37; --ring: #9a9992;
+  --foreground: #f0efec; --muted-foreground: #9a9992; --ok: #2f9e55; --bad: #e66767; --mark: #5c4a12; --control: #8f8e88;
+  --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181; --c6: #0ca30c; --c7: #9085e9; --c8: #e66767;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font: 13px/1.45 var(--font-sans); }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.meta { color: var(--muted-foreground); }
+.meta b { color: var(--foreground); }
+.lead { color: var(--muted-foreground); margin: 6px 0 14px; max-width: 760px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.tile { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 10px 12px; }
+.tile .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile .v small { font-size: 12px; font-weight: 400; color: var(--muted-foreground); margin-left: 6px; }
+.tile .k { color: var(--muted-foreground); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; color: var(--muted-foreground); font-size: 12px; margin-bottom: 8px; }
+.legend .key { display: inline-flex; align-items: center; gap: 6px; }
+.chart { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 6px 4px; }
+.row { display: grid; grid-template-columns: minmax(90px, 200px) 1fr 110px; gap: 10px; align-items: center; padding: 3px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+.row:hover { background: var(--secondary); }
+.row.sel { border-color: var(--ring); background: var(--secondary); }
+.row .name { font-family: var(--font-mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .num { font-variant-numeric: tabular-nums; text-align: right; font-size: 12px; }
+.row .num small { color: var(--muted-foreground); margin-left: 4px; }
+.row.head { cursor: pointer; margin-top: 6px; border-top: 1px solid var(--border); border-radius: 0 0 6px 6px; padding-top: 7px; }
+.row.head:first-child { border-top: 0; margin-top: 0; }
+.row.head .name { font-family: var(--font-sans); font-weight: 600; font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.row.axis { cursor: default; padding-bottom: 0; }
+.row.axis:hover { background: none; }
+.ticks { position: relative; height: 14px; font-size: 10.5px; color: var(--muted-foreground); }
+.ticks span { position: absolute; transform: translateX(-50%); }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
+.track { position: relative; height: 14px; background: linear-gradient(to right, transparent calc(25% - .5px), var(--border) 0 calc(25% + .5px), transparent 0 calc(50% - .5px), var(--border) 0 calc(50% + .5px), transparent 0 calc(75% - .5px), var(--border) 0 calc(75% + .5px), transparent 0); }
+.row.head .track { height: 18px; }
+.track .b { position: absolute; left: 0; top: 2px; bottom: 2px; border-radius: 0 4px 4px 0; min-width: 2px; }
+.track .a { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--foreground); border-radius: 1px; }
+.track .ci { position: absolute; top: 50%; height: 0; border-top: 1.5px solid var(--foreground); opacity: .55; }
+.track .ci::before, .track .ci::after { content: ""; position: absolute; top: -4.5px; height: 7px; border-left: 1.5px solid var(--foreground); }
+.track .ci::before { left: 0; } .track .ci::after { right: 0; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.section { margin: 18px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); font-weight: 600; }
+.detail { margin-top: 14px; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; background: var(--card); }
+.detail h2 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.detail .def2 { color: var(--muted-foreground); margin: 2px 0 10px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
+.seg button { all: unset; cursor: pointer; padding: 3px 10px; font-size: 12px; color: var(--muted-foreground); }
+.seg button[aria-pressed=true] { background: var(--secondary); color: var(--foreground); }
+.samples { max-height: 560px; overflow: auto; border-top: 1px solid var(--border); }
+.s { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.s .h { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-bottom: 4px; }
+.s code { font-family: var(--font-mono); font-size: 11.5px; word-break: break-all; }
+.v { font-size: 12px; font-weight: 600; }
+.v.ok { color: var(--ok); } .v.ok::before { content: "✓ "; }
+.v.bad { color: var(--bad); } .v.bad::before { content: "✗ "; }
+.s .w { font-size: 11.5px; color: var(--muted-foreground); }
+.s .r { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12.5px; background: var(--background); border-radius: 6px; padding: 6px 8px; margin: 0; font-family: var(--font-sans); }
+mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 1px; }
+.tip { position: fixed; pointer-events: none; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; display: none; z-index: 9; }
+.hint { color: var(--muted-foreground); font-size: 12px; }
+@media (max-width: 560px) { .row { grid-template-columns: 90px 1fr 70px; } .row .num small { display: none; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Interpretation</h1>
+<div class="meta" id="meta"></div>
+<p class="lead">Replies to the probe prompts (which ask what the image says, not for a tool) that name the
+injection's object, by a whole-word keyword check, not a judge (eval/interpretation/score.py). Click a row
+for its replies in full, with the matched words highlighted.</p>
+<div class="tiles" id="tiles"></div>
+<div class="legend" id="legend"></div>
+<div class="chart" id="chart"></div>
+<div class="section">Controls and baseline</div>
+<div class="chart" id="controls"></div>
+<div class="detail" id="detail"></div>
+<div class="tip" id="tip"></div>
+</main>
+<script>
+const DATA = __DATA__;
+// Categories keep a fixed colour slot in the order eval/trials.py's LEVEL_ORDER gives them.
+const CATS = DATA.category.map(c => c.cat);
+const colOf = cat => CATS.includes(cat) ? `var(--c${CATS.indexOf(cat) % 8 + 1})` : "var(--control)";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const pct = x => (100 * x).toFixed(0) + "%";
+const frac = r => r.n ? `${r.k}/${r.n}` : "–";
+let sel = null, filter = "all";  // sel: {key, title, def, rate, col}; key "" is the baseline
+
+const tip = document.getElementById("tip");
+function showTip(e, html) {
+  tip.innerHTML = html; tip.style.display = "block";
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - 260) + "px"; tip.style.top = (e.clientY + 12) + "px";
+}
+const hideTip = () => { tip.style.display = "none"; };
+
+function track(r, col) {
+  if (!r.n) return `<div class="track"></div>`;
+  const action = r.a == null ? "" : `<i class="a" style="left:${100 * r.a / r.n}%"></i>`;
+  return `<div class="track"><i class="b" style="width:${100 * r.k / r.n}%;background:${col}"></i>${action}
+    <i class="ci" style="left:${100 * r.lo}%;width:${100 * (r.hi - r.lo)}%"></i></div>`;
+}
+function tipHtml(title, r) {
+  return `<b>${esc(title)}</b><br>names object ${frac(r)} · ${r.n ? pct(r.k / r.n) : "–"}` +
+    `<br>95% CI ${pct(r.lo)}–${pct(r.hi)}` + (r.a == null ? "" : `<br>object and action ${r.a}/${r.n}`);
+}
+function row(parent, s, cls, nameHtml) {
+  const el = document.createElement("div");
+  el.className = `row ${cls}` + (sel && sel.key === s.key && sel.title === s.title ? " sel" : "");
+  el.innerHTML = `<span class="name" title="${esc(s.title)}">${nameHtml}</span>${track(s.rate, s.col)}
+    <span class="num">${frac(s.rate)}<small>${s.rate.n ? pct(s.rate.k / s.rate.n) : ""}</small></span>`;
+  el.onmousemove = e => showTip(e, tipHtml(s.title, s.rate));
+  el.onmouseleave = hideTip;
+  el.onclick = () => { sel = sel && sel.title === s.title ? null : s; filter = "all"; render(); };
+  parent.appendChild(el);
+}
+function axis(parent) {
+  const el = document.createElement("div"); el.className = "row axis";
+  el.innerHTML = `<span></span><div class="ticks">${[0, 25, 50, 75, 100].map(t => `<span style="left:${t}%">${t}%</span>`).join("")}</div><span></span>`;
+  parent.appendChild(el);
+}
+
+function render() {
+  const nProbe = Object.values(DATA.trials).reduce((a, ts) => a + ts.length, 0);
+  document.getElementById("meta").innerHTML = `${esc(DATA.model)} · ${esc(DATA.run)} · <b>${nProbe}</b> probe trials`;
+
+  const tot = DATA.category.reduce((a, c) => ({n: a.n + c.n, k: a.k + c.k, a: a.a + c.a}), {n: 0, k: 0, a: 0});
+  const b = DATA.baseline;
+  const tile = (v, sub, k) => `<div class="tile"><div class="v">${v}<small>${sub}</small></div><div class="k">${k}</div></div>`;
+  document.getElementById("tiles").innerHTML =
+    tile(tot.n ? pct(tot.k / tot.n) : "–", `${tot.k}/${tot.n}`, "injected replies naming the object") +
+    tile(tot.n ? pct(tot.a / tot.n) : "–", `${tot.a}/${tot.n}`, "naming the object and its action") +
+    tile(b.n ? pct(b.k / b.n) : "–", `${b.k}/${b.n}`, "baseline replies naming an injected object (false positives)");
+
+  document.getElementById("legend").innerHTML =
+    CATS.map(c => `<span class="key"><span class="sw" style="background:${colOf(c)}"></span>${esc(c)}</span>`).join("") +
+    `<span class="key">bar: names the object</span><span class="key">| : object and action</span><span class="key">⊢⊣ : 95% Wilson CI</span>`;
+
+  const chart = document.getElementById("chart"); chart.innerHTML = ""; axis(chart);
+  DATA.category.forEach(c => {
+    const reps = DATA.representation.filter(r => r.cat === c.cat);
+    row(chart, {key: null, title: c.cat, def: `Every ${c.cat} representation.`, rate: c, col: colOf(c.cat), reps: reps.map(r => r.rep)},
+      "head", `<span class="sw" style="background:${colOf(c.cat)}"></span>${esc(c.cat)}`);
+    reps.forEach(r => row(chart, {key: r.rep, title: r.rep, def: `Representation in category ${r.cat}.`, rate: r, col: colOf(r.cat)}, "", esc(r.rep)));
+  });
+
+  const ctl = document.getElementById("controls"); ctl.innerHTML = ""; axis(ctl);
+  DATA.control.forEach(r => row(ctl, {key: r.rep, title: r.rep, rate: r, col: "var(--control)",
+    def: "Control: the scene mentions the object without an instruction, so naming it is not decoding."}, "", esc(r.rep)));
+  row(ctl, {key: "", title: "baseline", rate: b, col: "var(--bad)",
+    def: "No injection: a reply naming any injected object of the run is a false positive of the keyword check."}, "", "baseline");
+  renderDetail();
+}
+
+function highlight(text, words) {
+  const ws = (words || []).filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"));
+  if (!ws.length) return esc(text);
+  // the whole-word match of eval/classify.py's _contains_words, plural -s/-es included
+  const re = new RegExp(`(?<!\\w)(?:${ws.join("|")})(?:e?s)?(?!\\w)`, "giu");
+  let out = "", last = 0;
+  for (const m of text.matchAll(re)) { out += esc(text.slice(last, m.index)) + `<mark>${esc(m[0])}</mark>`; last = m.index + m[0].length; }
+  return out + esc(text.slice(last));
+}
+function renderDetail() {
+  const el = document.getElementById("detail");
+  if (!sel) { el.innerHTML = `<div class="hint">Click a representation, a category, a control or the baseline for its replies.</div>`; return; }
+  const all = sel.reps ? sel.reps.flatMap(r => DATA.trials[r] || []) : DATA.trials[sel.key] || [];
+  const shown = all.filter(t => filter === "all" || (filter === "hit") === t.obj);
+  const hits = all.filter(t => t.obj).length, base = sel.key === "";
+  const words = t => (base ? DATA.baseline_items : t.w).concat(base ? [] : t.aw);
+  el.innerHTML = `<h2><span class="sw" style="background:${sel.col}"></span>${esc(sel.title)}
+      <span class="meta" style="font-weight:400">${hits} of ${all.length} replies name ${base ? "an injected" : "the"} object</span></h2>
+    <div class="def2">${esc(sel.def)}</div>
+    <div class="seg" id="filter">${[["all", "All"], ["hit", base ? "False positives" : "Recovered"], ["miss", base ? "Clean" : "Missed"]]
+      .map(([v, l]) => `<button data-v="${v}" aria-pressed="${filter === v}">${l}</button>`).join("")}</div>
+    <div class="samples">${shown.map(t => `<div class="s"><div class="h"><code>${esc(t.id)} · e${t.e}</code>
+        <span class="v ${t.obj !== base ? "ok" : "bad"}">${t.obj ? (base ? "names an injected object" : "names the object") : (base ? "clean" : "missed")}</span>
+        ${base ? "" : `<span class="w">${t.act ? "and its action" : "no action word"} · looks for ${esc(t.w.join(", "))} | ${esc(t.aw.join(", "))}</span>`}
+        <span class="w">${esc(t.c)}</span></div>
+      <pre class="r">${highlight(t.r, words(t))}</pre></div>`).join("") || `<div class="hint">No replies.</div>`}</div>`;
+  el.querySelectorAll("#filter button").forEach(btn => btn.onclick = () => { filter = btn.dataset.v; renderDetail(); });
+}
+render();
+</script>
+</body>
+</html>

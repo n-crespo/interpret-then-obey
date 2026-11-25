@@ -1,7 +1,7 @@
 """
 Interpretation per representation and per category, from a run's probe-prompt trials
 (eval/interpretation/__init__.py): printed, and written to
-runs/<dir>/analysis/interpretation.tex by `report_run`.
+runs/<dir>/analysis/interpretation.tex and interpretation.html (page.py) by `report_run`.
 
 Injected rows are grouped by representation and by category; control rows (eval/trials.py)
 are listed apart, and baseline rows give the false-positive rate of the keyword check.
@@ -23,18 +23,24 @@ def _counts(trials: list[dict]) -> tuple[int, int, int]:
     return len(trials), sum(map(names_object, trials)), sum(map(names_action, trials))
 
 
+def probe_split(trials: list[dict]) -> tuple[list[dict], list[dict], list[dict], list[str]]:
+    """(injected, control, baseline) probe trials among `trials`, plus every injected object
+    of the run, which baseline replies are checked against."""
+    injected, control, baseline, _ = split([t for t in trials if is_probe(t)])
+    return injected, control, baseline, sorted({i for t in injected + control for i in items(t)})
+
+
 def interpretation_rows(trials: list[dict], rep_order: list | None = None) -> dict:
     """Counts for the probe trials among `trials`: {"representation": [(rep, category, n,
     object, action)], "category": [(category, n, object, action)], "control": [...as
     representation], "baseline": (n, false positives)}."""
-    injected, control, baseline, _ = split([t for t in trials if is_probe(t)])
+    injected, control, baseline, every_item = probe_split(trials)
 
     def by_rep(ts):
         groups = group_by(ts, "representation_id")
         return [(rep, groups[rep][0].get("category"), *_counts(groups[rep])) for rep in _order(groups, rep_order)]
 
     cats = group_by(injected, "category")
-    every_item = sorted({i for t in injected + control for i in items(t)})
     return {
         "representation": by_rep(injected),
         "category": [(c, *_counts(cats[c])) for c in _order(cats, LEVEL_ORDER)],
@@ -80,14 +86,16 @@ def report_tex(rows: dict, model: str | None) -> str:
     return "\n".join(out)
 
 
-def report_run(trials: list[dict], model: str | None, out_dir: Path, rep_order: list | None = None) -> Path | None:
-    """Print the interpretation report and write interpretation.tex; None when the run has
-    no probe trials."""
+def report_run(trials: list[dict], model: str | None, out_dir: Path, rep_order: list | None = None) -> list[Path]:
+    """Print the interpretation report and write interpretation.tex and interpretation.html
+    to out_dir (runs/<dir>/analysis); [] when the run has no probe trials."""
+    from eval.interpretation.page import write_page
+
     if not any(is_probe(t) for t in trials):
-        return None
+        return []
     rows = interpretation_rows(trials, rep_order)
     print(report_text(rows))
-    out = out_dir / "interpretation.tex"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(report_tex(rows, model), encoding="utf-8")
-    return out
+    tex = out_dir / "interpretation.tex"
+    tex.parent.mkdir(parents=True, exist_ok=True)
+    tex.write_text(report_tex(rows, model), encoding="utf-8")
+    return [tex, write_page(trials, model, out_dir.parent.name, out_dir / "interpretation.html", rep_order)]

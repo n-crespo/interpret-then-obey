@@ -9,8 +9,9 @@ and writes runs/<dir>/analysis/:
                            factor, and every outcome per prompt (eval/tables.py)
 - summary.html             every trial counted by outcome and label; click one for its
                            trials (eval/summary_page.py)
-- interpretation.tex       replies to the probe prompts that recover the payload, by
-                           representation (eval/interpretation/)
+- interpretation.tex/.html replies to the probe prompts that recover the payload, by
+                           representation; click one on the page for its full replies
+                           (eval/interpretation/)
 
 Outcomes and labels are defined and computed by eval/classify.py. Probe-prompt trials
 never ask for a tool, so they are left out of attack success, the tables and the summary
@@ -95,8 +96,7 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> list[Path]:
     written = [out_dir / "tables.tex", write_summary(attack, model, run_dir, out_dir / "summary.html")]
 
     print(headline(attack, model, run_dir))
-    if interpretation := report_run(trials, model, out_dir, rep_order):
-        written.append(interpretation)
+    written += report_run(trials, model, out_dir, rep_order)
     print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
     return written
 
