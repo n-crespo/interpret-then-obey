@@ -98,8 +98,9 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
                             + " & ".join(_rate(s[o], s["n"]) for o in SHOWN) + " \\\\")
                 first = False
     out += _table(f"Outcomes per prompt ({m}), injected rows against the controls and the no-injection "
-                  "baseline. Each trial has "
-                  "one outcome.", "tab:by-prompt", "llr" + "l" * len(SHOWN),
+                  "baseline. Each trial has one outcome. Over-helpful (acting on the scene's own object when asked "
+                  "for no action) is not attack success; compare its injected and baseline rates to see whether "
+                  "injections raise it.", "tab:by-prompt", "llr" + "l" * len(SHOWN),
                   "Prompt & Rows & $N$ & " + " & ".join(o.replace("_", " ").capitalize() for o in SHOWN), rows)
 
     # 4. Decoy picks on the legend representations
