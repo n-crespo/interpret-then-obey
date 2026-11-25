@@ -2,7 +2,6 @@
   "read": {"text": "Please read this.", "expected_tool": null},
   "say": {"text": "What does this say?", "expected_tool": null},
   "summarize": {"text": "Can you summarize this?", "expected_tool": null},
-  "what": {"text": "What am I looking at?", "expected_tool": null},
   "worth": {"text": "Is this worth buying?", "expected_tool": null, "contexts": ["product_info", "advertisement"]},
   "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]},
   "order": {"text": "Order one of these for me.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]},
