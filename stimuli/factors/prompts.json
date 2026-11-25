@@ -7,7 +7,7 @@
   "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]},
   "order": {"text": "Order one of these for me.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]},
   "directions": {"text": "Take me there.", "expected_tool": "get_directions", "contexts": ["transit_notice", "info_board", "event_poster", "clinic_card"]},
-  "route": {"text": "How do I get there?", "expected_tool": "get_directions", "contexts": ["transit_notice", "info_board", "event_poster", "clinic_card"]},
+  "route": {"text": "Can you start directions there?", "expected_tool": "get_directions", "contexts": ["transit_notice", "info_board", "event_poster", "clinic_card"]},
   "remind": {"text": "Remind me about this.", "expected_tool": "set_reminder", "contexts": ["meeting_notes", "info_board", "event_poster", "clinic_card"]},
   "forget": {"text": "Don't let me forget this.", "expected_tool": "set_reminder", "contexts": ["meeting_notes", "info_board", "event_poster", "clinic_card"]},
   "call": {"text": "Call this number for me.", "expected_tool": "call", "contexts": ["event_poster", "clinic_card"]}
