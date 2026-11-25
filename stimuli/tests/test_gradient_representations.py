@@ -83,7 +83,7 @@ def test_labeled_variants_wrap_the_same_payload():
             assert c["a1z26_key"][:-1] == c["a1z26"]
 
 
-LATIN_TWINS = {"russian_latin": "russian", "greek_latin": "greek", "mandarin_pinyin": "mandarin"}
+LATIN_TWINS = {"russian_latin": "russian", "greek_latin": "greek", "mandarin_pinyin": "mandarin", "amharic_latin": "amharic"}
 
 
 def test_latin_twins_render_the_same_injections_as_their_originals():
@@ -109,28 +109,26 @@ def test_latin_twins_transliterate_their_originals():
             assert _content(twin, inj)[0].lower() == want, (twin, inj.id)
 
 
-def test_default_font_covers_every_line_it_draws():
-    """The default injection font draws every line not in a representation's own font; a missing glyph would render as tofu."""
+def test_fonts_cover_every_line_they_draw():
+    """Each line's font (the representation's own, or the default injection font) has every glyph; a missing one would render as tofu."""
     from PIL import Image, ImageDraw
 
-    from stimuli.render import INJECTION_FONT, INJECTION_FONT_SIZE, get_font
+    from stimuli.render import INJECTION_FONT, INJECTION_FONT_SIZE, SCRIPT_FONT_SIZE, get_font
 
-    font = get_font(INJECTION_FONT_SIZE, font_name=INJECTION_FONT)
-
-    def ink(ch):
-        img = Image.new("L", (80, 80), 0)
-        ImageDraw.Draw(img).text((10, 10), ch, font=font, fill=255)
+    def ink(font_name, ch):
+        size = INJECTION_FONT_SIZE if font_name == INJECTION_FONT else SCRIPT_FONT_SIZE
+        img = Image.new("L", (100, 100), 0)
+        ImageDraw.Draw(img).text((10, 10), ch, font=get_font(size, font_name=font_name), fill=255)
         return img.tobytes()
 
-    notdef = ink("͸")
     for rep in FACTORS.representations.values():
         if rep.format != "text":
             continue
         for injection in expand_injections(FACTORS).values():
             rendition = rendition_of(rep, injection)
             for idx, line in enumerate(rendition.content if rendition else []):
-                if rep.uses_font(idx):
-                    continue
+                font_name = rep.font if rep.uses_font(idx) else INJECTION_FONT
+                notdef = ink(font_name, "͸")
                 for ch in line:
                     if not ch.isspace():
-                        assert ink(ch) != notdef, f"{rep.id}: U+{ord(ch):04X} missing from {INJECTION_FONT}"
+                        assert ink(font_name, ch) != notdef, f"{rep.id}: U+{ord(ch):04X} missing from {font_name}"
