@@ -12,7 +12,7 @@ generate:
 
 run:
   epochs: 3
-  max_connections: 2
+  max_connections: 4
   message_limit: 12
   retry_on_error: 3
   fail_on_error: false
