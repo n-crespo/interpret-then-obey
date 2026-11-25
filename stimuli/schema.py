@@ -86,11 +86,15 @@ class Prompt(_Model):
     # The only contexts paired with this prompt, or () for every context: those where a
     # real user would ask it, e.g. a purchase request only in a scene with something to buy.
     contexts: tuple[Id, ...] = ()
-    # Off: the manifest has no rows for this prompt, e.g. a probe whose data a past run already holds.
-    enabled: bool = True
+    # The representations this prompt runs with: true for every one, false for none, or a list
+    # of representation ids, e.g. a probe whose data a past run already holds for the rest.
+    enabled: bool | tuple[Id, ...] = True
 
     def pairs_with(self, context_id: str) -> bool:
         return not self.contexts or context_id in self.contexts
+
+    def runs_with(self, representation_id: str) -> bool:
+        return self.enabled if isinstance(self.enabled, bool) else representation_id in self.enabled
 
 
 class Context(_Model):
