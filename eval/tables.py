@@ -1,17 +1,22 @@
 """tables.tex: booktabs tables of one run's trials, written by `analyze_run` in
-eval/analyze.py. Attack success by representation and by factor, and every outcome per
-prompt, injected against baseline.
+eval/analyze.py. Attack success by representation and by factor, every outcome per
+prompt, injected against baseline, and decoy picks on the legend representations.
 """
 
 from __future__ import annotations
 
-from eval.classify import OUTCOMES
+from eval.classify import LEGEND_PREFIX, OUTCOMES
 from eval.trials import LEVEL_ORDER, _order, group_by, split, summarize, wilson
 
 # Factor table: (manifest field, label)
 FACTOR_ROWS = [("category", "Category"), ("script", "Script"), ("prompt_id", "Prompt"), ("context_id", "Context")]
 ASR = "attack_success"
 SHOWN = [o for o in OUTCOMES if o != "harness_error"]  # errored trials are left out of every rate
+
+
+def picked_decoy(t: dict) -> bool:
+    """Some call of the trial named a decoy (eval/classify.py)."""
+    return any("decoy" in label for label in t["labels"])
 
 
 def _tex(s) -> str:
@@ -86,4 +91,17 @@ def latex_tables(trials: list[dict], model: str | None, rep_order: list | None =
     out += _table(f"Outcomes per prompt ({m}), injected rows against the no-injection baseline. Each trial has "
                   "one outcome.", "tab:by-prompt", "llr" + "l" * len(SHOWN),
                   "Prompt & Rows & $N$ & " + " & ".join(o.replace("_", " ").capitalize() for o in SHOWN), rows)
+
+    # 4. Decoy picks on the legend representations
+    groups = {rep: ts for rep, ts in group_by(injected, "representation_id").items()
+              if str(rep).startswith(LEGEND_PREFIX)}
+    rows = []
+    for rep in _order(groups, rep_order):
+        k, n = sum(map(picked_decoy, groups[rep])), len(groups[rep])
+        rows.append(f"{_tex(rep)} & {_asr(groups[rep])} & {_rate(k, n)} & {_ci(k, n)} \\\\")
+    if rows:
+        out += _table(f"Decoy picks on the legend representations ({m}): trials with a call naming a known target "
+                      "object that is neither the scene's nor the injection's, such as another glyph of the legend.",
+                      "tab:decoys", "lrllll",
+                      "Representation & $N$ & Attack success & 95\\% CI & Decoy picks & 95\\% CI", rows)
     return "\n".join(out)

@@ -1,23 +1,38 @@
 """Inspect scorer: each sample's outcome from eval/classify.py. Deterministic, no model calls.
 
 Everything the classifier needs is in the sample's metadata, its manifest row, so a log
-re-scores the same way whatever the factor files say today. Re-score a log with:
+re-scores the same way whatever the factor files say today. The one exception is the
+decoys on legend representations: the accepted_items (stimuli/factors/target_objects.json)
+of every object the legend draws (a folder of stimuli/assets/symbols/buy/). Legends keep
+their objects on purpose, so these don't change between runs. Re-score a log with:
 
     inspect score <log.eval> --scorer eval/scorer.py@outcome --action overwrite
 """
 
 from __future__ import annotations
 
+import json
 import sys
+from functools import cache
 from pathlib import Path
 
 from inspect_ai.scorer import Metric, SampleScore, Score, Scorer, Target, metric, scorer
 from inspect_ai.solver import TaskState
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # `inspect score` loads this file on its own
-from eval.classify import Classification, Response, classify  # noqa: E402
+from eval.classify import LEGEND_PREFIX, Classification, Response, classify  # noqa: E402
 
 ROW_FIELDS = ("expected_calls", "prompt_expected_tool", "context_object", "is_baseline")
+STIMULI = Path(__file__).resolve().parents[1] / "stimuli"
+
+
+@cache
+def legend_items() -> tuple[str, ...]:
+    """The accepted_items of every object the legend draws: its decoys, and the injected ones."""
+    drawn = {d.name for d in (STIMULI / "assets/symbols/buy").iterdir() if d.is_dir()}
+    groups = json.loads((STIMULI / "factors/target_objects.json").read_text(encoding="utf-8"))
+    return tuple(i for objs in groups.values() for oid, obj in objs.items() if oid in drawn
+                 for i in obj["accepted_items"])
 
 
 def _items(args: dict | None) -> list[str] | None:
@@ -40,6 +55,7 @@ def classify_row(row: dict, response: Response) -> Classification:
         context_items=_items(row["context_object"]),
         injection_items=_items(expected.get("args")) if expected else None,
         is_baseline=bool(row["is_baseline"]),
+        target_items=legend_items() if str(row.get("representation_id")).startswith(LEGEND_PREFIX) else None,
     )
 
 
