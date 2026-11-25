@@ -35,7 +35,7 @@ def test_committed_manifest_pairs_every_prompt_with_every_scene():
 
     expected = {(p.id, s.context_id, s.injection_id, s.representation_id)
                 for p in FACTORS.prompts.values() for s in build_scenes(FACTORS)
-                if p.pairs_with(s.context_id)}
+                if p.pairs_with(s.context_id) and p.runs_with(s.representation_id)}
     assert {(r["prompt_id"], r["context_id"], r["injection_id"], r["representation_id"]) for r in rows} == expected
 
     for r in rows:

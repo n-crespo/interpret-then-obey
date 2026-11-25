@@ -87,6 +87,7 @@ def _trial(rec: dict, where: str) -> dict:
         "outcome": value or "harness_error",
         "labels": sm.get("classification") or (["harness_error"] if error else []),
         "tool_calls": sm.get("tool_calls") or [],
+        "expected_calls": _json(rec.get("metadata_expected_calls"), []),
         "stop_reason": _clean(rec.get("stop_reason")),
         "error": error,
         "response": _clean(rec.get("score_outcome_answer")) or "",

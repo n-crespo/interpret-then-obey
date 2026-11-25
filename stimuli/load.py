@@ -45,6 +45,9 @@ def check_references(f: Factors) -> None:
     require_known("target object", {f"prompts.{p.id}.object": [p.object] for p in f.prompts.values() if p.object is not None}, objects)
     # A prompt names contexts that exist.
     require_known("context", {f"prompts.{p.id}.contexts": p.contexts for p in f.prompts.values()}, f.contexts)
+    # A prompt runs with representations that exist.
+    require_known("representation", {f"prompts.{p.id}.enabled": p.enabled for p in f.prompts.values()
+                                     if not isinstance(p.enabled, bool)}, f.representations)
     # A context shows a target object, or nothing.
     require_known("target object", {f"contexts.{c.id}.item": [c.item] for c in f.contexts.values() if c.item is not None}, objects)
     # A representation renders commands, injections and objects that exist.

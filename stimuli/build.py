@@ -47,7 +47,7 @@ def build_samples(f: Factors, scenes: list[Scene], images_rel: str) -> list[Samp
     samples, seen = [], set()
     for prompt in f.prompts.values():
         for s in scenes:
-            if not prompt.pairs_with(s.context_id):
+            if not prompt.pairs_with(s.context_id) or not prompt.runs_with(s.representation_id):
                 continue
             sample_id = f"{prompt.id}.{s.context_id}.{s.injection_id}.{s.representation_id}"
             if sample_id in seen:

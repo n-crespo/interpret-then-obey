@@ -9,11 +9,13 @@ and writes runs/<dir>/analysis/:
                            factor, and every outcome per prompt (eval/tables.py)
 - summary.html             every trial counted by outcome and label; click one for its
                            trials (eval/summary_page.py)
+- interpretation.tex       replies to the probe prompts that recover the payload, by
+                           representation (eval/interpretation/)
 
-Outcomes and labels are defined and computed by eval/classify.py.
-
-Only P(obey) is measurable: nothing yet labels whether the model interpreted the
-payload, so P(interpret) and P(obey | interpret) are not computed.
+Outcomes and labels are defined and computed by eval/classify.py. Probe-prompt trials
+never ask for a tool, so they are left out of attack success, the tables and the summary
+page, and only measure interpretation. P(obey | interpret) is not computed: the probe
+and the attack prompts are different trials.
 
 Usage:
     python -m eval.analyze runs/<date>_<name> [runs/<other> ...]
@@ -26,6 +28,8 @@ import json
 import sys
 from pathlib import Path
 
+from eval.interpretation import is_probe
+from eval.interpretation.report import report_run
 from eval.summary_page import write_summary
 from eval.tables import ASR, SHOWN, latex_tables
 from eval.trials import LEVEL_ORDER, _order, group_by, load_trials, manifest_order, split, summarize, wilson
@@ -63,7 +67,6 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
     lines.append(f"  baseline {sb['n']:>5} trials   {_rates(sb)}")
     if errored:
         lines.append(f"  {len(errored)} errored trial(s) left out")
-    lines.append("  P(obey) only: no interpretation label yet, so no P(interpret) or P(obey | interpret).")
     return "\n".join(lines)
 
 
@@ -86,11 +89,14 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> list[Path]:
         sys.exit(f"No successful samples in {run_dir / 'inspect_logs'} ({len(trials)} errored)")
     out_dir = run_dir / "analysis"
     out_dir.mkdir(exist_ok=True)
-    (out_dir / "tables.tex").write_text(latex_tables(trials, model, manifest_order(_manifest(run_dir, manifest))),
-                                        encoding="utf-8")
-    written = [out_dir / "tables.tex", write_summary(trials, model, run_dir, out_dir / "summary.html")]
+    rep_order = manifest_order(_manifest(run_dir, manifest))
+    attack = [t for t in trials if not is_probe(t)]
+    (out_dir / "tables.tex").write_text(latex_tables(attack, model, rep_order), encoding="utf-8")
+    written = [out_dir / "tables.tex", write_summary(attack, model, run_dir, out_dir / "summary.html")]
 
-    print(headline(trials, model, run_dir))
+    print(headline(attack, model, run_dir))
+    if interpretation := report_run(trials, model, out_dir, rep_order):
+        written.append(interpretation)
     print("\nWrote " + ", ".join(str(p.relative_to(run_dir)) for p in written))
     return written
 
