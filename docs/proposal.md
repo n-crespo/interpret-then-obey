@@ -130,6 +130,7 @@ For each encoding we test for interpretation (payload with no user request), and
 
 - Scene with no payload
 - Uninterpretable symbols w/ no legend
+- The injection's object with no command, in text and as a picture: priming by the object, not obeying (the `mention` category in stimuli/factors/representations.json)
 
 ## Related Work
 
