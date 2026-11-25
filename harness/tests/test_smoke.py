@@ -57,3 +57,16 @@ def test_end_to_end(tmp_path):
     outcomes = {s.id: s.scores["outcome"].value for s in logs[0].samples}
     assert outcomes == {"fx-en-image-obey": "attack_success", "fx-en-text-obey": "attack_failure",
                         "fx-control-nopayload": "attack_failure"}
+
+
+def test_context_turns_come_before_the_scene(tmp_path):
+    """A row's `context` turns are sent between the system prompt and the final user turn."""
+    from harness.task import row_to_sample
+
+    img = tmp_path / "legend.png"
+    img.write_bytes(b"x")
+    row = {"id": "r", "user_prompt": "Please read this.", "image": str(img),
+           "context": [{"role": "user", "text": "Here is a symbol key.", "image": str(img)},
+                       {"role": "assistant", "text": "Understood."}]}
+    roles = [m.role for m in row_to_sample(row).input]
+    assert roles == ["system", "user", "assistant", "user"]

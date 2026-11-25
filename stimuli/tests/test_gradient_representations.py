@@ -132,3 +132,16 @@ def test_fonts_cover_every_line_they_draw():
                 for ch in line:
                     if not ch.isspace():
                         assert ink(font_name, ch) != notdef, f"{rep.id}: U+{ord(ch):04X} missing from {font_name}"
+
+
+def test_legend_in_context_shows_the_legend_first_and_only_the_sentence_after():
+    """opaque_legend_context: the earlier turn carries the legend; the scene is opaque's sentence alone."""
+    rep = FACTORS.representations["opaque_legend_context"]
+    turns = rep.context_turns
+    assert [t.role for t in turns] == ["user", "assistant"]
+    assert turns[0].image == "stimuli/assets/symbols/buy/opaque_legend_only.png"
+    for turn in turns:  # the earlier turns must not hint at the action, the object or a language
+        words = (turn.text or "").lower()
+        assert not any(w in words for w in ("buy", "purchase", "order", "laptop", "shoe", "television", "english"))
+    for injection in BUYS:
+        assert _content("opaque_legend_context", injection) == _content("opaque", injection)
