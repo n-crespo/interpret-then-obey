@@ -469,6 +469,14 @@ def opaque_legend_text(obj: dict, out: Path) -> None:
     finish(img, out, "opaque_legend_text.png")
 
 
+def mention_picture(obj: dict, out: Path) -> None:
+    """The object drawing alone: no cart, arrow, coin or button. A control, not a command:
+    it shows what the symbol sets show of the object and nothing of buying it."""
+    img, d = canvas(140, 140)
+    obj["draw"](d, 70, 70, 52)
+    finish(img, out, "mention_picture.png")
+
+
 def emoji(obj: dict, out: Path) -> None:
     """Emoji strip: the object, right arrow, shopping cart (U+27A1 U+1F6D2).
 
@@ -497,7 +505,7 @@ def emoji(obj: dict, out: Path) -> None:
 # Command id (as in injection_commands.json) -> its symbol-set layouts. Each layout writes
 # <layout name>.png, the file the command's image renditions point to.
 COMMANDS = {
-    "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend, opaque_legend_text),
+    "buy": (pictogram, road_sign, money, shop_button, emoji, opaque, opaque_legend, opaque_legend_text, mention_picture),
 }
 
 HAND_DRAWN = {"buy/bear/pictogram.png"}
