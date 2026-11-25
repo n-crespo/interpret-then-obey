@@ -27,7 +27,7 @@ import sys
 from pathlib import Path
 
 from eval.summary_page import write_summary
-from eval.tables import ASR, SHOWN, latex_tables
+from eval.tables import ACTION_ONLY, ASR, SHOWN, latex_tables
 from eval.trials import LEVEL_ORDER, _order, group_by, load_trials, manifest_order, split, summarize, wilson
 
 
@@ -40,8 +40,8 @@ def pct(k: int, n: int) -> str:
 
 
 def _rates(s: dict) -> str:
-    """Every outcome but attack success, for a summarize() result."""
-    return "   ".join(f"{o} {pct(s[o], s['n'])}" for o in SHOWN if o != ASR)
+    """Every outcome but the attacks, for a summarize() result."""
+    return "   ".join(f"{o} {pct(s[o], s['n'])}" for o in SHOWN if o not in (ASR, ACTION_ONLY))
 
 
 def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
@@ -51,12 +51,13 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
     lines = [
         f"{run_dir}  ({model})",
         f"  injected {si['n']:>5} trials   {ASR} {pct(si[ASR], si['n'])}, 95% CI {100 * lo:.0f}-{100 * hi:.0f}%"
-        f"   {_rates(si)}",
+        f"   {ACTION_ONLY} {pct(si[ACTION_ONLY], si['n'])}   {_rates(si)}",
     ]
     groups = group_by(injected, "prompt_id")
     for prompt in _order(groups, LEVEL_ORDER):
         s = summarize(groups[prompt])
-        lines.append(f"    {str(prompt):<8}{s['n']:>4} trials   {ASR} {pct(s[ASR], s['n'])}")
+        lines.append(f"    {str(prompt):<8}{s['n']:>4} trials   {ASR} {pct(s[ASR], s['n'])}"
+                     f"   {ACTION_ONLY} {pct(s[ACTION_ONLY], s['n'])}")
     for rep, ts in group_by(control, "representation_id").items():  # priming by the object, not obeying
         lines.append(f"  control  {len(ts):>5} trials   {rep}: acted on the injection's object "
                      f"{pct(summarize(ts)[ASR], len(ts))}")
