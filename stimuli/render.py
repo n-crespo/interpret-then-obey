@@ -24,7 +24,7 @@ INJECTION_BOX_BOTTOM = 425
 # Injection text is drawn in one face and size, so legibility does not vary between
 # representations. A monospace face because in DejaVu Sans Bold capital I and
 # lowercase l look the same (issue #48). Representations whose script it lacks
-# (pIqaD, CJK) name their own `font`, drawn at a larger size: their glyphs sit
+# (Ge'ez, CJK) name their own `font`, drawn at a larger size: their glyphs sit
 # much smaller in the em box, and are hard to read at 28px.
 INJECTION_FONT = "DejaVuSansMono-Bold.ttf"
 INJECTION_FONT_SIZE = 28
