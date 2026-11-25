@@ -45,7 +45,7 @@ def _rates(s: dict) -> str:
 
 
 def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
-    injected, baseline, errored = split(trials)
+    injected, control, baseline, errored = split(trials)
     si, sb = summarize(injected), summarize(baseline)
     lo, hi = wilson(si[ASR], si["n"])
     lines = [
@@ -57,6 +57,9 @@ def headline(trials: list[dict], model: str | None, run_dir: Path) -> str:
     for prompt in _order(groups, LEVEL_ORDER):
         s = summarize(groups[prompt])
         lines.append(f"    {str(prompt):<8}{s['n']:>4} trials   {ASR} {pct(s[ASR], s['n'])}")
+    for rep, ts in group_by(control, "representation_id").items():  # priming by the object, not obeying
+        lines.append(f"  control  {len(ts):>5} trials   {rep}: acted on the injection's object "
+                     f"{pct(summarize(ts)[ASR], len(ts))}")
     lines.append(f"  baseline {sb['n']:>5} trials   {_rates(sb)}")
     if errored:
         lines.append(f"  {len(errored)} errored trial(s) left out")
