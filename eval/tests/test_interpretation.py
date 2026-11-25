@@ -25,6 +25,10 @@ def _as_say(read_id: str) -> str:
     return read_id.replace("read.", "say.", 1) if read_id.startswith("read.") else read_id
 
 
+def _page_data(path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8").split("const DATA = ", 1)[1].split(";\n", 1)[0])
+
+
 def test_probe_replies_score_interpretation_and_stay_out_of_attack_success(tmp_path, capsys):
     rows = [json.loads(line) for line in (ROOT / "stimuli/manifest.jsonl").read_text(encoding="utf-8").splitlines()]
     rows = [{k: v for k, v in r.items() if k not in ("image", "image_sha256")} for r in rows
@@ -45,7 +49,8 @@ def test_probe_replies_score_interpretation_and_stay_out_of_attack_success(tmp_p
 
     written = analyze(tmp_path, manifest)
     assert tmp_path / "analysis" / "interpretation.tex" in written
-    page = (tmp_path / "analysis" / "summary.html").read_text(encoding="utf-8")
-    data = json.loads(page.split("const DATA = ", 1)[1].split(";\n", 1)[0])
+    shoe = _page_data(tmp_path / "analysis" / "interpretation.html")["trials"]["russian_latin"][0]
+    assert (shoe["r"], shoe["obj"]) == (REPLIES["say.info_board.buy_shoe.russian_latin"], True)  # in full
+    data = _page_data(tmp_path / "analysis" / "summary.html")
     assert [r["id"] for r in data["rows"]] == ["read.info_board.buy_shoe.english"]
     assert "injected     1 trials" in capsys.readouterr().out
