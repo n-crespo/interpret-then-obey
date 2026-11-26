@@ -14,9 +14,27 @@ from typing import TYPE_CHECKING
 
 from eval.scorer import outcome
 from eval.trials import _stop_reason, _trial, merge_logs
+from stimuli.build import context_object
 
 if TYPE_CHECKING:
     from inspect_ai.log import EvalSample
+
+    from stimuli.schema import Factors
+
+# Contexts of past runs that stimuli/factors/contexts.json no longer has under their id:
+# renamed, or removed with their context_object as stimuli/build.py made it.
+RENAMED_CONTEXTS = {"info_board": "library_board"}
+REMOVED_CONTEXT_OBJECTS = {
+    "meeting_notes": {"subject": ["MEETING NOTES", "team sync", "meeting", "roadmap", "hiring"]},
+    "transit_notice": {"subject": ["TRANSIT NOTICE", "Platform 2", "Line 4"]},
+}
+
+
+def past_context_object(context_id: str, factors: Factors) -> dict:
+    """context_object for a context id a past run used, including renamed and removed ones."""
+    if context_id in REMOVED_CONTEXT_OBJECTS:
+        return REMOVED_CONTEXT_OBJECTS[context_id]
+    return context_object(factors.contexts[RENAMED_CONTEXTS.get(context_id, context_id)], factors)
 
 
 def rescore_trials(

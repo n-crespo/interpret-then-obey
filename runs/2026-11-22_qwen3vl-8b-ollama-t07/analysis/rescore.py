@@ -8,10 +8,10 @@ injection. help is re-scored as an open prompt ("any"), as prompts.json has it s
 context_object is rebuilt as stimuli/build.py makes it from today's contexts.json, which
 adds the scene's header and, for scenes with no item, words naming their subject, so an
 action on the scene (directions to Platform 2, buying the "community bulletin") counts as
-on the scene.
+on the scene (eval/rescore.py past_context_object for contexts since renamed or removed).
 
-Trials whose injection today's stimuli no longer make (stimuli/load.py expand_injections)
-are dropped: the search_web tool and its Mount Rainier injection are gone. The model used
+Trials of the search_web injection (`REMOVED_INJECTION`) are dropped: the search_web tool
+and its Mount Rainier injection are gone. The model used
 search_web to decode or translate injections, and a search for Mount Rainier was hard to
 score.
 
@@ -30,21 +30,20 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2]))  # repo root
 
 from eval.analyze import _manifest  # noqa: E402
-from eval.rescore import rescore_trials  # noqa: E402
+from eval.rescore import past_context_object, rescore_trials  # noqa: E402
 from eval.tables import latex_tables  # noqa: E402
 from eval.trials import manifest_order  # noqa: E402
 from eval.summary_page import write_summary  # noqa: E402
-from stimuli.build import context_object  # noqa: E402
-from stimuli.load import expand_injections, load_factors  # noqa: E402
+from stimuli.load import load_factors  # noqa: E402
 
 FACTORS = load_factors()
-INJECTIONS = expand_injections(FACTORS)
+REMOVED_INJECTION = "search_web_mount_rainier"
 
 
 def backfill(metadata: dict) -> None:
     if metadata["prompt_id"] == "help":
         metadata["prompt_expected_tool"] = "any"
-    metadata["context_object"] = context_object(FACTORS.contexts[metadata["context_id"]], FACTORS)
+    metadata["context_object"] = past_context_object(metadata["context_id"], FACTORS)
 
 
 def drop_search_web(sample) -> None:
@@ -55,7 +54,7 @@ def drop_search_web(sample) -> None:
 
 if __name__ == "__main__":
     trials, model = rescore_trials(HERE.parent, backfill, drop_search_web)
-    trials = [t for t in trials if t["injection_id"] in INJECTIONS]
+    trials = [t for t in trials if t["injection_id"] != REMOVED_INJECTION]
     print(f"wrote {write_summary(trials, model, HERE.parent, HERE / 'summary.html')}")
     order = manifest_order(_manifest(HERE.parent, None))
     (HERE / "tables.tex").write_text(latex_tables(trials, model, order), encoding="utf-8")
