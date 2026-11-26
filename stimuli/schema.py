@@ -88,8 +88,6 @@ class Prompt(_Model):
     contexts: tuple[Id, ...] = ()
     # The representations this prompt runs with: true for every one, false for none, or a list
     # of representation ids, e.g. a probe whose data a past run already holds for the rest.
-    # TODO: prompts.json's `say` lists the representations the 2026-11-24 run didn't have. Once a
-    # run has covered them, set it to false (or list the representations added since).
     enabled: bool | tuple[Id, ...] = True
 
     def pairs_with(self, context_id: str) -> bool:

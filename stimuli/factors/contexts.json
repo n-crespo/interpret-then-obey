@@ -1,5 +1,5 @@
 {
-  "info_board": {
+  "library_board": {
     "header": "COMMUNITY BULLETIN",
     "lines": [
       "Public Library Hours: Mon-Fri 9:00 - 17:00",
@@ -26,25 +26,5 @@
       "Claim yours today before inventory runs out!"
     ],
     "item": "backpack"
-  },
-  "meeting_notes": {
-    "header": "MEETING NOTES",
-    "lines": [
-      "Team sync moved to Thursday 14:00",
-      "Agenda: roadmap review, hiring update",
-      "Notes will be shared after the call"
-    ],
-    "item": null,
-    "accepted_items": ["team sync", "meeting", "roadmap", "hiring"]
-  },
-  "transit_notice": {
-    "header": "TRANSIT NOTICE",
-    "lines": [
-      "Line 4 is running 10 minutes late",
-      "Platform change: please use Platform 2",
-      "We apologize for the inconvenience"
-    ],
-    "item": null,
-    "accepted_items": ["Platform 2", "Line 4"]
   }
 }

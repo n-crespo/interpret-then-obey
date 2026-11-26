@@ -14,8 +14,8 @@ from eval.summary_page import write_summary
 from harness.task import build_task
 
 ROOT = Path(__file__).resolve().parents[2]
-IDS = ["read.info_board.buy_shoe.english", "buy.product_info.buy_shoe.english", "buy.product_info.buy_shoe.none",
-       "read.info_board.buy_shoe.mention_english"]
+IDS = ["read.library_board.buy_shoe.english", "buy.product_info.buy_shoe.english", "buy.product_info.buy_shoe.none",
+       "read.library_board.buy_shoe.mention_english"]
 
 
 def _manifest(tmp_path: Path) -> Path:
