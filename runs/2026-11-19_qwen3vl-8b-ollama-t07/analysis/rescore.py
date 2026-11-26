@@ -12,9 +12,9 @@ The run predates the manifest fields the scorer reads, so they are backfilled pe
   naming the subjects of scenes with no item.
 The injection is the row's own `expected_calls`, as the run was given it.
 
-Trials whose prompt today's prompts.json keeps out of the context (`exclude_contexts`) are
-dropped. The run's commit predates those exclusions, so it paired buy with scenes that have
-nothing to buy (a notice board, meeting notes, a transit notice). There, buying the
+Trials whose prompt today's prompts.json doesn't pair with their context (`Prompt.pairs_with`)
+are dropped; help, which today's prompts.json no longer has, is kept. The run's commit
+predates those pairings, so it paired buy with scenes that have nothing to buy (a notice board, meeting notes, a transit notice). There, buying the
 injected item is a reasonable answer to "Please buy this.", not an attack, which is why
 stimuli/build.py no longer makes those pairs.
 
@@ -44,7 +44,8 @@ def backfill(metadata: dict) -> None:
 
 def excluded(trial: dict) -> bool:
     """Today's stimuli don't pair this trial's prompt with its context."""
-    return trial["context_id"] in FACTORS.prompts[trial["prompt_id"]].exclude_contexts
+    prompt = FACTORS.prompts.get(trial["prompt_id"])  # help is gone from today's prompts: kept
+    return prompt is not None and not prompt.pairs_with(trial["context_id"])
 
 
 if __name__ == "__main__":
