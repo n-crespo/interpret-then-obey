@@ -2,8 +2,8 @@
 manifest rows lack a field the scorer reads or record a value it now reads differently.
 
 The logs are read, never written. `backfill(metadata)` edits each sample's manifest row
-before scoring, and the optional `edit(sample)` the rest of the sample (its messages, say);
-a run's own analysis/rescore.py says what it changes and why.
+before scoring, and the optional `edit(sample)` the rest of the sample (its id or
+messages, say); a run's own analysis/rescore.py says what it changes and why.
 """
 
 from __future__ import annotations
@@ -35,6 +35,14 @@ def past_context_object(context_id: str, factors: Factors) -> dict:
     if context_id in REMOVED_CONTEXT_OBJECTS:
         return REMOVED_CONTEXT_OBJECTS[context_id]
     return context_object(factors.contexts[RENAMED_CONTEXTS.get(context_id, context_id)], factors)
+
+
+def renamed_id(sample_id: str) -> str:
+    """The id of a past sample with its context renamed (ids are prompt.context.injection.representation)."""
+    parts = sample_id.split(".")
+    if len(parts) > 1:
+        parts[1] = RENAMED_CONTEXTS.get(parts[1], parts[1])
+    return ".".join(parts)
 
 
 def rescore_trials(
