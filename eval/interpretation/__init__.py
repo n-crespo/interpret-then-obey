@@ -13,7 +13,7 @@ Usage:
     python -m eval.interpretation runs/<date>_<name> [runs/<other> ...]
 """
 
-PROBE_PROMPTS = ("say",)  # prompt_id values in stimuli/factors/prompts.json
+PROBE_PROMPTS = ("say",)  # prompt_id values of past runs (2026-11-24); stimuli/factors/prompts.json no longer has one
 
 
 def is_probe(trial: dict) -> bool:
