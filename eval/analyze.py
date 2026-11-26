@@ -87,9 +87,14 @@ def analyze_run(run_dir: Path, manifest: Path | None = None) -> list[Path]:
     trials, model = load_trials(run_dir)
     if all(t["outcome"] == "harness_error" for t in trials):
         sys.exit(f"No successful samples in {run_dir / 'inspect_logs'} ({len(trials)} errored)")
+    return write_analysis(trials, model, run_dir, manifest_order(_manifest(run_dir, manifest)))
+
+
+def write_analysis(trials: list[dict], model: str | None, run_dir: Path, rep_order: list) -> list[Path]:
+    """Print the headline and write run_dir/analysis/ from `trials`, however they were loaded
+    (a run's logs, a rescore, several runs combined); returns the written paths."""
     out_dir = run_dir / "analysis"
-    out_dir.mkdir(exist_ok=True)
-    rep_order = manifest_order(_manifest(run_dir, manifest))
+    out_dir.mkdir(parents=True, exist_ok=True)
     attack = [t for t in trials if not is_probe(t)]
     (out_dir / "tables.tex").write_text(latex_tables(attack, model, rep_order), encoding="utf-8")
     written = [out_dir / "tables.tex", write_summary(attack, model, run_dir, out_dir / "summary.html")]
