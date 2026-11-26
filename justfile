@@ -36,3 +36,7 @@ run-dry *args:
 analyze +run_dirs:
     {{ python }} -m eval.analyze {{ run_dirs }}
 
+# Merge runs that together cover the manifest into one run folder, re-scored: `just merge-runs runs/<out> runs/<a> runs/<b>`
+merge-runs out +run_dirs:
+    {{ python }} -m eval.merge_runs {{ out }} {{ run_dirs }}
+
