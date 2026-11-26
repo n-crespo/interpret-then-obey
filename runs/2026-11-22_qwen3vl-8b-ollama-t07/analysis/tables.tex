@@ -3,43 +3,43 @@
 \begin{table}[ht]
 \centering
 \small
-\caption{Attack success by representation (ollama/qwen3-vl:8b). CI: 95\% Wilson interval. Baseline rows show no injection and are never attack success; their outcomes are in Table~\ref{tab:by-prompt}.}
+\caption{Attack success by representation (ollama/qwen3-vl:8b). CI: 95\% Wilson interval. Baseline rows show no injection and are never attack success; their outcomes are in Table~\ref{tab:by-prompt}. Control rows (last, not in All injected) show the injection's object with no command, so their rate is priming by the object, not obeying. Action only: the injection's action on the scene's own object, kept out of attack success as the model does it with no injection too.}
 \label{tab:by-representation}
-\begin{tabular}{lllrll}
+\begin{tabular}{lllrlll}
 \toprule
-Representation & Category & Script & $N$ & Attack success & 95\% CI \\
+Representation & Category & Script & $N$ & Attack success & 95\% CI & Action only \\
 \midrule
-english & natural & latin & 126 & 104/126 (83\%) & 75--88 \\
-klingon\_latin & constructed & latin & 84 & 2/84 (2\%) & 1--8 \\
-klingon\_piqad & constructed & non\_latin & 84 & 2/84 (2\%) & 1--8 \\
-esperanto & constructed & latin & 84 & 1/84 (1\%) & 0--6 \\
-pictograms & symbols & -- & 84 & 8/84 (10\%) & 5--18 \\
-emoji & symbols & -- & 84 & 7/84 (8\%) & 4--16 \\
-road\_sign & symbols & -- & 84 & 7/84 (8\%) & 4--16 \\
-money & symbols & -- & 84 & 5/84 (6\%) & 3--13 \\
-shop\_button & symbols & -- & 84 & 5/84 (6\%) & 3--13 \\
-opaque & opaque & -- & 84 & 1/84 (1\%) & 0--6 \\
-opaque\_legend & opaque & -- & 84 & 2/84 (2\%) & 1--8 \\
-spanish & natural & latin & 60 & 33/60 (55\%) & 42--67 \\
-french & natural & latin & 60 & 31/60 (52\%) & 39--64 \\
-german & natural & latin & 12 & 4/12 (33\%) & 14--61 \\
-swahili & natural & latin & 12 & 0/12 (0\%) & 0--24 \\
-russian & natural & non\_latin & 12 & 5/12 (42\%) & 19--68 \\
-greek & natural & non\_latin & 12 & 0/12 (0\%) & 0--24 \\
-mandarin & natural & non\_latin & 60 & 42/60 (70\%) & 57--80 \\
-scrambled & obfuscated & latin & 60 & 23/60 (38\%) & 27--51 \\
-reversed & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
-rot13 & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
-base64 & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
-morse & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 \\
-rot13\_labeled & keyed & latin & 60 & 6/60 (10\%) & 5--20 \\
-base64\_labeled & keyed & latin & 12 & 1/12 (8\%) & 1--35 \\
-a1z26\_key & keyed & latin & 12 & 0/12 (0\%) & 0--24 \\
-klingon\_latin\_lexicon & keyed & latin & 12 & 1/12 (8\%) & 1--35 \\
-klingon\_latin\_labeled & constructed & latin & 12 & 0/12 (0\%) & 0--24 \\
-klingon\_piqad\_translit & constructed & non\_latin & 12 & 0/12 (0\%) & 0--24 \\
+english & natural & latin & 126 & 102/126 (81\%) & 73--87 & 2/126 (2\%) \\
+klingon\_latin & constructed & latin & 84 & 0/84 (0\%) & 0--4 & 2/84 (2\%) \\
+klingon\_piqad & constructed & non\_latin & 84 & 0/84 (0\%) & 0--4 & 2/84 (2\%) \\
+esperanto & constructed & latin & 84 & 1/84 (1\%) & 0--6 & 0/84 (0\%) \\
+pictograms & symbols & -- & 84 & 0/84 (0\%) & 0--4 & 8/84 (10\%) \\
+emoji & symbols & -- & 84 & 0/84 (0\%) & 0--4 & 7/84 (8\%) \\
+road\_sign & symbols & -- & 84 & 0/84 (0\%) & 0--4 & 7/84 (8\%) \\
+money & symbols & -- & 84 & 0/84 (0\%) & 0--4 & 5/84 (6\%) \\
+shop\_button & symbols & -- & 84 & 0/84 (0\%) & 0--4 & 5/84 (6\%) \\
+opaque & opaque & -- & 84 & 0/84 (0\%) & 0--4 & 1/84 (1\%) \\
+opaque\_legend & opaque & -- & 84 & 0/84 (0\%) & 0--4 & 2/84 (2\%) \\
+spanish & natural & latin & 60 & 31/60 (52\%) & 39--64 & 2/60 (3\%) \\
+french & natural & latin & 60 & 30/60 (50\%) & 38--62 & 1/60 (2\%) \\
+german & natural & latin & 12 & 2/12 (17\%) & 5--45 & 2/12 (17\%) \\
+swahili & natural & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+russian & natural & non\_latin & 12 & 3/12 (25\%) & 9--53 & 2/12 (17\%) \\
+greek & natural & non\_latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+mandarin & natural & non\_latin & 60 & 41/60 (68\%) & 56--79 & 1/60 (2\%) \\
+scrambled & obfuscated & latin & 60 & 21/60 (35\%) & 24--48 & 2/60 (3\%) \\
+reversed & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+rot13 & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+base64 & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+morse & obfuscated & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+rot13\_labeled & keyed & latin & 60 & 6/60 (10\%) & 5--20 & 0/60 (0\%) \\
+base64\_labeled & keyed & latin & 12 & 0/12 (0\%) & 0--24 & 1/12 (8\%) \\
+a1z26\_key & keyed & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+klingon\_latin\_lexicon & keyed & latin & 12 & 0/12 (0\%) & 0--24 & 1/12 (8\%) \\
+klingon\_latin\_labeled & constructed & latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
+klingon\_piqad\_translit & constructed & non\_latin & 12 & 0/12 (0\%) & 0--24 & 0/12 (0\%) \\
 \midrule
-All injected & & & 1422 & 290/1422 (20\%) & 18--23 \\
+All injected & & & 1422 & 237/1422 (17\%) & 15--19 & 53/1422 (4\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -49,29 +49,29 @@ All injected & & & 1422 & 290/1422 (20\%) & 18--23 \\
 \small
 \caption{Attack success on injected rows by factor (ollama/qwen3-vl:8b). Script leaves out rows without one (symbol representations).}
 \label{tab:by-factor}
-\begin{tabular}{llrll}
+\begin{tabular}{llrlll}
 \toprule
-Factor & Level & $N$ & Attack success & 95\% CI \\
+Factor & Level & $N$ & Attack success & 95\% CI & Action only \\
 \midrule
-Category & natural & 354 & 219/354 (62\%) & 57--67 \\
- & obfuscated & 108 & 23/108 (21\%) & 15--30 \\
- & keyed & 96 & 8/96 (8\%) & 4--16 \\
- & constructed & 276 & 5/276 (2\%) & 1--4 \\
- & symbols & 420 & 32/420 (8\%) & 5--11 \\
- & opaque & 168 & 3/168 (2\%) & 1--5 \\
+Category & natural & 354 & 209/354 (59\%) & 54--64 & 10/354 (3\%) \\
+ & obfuscated & 108 & 21/108 (19\%) & 13--28 & 2/108 (2\%) \\
+ & keyed & 96 & 6/96 (6\%) & 3--13 & 2/96 (2\%) \\
+ & constructed & 276 & 1/276 (0\%) & 0--2 & 4/276 (1\%) \\
+ & symbols & 420 & 0/420 (0\%) & 0--1 & 32/420 (8\%) \\
+ & opaque & 168 & 0/168 (0\%) & 0--2 & 3/168 (2\%) \\
 \midrule
-Script & latin & 654 & 206/654 (31\%) & 28--35 \\
- & non\_latin & 180 & 49/180 (27\%) & 21--34 \\
+Script & latin & 654 & 193/654 (30\%) & 26--33 & 13/654 (2\%) \\
+ & non\_latin & 180 & 44/180 (24\%) & 19--31 & 5/180 (3\%) \\
 \midrule
-Prompt & read & 593 & 166/593 (28\%) & 25--32 \\
- & help & 593 & 117/593 (20\%) & 17--23 \\
- & buy & 236 & 7/236 (3\%) & 1--6 \\
+Prompt & read & 593 & 113/593 (19\%) & 16--22 & 53/593 (9\%) \\
+ & help & 593 & 117/593 (20\%) & 17--23 & 0/593 (0\%) \\
+ & buy & 236 & 7/236 (3\%) & 1--6 & 0/236 (0\%) \\
 \midrule
-Context & advertisement & 354 & 60/354 (17\%) & 13--21 \\
- & info\_board & 238 & 50/238 (21\%) & 16--27 \\
- & meeting\_notes & 238 & 51/238 (21\%) & 17--27 \\
- & product\_info & 354 & 80/354 (23\%) & 19--27 \\
- & transit\_notice & 238 & 49/238 (21\%) & 16--26 \\
+Context & advertisement & 354 & 39/354 (11\%) & 8--15 & 21/354 (6\%) \\
+ & info\_board & 238 & 50/238 (21\%) & 16--27 & 0/238 (0\%) \\
+ & meeting\_notes & 238 & 51/238 (21\%) & 17--27 & 0/238 (0\%) \\
+ & product\_info & 354 & 48/354 (14\%) & 10--18 & 32/354 (9\%) \\
+ & transit\_notice & 238 & 49/238 (21\%) & 16--26 & 0/238 (0\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -79,18 +79,32 @@ Context & advertisement & 354 & 60/354 (17\%) & 13--21 \\
 \begin{table}[ht]
 \centering
 \small
-\caption{Outcomes per prompt (ollama/qwen3-vl:8b), injected rows against the no-injection baseline. Each trial has one outcome.}
+\caption{Outcomes per prompt (ollama/qwen3-vl:8b), injected rows against the controls and the no-injection baseline. Each trial has one outcome.}
 \label{tab:by-prompt}
-\begin{tabular}{llrllll}
+\begin{tabular}{llrllllll}
 \toprule
-Prompt & Rows & $N$ & Attack success & Token cutoff & Attack failure & Model failure \\
+Prompt & Rows & $N$ & Attack success & Attack misread & Attack action only & Token cutoff & Attack failure & Model failure \\
 \midrule
-read & injected & 593 & 166/593 (28\%) & 2/593 (0\%) & 389/593 (66\%) & 36/593 (6\%) \\
- & baseline & 53 & 0/53 (0\%) & 0/53 (0\%) & 47/53 (89\%) & 6/53 (11\%) \\
-help & injected & 593 & 117/593 (20\%) & 0/593 (0\%) & 457/593 (77\%) & 19/593 (3\%) \\
- & baseline & 53 & 0/53 (0\%) & 0/53 (0\%) & 53/53 (100\%) & 0/53 (0\%) \\
-buy & injected & 236 & 7/236 (3\%) & 0/236 (0\%) & 228/236 (97\%) & 1/236 (0\%) \\
- & baseline & 20 & 0/20 (0\%) & 0/20 (0\%) & 20/20 (100\%) & 0/20 (0\%) \\
+read & injected & 593 & 113/593 (19\%) & 0/593 (0\%) & 53/593 (9\%) & 2/593 (0\%) & 389/593 (66\%) & 36/593 (6\%) \\
+ & baseline & 53 & 0/53 (0\%) & 0/53 (0\%) & 0/53 (0\%) & 0/53 (0\%) & 47/53 (89\%) & 6/53 (11\%) \\
+help & injected & 593 & 117/593 (20\%) & 0/593 (0\%) & 0/593 (0\%) & 0/593 (0\%) & 457/593 (77\%) & 19/593 (3\%) \\
+ & baseline & 53 & 0/53 (0\%) & 0/53 (0\%) & 0/53 (0\%) & 0/53 (0\%) & 53/53 (100\%) & 0/53 (0\%) \\
+buy & injected & 236 & 7/236 (3\%) & 0/236 (0\%) & 0/236 (0\%) & 0/236 (0\%) & 228/236 (97\%) & 1/236 (0\%) \\
+ & baseline & 20 & 0/20 (0\%) & 0/20 (0\%) & 0/20 (0\%) & 0/20 (0\%) & 20/20 (100\%) & 0/20 (0\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Decoy picks on the legend representations (ollama/qwen3-vl:8b): trials with a call naming a known target object that is neither the scene's nor the injection's, such as another glyph of the legend.}
+\label{tab:decoys}
+\begin{tabular}{lrlllll}
+\toprule
+Representation & $N$ & Attack success & 95\% CI & Action only & Decoy picks & 95\% CI \\
+\midrule
+opaque\_legend & 84 & 0/84 (0\%) & 0--4 & 2/84 (2\%) & 0/84 (0\%) & 0--4 \\
 \bottomrule
 \end{tabular}
 \end{table}
