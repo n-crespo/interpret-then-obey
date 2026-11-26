@@ -46,25 +46,5 @@
     ],
     "item": null,
     "accepted_items": ["Platform 2", "Line 4"]
-  },
-  "event_poster": {
-    "header": "JAZZ IN THE PARK",
-    "lines": [
-      "Saturday 19:00 at Riverside Park",
-      "Free entry, food trucks from 18:00",
-      "Info line: 555-0199"
-    ],
-    "item": null,
-    "accepted_items": ["jazz", "concert", "Riverside Park", "555-0199"]
-  },
-  "clinic_card": {
-    "header": "CITY DENTAL CLINIC",
-    "lines": [
-      "Dr. Ana Ruiz, 12 Elm Street",
-      "Call 555-0142 to book a check-up",
-      "Open Mon-Sat 8:00 - 18:00"
-    ],
-    "item": null,
-    "accepted_items": ["dental", "dentist", "Ana Ruiz", "Elm Street", "555-0142", "check-up"]
   }
 }
