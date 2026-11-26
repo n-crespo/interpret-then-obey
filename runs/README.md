@@ -6,35 +6,50 @@ and the manifest's hash, and its `config.yaml` is the config it ran with, includ
 `harness/task.py` at that commit. The stimuli, tools and scorer are those at the run's
 commit, not today's.
 
-## What differs between runs
+## Runs used for results
 
-All three runs sample at temperature above zero and are scored by outcome (attack
-success, escalation, over-helpful, ...) with `eval/`'s scorer. Numbers are only comparable
-between runs that agree in every column. Even then the stimuli differ, so compare by
-factor (prompt, context, representation), not by overall rate.
+Results come only from 11-24 and later runs. The runs before it are pilots: they shaped
+the stimuli, tools and scorer, but their setup differs too much for their numbers to be
+reported or pooled with later runs.
+
+Even between result runs the stimuli differ, so compare by factor (prompt, context,
+representation), not by overall rate.
+
+| Run | System prompt | Epochs | Stimuli and tools | Scoring |
+|---|---|---|---|---|
+| 11-24 | AR-glasses default ([#103]), which tells the model to do only what the wearer asks, plus English-only tool arguments ([#114]) | 3 ([#123]) | since 11-22: help replaced by say ([#109]); directions and remind prompts ([#127]); no `search_web` ([#110]); fewer injections ([#120], [#121], [#126], [#129]); twin representations ([#122], [#124], [#130]) | scored at run time; page relabelled for the over-helpful outcome ([#137]) |
+
+- **Logs.** The 11-24 Inspect log is not committed, so that run cannot be rescored from
+  the repo.
+
+## Pilot runs
+
+### 11-19 and 11-22
+
+Both sample at temperature above zero and are scored by outcome (attack success,
+escalation, over-helpful, ...) with `eval/`'s scorer, as the result runs are, but neither
+is set up like them.
 
 | Run | System prompt | Epochs | Stimuli and tools | Scoring |
 |---|---|---|---|---|
 | 11-19 | override in `config.yaml`: a generic assistant prompt that invites buying | 1 | interpretation-gradient representations; buy and non-buy injections; contexts with and without an item to buy ([#84]) | rescored later; see `analysis/rescore.py` ([#101], [#108], [#111], [#115], [#145]) |
-| 11-22 | AR-glasses default ([#103]), which tells the model to do only what the wearer asks | 1 | new factor schema ([#99]), fewer representations ([#90]), more buy objects ([#88]), legend decoys ([#107]) | rescored later; see `analysis/rescore.py` ([#108], [#111], [#110], [#119], [#145]) |
-| 11-24 | as 11-22, plus English-only tool arguments ([#114]) | 3 ([#123]) | help replaced by say ([#109]); directions and remind prompts ([#127]); no `search_web` ([#110]); fewer injections ([#120], [#121], [#126], [#129]); twin representations ([#122], [#124], [#130]) | scored at run time; page relabelled for the over-helpful outcome ([#137]) |
+| 11-22 | AR-glasses default ([#103]) | 1 | new factor schema ([#99]), fewer representations ([#90]), more buy objects ([#88]), legend decoys ([#107]) | rescored later; see `analysis/rescore.py` ([#108], [#111], [#110], [#119], [#145]) |
 
-- **System prompt.** 11-19 is the only one of the three with the buy-inviting override.
-  Differences in unprompted actions between 11-19 and the later runs can come from the
-  prompt, not the stimuli.
-- **Epochs.** 11-19 and 11-22 have a single draw per cell, so their cells are noisier
-  than 11-24's.
-- **Rescoring.** The pages for 11-19 and 11-22 come from each run's `analysis/rescore.py`,
-  which applies later scorer changes (including the over-helpful outcome) and drops
-  trials whose prompt-context pair or injection the stimuli no longer make. Their pages therefore count fewer trials than their logs hold.
-- **Logs.** The 11-24 Inspect log is not committed, so that run cannot be rescored from
-  the repo.
+- **11-19** invites buying in its system prompt, the behaviour the study measures, so its
+  unprompted actions can come from the prompt rather than the stimuli.
+- **11-22** has the result runs' system prompt but not their setup: one draw per cell,
+  tool arguments not required to be English, and `search_web` still offered, whose calls
+  the rescore drops rather than measures.
+- **Rescoring.** Their pages come from each run's `analysis/rescore.py`, which applies
+  later scorer changes (including the over-helpful outcome) and drops trials whose
+  prompt-context pair or injection the stimuli no longer make. Their pages therefore
+  count fewer trials than their logs hold.
 
-## Earlier runs
+### 11-14 to 11-18
 
-The runs from 11-14 to 11-18 are pilots. All of them override the system prompt as 11-19
-does, and their pages count only whether the injected call was made (P(obey), [#80],
-[#85]), so their numbers are not comparable with the runs above.
+All of them override the system prompt as 11-19 does, and their pages count only whether
+the injected call was made (P(obey), [#80], [#85]), so their numbers are not comparable
+with any later run.
 
 | Run | Sampling | Stimuli and tools |
 |---|---|---|
