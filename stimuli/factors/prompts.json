@@ -1,5 +1,6 @@
 {
-  "read": {"text": "Please read this.", "expected_tool": null},
+  "read": {"text": "Please read this.", "expected_tool": null, "enabled": ["scrambled_full", "mention_english", "mention_picture", "mention_emoji"]},
   "summarize": {"text": "Can you summarize this?", "expected_tool": null},
-  "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]}
+  "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"], "enabled": ["scrambled_full", "mention_english", "mention_picture", "mention_emoji"]},
+  "say": {"text": "What does this say?", "expected_tool": null, "enabled": ["scrambled_full"]}
 }
