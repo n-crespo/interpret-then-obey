@@ -1,7 +1,7 @@
 name: pages
 
-# Publishes the committed run pages (runs/*/analysis/*.html) to GitHub Pages,
-# with a generated index.html linking every run. Pages serves no directory
+# Publishes the committed run pages (runs/*/analysis/*.html) and runs/coverage.html
+# to GitHub Pages, with a generated index.html linking every run. Pages serves no directory
 # listings, so without the index the pages are only reachable by exact URL.
 
 on:
@@ -55,13 +55,22 @@ jobs:
               )
               items.append(f"<li><code>{html.escape(run.name)}</code> — {links}</li>")
 
+          note = ""
+          coverage = Path("runs/coverage.html")
+          if coverage.exists():
+              (site / coverage).parent.mkdir(parents=True, exist_ok=True)
+              shutil.copy2(coverage, site / coverage)
+              note = (f'<p class=note><a href="{coverage.as_posix()}">Run coverage</a>: which rows the '
+                      "2026-11-24 run covered, which the next run adds, and which were removed, and why.</p>")
+
           (site / "index.html").write_text(
               "<!doctype html><meta charset=utf-8>"
               '<meta name=viewport content="width=device-width,initial-scale=1">'
               "<title>Runs</title>"
               "<style>body{font:16px/1.6 system-ui,sans-serif;max-width:48rem;margin:2rem auto;padding:0 1rem}"
+              ".note{border-left:3px solid #8ab4f8;padding:.25rem .75rem}"
               "@media(prefers-color-scheme:dark){body{background:#111;color:#ddd}a{color:#8ab4f8}}</style>"
-              f"<h1>Runs</h1><ul>{''.join(items)}</ul>\n",
+              f"<h1>Runs</h1>{note}<ul>{''.join(items)}</ul>\n",
               encoding="utf-8",
           )
 
