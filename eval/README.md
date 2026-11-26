@@ -11,3 +11,7 @@ and never ask for a tool, so they are left out of attack success. `interpretatio
 their replies for whether the model recovered the payload; `just analyze` prints it and
 writes `interpretation.tex`, or run `python -m eval.interpretation runs/<dir>`. It reads
 the full replies from `runs/<dir>/inspect_logs/`, which summary.html cuts short.
+
+`python -m eval.combine runs/<out> runs/<a> runs/<b> [...]` analyses several runs as one
+dataset and writes `runs/<out>/analysis/`. It takes each run's re-scored trials where its
+`analysis/rescore.py` provides them; see `combine.py`.

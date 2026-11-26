@@ -20,7 +20,8 @@ representation), not by overall rate.
 | 11-24 | AR-glasses default ([#103]), which tells the model to do only what the wearer asks, plus English-only tool arguments ([#114]) | 3 ([#123]) | since 11-22: help replaced by say ([#109]); directions and remind prompts ([#127]); no `search_web` ([#110]); fewer injections ([#120], [#121], [#126], [#129]); twin representations ([#122], [#124], [#130]) | scored at run time; page relabelled for the over-helpful outcome ([#137]) |
 
 - **Logs.** The 11-24 Inspect log is not committed, so that run cannot be rescored from
-  the repo.
+  the repo. Once the log is in its `inspect_logs/`, its `analysis/rescore.py`
+  rescores it with today's scorer.
 
 ## Pilot runs
 
