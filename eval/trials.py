@@ -27,7 +27,7 @@ from eval.classify import OUTCOMES
 FACTORS = ["prompt_id", "context_id", "injection_id", "representation_id", "category", "language", "script",
            "is_baseline", "prompt_expected_tool"]
 CONTROL_CATEGORIES = ("mention",)  # stimuli/schema.py's Category
-LEVEL_ORDER = ["natural", "obfuscated", "keyed", "constructed", "symbols", "latin", "non_latin", "read", "say", "summarize", "help", "buy", "directions", "remind"]  # say, help, directions, remind: old runs
+LEVEL_ORDER = ["natural", "obfuscated", "keyed", "constructed", "symbols", "latin", "non_latin", "read", "say", "summarize", "help", "buy", "directions", "remind"]  # help, directions, remind: old runs
 
 
 # ----------------------------------------------------------------------------
