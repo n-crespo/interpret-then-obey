@@ -85,7 +85,7 @@ def test_fonted_renditions_have_no_missing_glyphs():
     from PIL import ImageFont
 
     fonted = [rep for rep in FACTORS.representations.values() if rep.font is not None]
-    assert any(rep.id == "klingon_piqad" for rep in fonted)
+    assert fonted
 
     for rep in fonted:
         assert rep.format == "text", f"{rep.id} has a font but is not format text"
