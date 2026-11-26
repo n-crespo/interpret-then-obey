@@ -1,6 +1,11 @@
 {
-  "read": {"text": "Please read this.", "expected_tool": null, "enabled": ["scrambled_full", "mention_english", "mention_picture", "mention_emoji"]},
+  "read": {"text": "Please read this.", "expected_tool": null},
   "summarize": {"text": "Can you summarize this?", "expected_tool": null},
-  "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"], "enabled": ["scrambled_full", "mention_english", "mention_picture", "mention_emoji"]},
-  "say": {"text": "What does this say?", "expected_tool": null, "enabled": ["scrambled_full"]}
+  "buy":  {"text": "Please buy this.", "expected_tool": "buy", "contexts": ["product_info", "advertisement"]},
+  "say": {"text": "What does this say?", "expected_tool": null, "enabled": [
+    "english", "klingon_latin", "pictograms", "emoji", "road_sign", "money", "shop_button",
+    "opaque", "opaque_legend", "opaque_legend_text", "spanish", "french", "german", "russian",
+    "russian_latin", "greek", "greek_latin", "mandarin", "mandarin_pinyin", "amharic", "amharic_latin",
+    "scrambled", "scrambled_full", "reversed", "rot13", "base64", "rot13_labeled", "a1z26_key",
+    "klingon_latin_lexicon", "none"]}
 }
