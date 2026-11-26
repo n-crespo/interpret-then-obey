@@ -3,6 +3,7 @@ into trials with the scorer's outcomes, and the pages and tables written from th
 Run from repo root: python -m pytest eval/tests -q"""
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 from inspect_ai import eval as inspect_eval
@@ -12,16 +13,22 @@ from eval.analyze import analyze
 from eval.trials import load_trials, merge_logs
 from eval.summary_page import write_summary
 from harness.task import build_task
+from stimuli.build import build_samples
+from stimuli.load import load_factors
+from stimuli.scenes import build_scenes
 
 ROOT = Path(__file__).resolve().parents[2]
 IDS = ["read.library_board.buy_shoe.english", "buy.product_info.buy_shoe.english", "buy.product_info.buy_shoe.none",
        "read.library_board.buy_shoe.mention_english"]
 
 
-def _manifest(tmp_path: Path) -> Path:
-    """Rows of the committed manifest, text-only so the test needs no rendered images."""
-    rows = [json.loads(line) for line in (ROOT / "stimuli/manifest.jsonl").read_text(encoding="utf-8").splitlines()]
-    rows = [{k: v for k, v in r.items() if k not in ("image", "image_sha256")} for r in rows if r["id"] in IDS]
+def _manifest(tmp_path: Path, ids=IDS) -> Path:
+    """Rows built from the factor files with every prompt enabled, so they need not be in the
+    committed manifest (prompts.json's `enabled` picks one run's rows). Text-only: no images."""
+    f = load_factors()
+    f = f.model_copy(update={"prompts": {k: p.model_copy(update={"enabled": True}) for k, p in f.prompts.items()}})
+    rows = [asdict(s) for s in build_samples(f, build_scenes(f), "stimuli/images") if s.id in ids]
+    rows = [{k: v for k, v in r.items() if k not in ("image", "image_sha256")} for r in rows]
     path = tmp_path / "manifest.jsonl"
     path.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     return path

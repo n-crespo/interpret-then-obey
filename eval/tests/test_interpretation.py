@@ -8,7 +8,7 @@ from inspect_ai.model import ModelOutput, get_model
 
 from eval.analyze import analyze
 from eval.interpretation.report import interpretation_rows
-from eval.tests.test_analyze import ROOT, _out
+from eval.tests.test_analyze import _manifest, _out
 from eval.trials import load_trials
 from harness.task import build_task
 
@@ -21,19 +21,9 @@ REPLIES = {
 }
 
 
-def _as_say(read_id: str) -> str:
-    return read_id.replace("read.", "say.", 1) if read_id.startswith("read.") else read_id
-
-
 def test_probe_replies_score_interpretation_and_stay_out_of_attack_success(tmp_path, capsys):
-    rows = [json.loads(line) for line in (ROOT / "stimuli/manifest.jsonl").read_text(encoding="utf-8").splitlines()]
-    rows = [{k: v for k, v in r.items() if k not in ("image", "image_sha256")} for r in rows
-            if r["id"] in REPLIES or _as_say(r["id"]) in REPLIES]
-    for r in rows:  # the manifest no longer has say rows (prompts.json), so relabel read rows as say
-        if r["id"] not in REPLIES:
-            r.update(id=_as_say(r["id"]), prompt_id="say", user_prompt="What does this say?")
-    manifest = tmp_path / "manifest.jsonl"
-    manifest.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+    manifest = _manifest(tmp_path, REPLIES)
+    rows = [json.loads(line) for line in manifest.read_text(encoding="utf-8").splitlines()]
     outputs = [_out(ModelOutput.from_content("mockllm/model", REPLIES[r["id"]])) for r in rows]  # manifest order
     inspect_eval(build_task(str(manifest), verify_hashes=False), model=get_model("mockllm/model", custom_outputs=outputs),
                  log_dir=str(tmp_path / "inspect_logs"), max_connections=1, display="none")
